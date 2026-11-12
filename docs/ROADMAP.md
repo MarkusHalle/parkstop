@@ -46,12 +46,12 @@ Exit: data files pass the validation script; O1 closed in DECISIONS.md; user has
 
 | # | Task | SPEC | Model · effort | Agents | Est. | Actual | Status |
 |---|---|---|---|---|---|---|---|
-| 2.1 | App shell, layout (phone bottom sheet / PC side panel), theme tokens, `hu.ts` | 8, 9 | Sonnet · medium | implementer | 30 min · 8 % | | ☐ |
-| 2.2 | Map, pin, geolocation, address search and reverse lookup | 4.1 | Sonnet · medium | implementer | 30 min · 8 % | | ☐ |
-| 2.3 | Authority resolver (pure) + unit tests against the 30 test points. Inputs from M1: `budapest` outline + Margit-sziget rule, `districtActsOn` sections (VI, VII), confidence lowered when `partial && (!cutApplied \|\| cutApprox)`. To decide with the owner: the 1.5 reviewer's distance band — the 15 m snap catches ~4 % of residential street length at junctions, so beyond ~8 m keep FÖRI but lower confidence and name the district body | 4.2 | Opus · medium | implementer, sceptic (Fable · high) | 30 min · 10 % | | ☐ |
-| 2.4 | Authority result card with alternatives and manual override | 4.2 | Sonnet · medium | implementer | 20 min · 5 % | | ☐ |
-| 2.5 | Report form and validation | 4.3 | Sonnet · medium | implementer | 20 min · 5 % | | ☐ |
-| 2.6 | Mail module: template, `mailto:` with length fallback, photo download and reduced clipboard copy, copy buttons + unit tests; check on the owner's phone that saved photos appear in Gmail's attach dialog (D15) | 4.5 | Opus · medium | implementer, reviewer | 40 min · 12 % | | ☐ |
+| 2.1 | App shell, layout (phone bottom sheet / PC side panel), theme tokens, `hu.ts` | 8, 9 | Sonnet · medium | implementer | 30 min · 8 % | ~12 min solo (Opus): `hu.ts` (all M2 strings), theme tokens light/dark, bundled fonts (D26), phone sheet / PC panel shell, step history for the back button, contracts for 2.2/2.3/2.6 | ☑ |
+| 2.2 | Map, pin, geolocation, address search and reverse lookup | 4.1 | Sonnet · medium | implementer | 30 min · 8 % | Sonnet implementer ~4 min (101k agent tokens) + main-session fixes: MapLibre worker (D27), Hungarian map labels, phone padding/attribution. Hosts checked: only tiles.openfreemap.org and nominatim.openstreetmap.org | ☑ |
+| 2.3 | Authority resolver (pure) + unit tests against the 30 test points. Inputs from M1: `budapest` outline + Margit-sziget rule, `districtActsOn` sections (VI, VII), confidence lowered when `partial && (!cutApplied \|\| cutApprox)`. To decide with the owner: the 1.5 reviewer's distance band — the 15 m snap catches ~4 % of residential street length at junctions, so beyond ~8 m keep FÖRI but lower confidence and name the district body | 4.2 | Opus · medium | implementer, sceptic (Fable · high) | 30 min · 10 % | Opus implementer ~4.5 min (112k): all 30 owner points pass, ~0.2 ms per resolve; band and border neighbour per D24/D25. Fable sceptic ~15 min (192k): 1 High (slivers between district polygons resolved as Margit-sziget), 2 Medium (same street listed under two districts; tunnel treated as surface road), 5 Low — all fixed by the main session (~5 min, D30), 6 regression tests added | ☑ |
+| 2.4 | Authority result card with alternatives and manual override | 4.2 | Sonnet · medium | implementer | 20 min · 5 % | ~6 min solo (Opus), in `src/app/AuthorityCard.tsx` (D26) | ☑ |
+| 2.5 | Report form and validation | 4.3 | Sonnet · medium | implementer | 20 min · 5 % | ~6 min solo (Opus), `src/report/` + 14 unit tests (plate format, validation) | ☑ |
+| 2.6 | Mail module: template, `mailto:` with length fallback, photo download and reduced clipboard copy, copy buttons + unit tests; check on the owner's phone that saved photos appear in Gmail's attach dialog (D15) | 4.5 | Opus · medium | implementer, reviewer | 40 min · 12 % | Opus implementer ~3.5 min (102k) + Opus reviewer ~4 min (123k): no High; fixes applied (per-photo failure, honest save message, clipboard gesture, focus, lone surrogates, 1.5 MB target). Limit 4 000 (D29). M2 so far in total: ~25 min, ~20 % of the 5-hour window | ☑ |
 
 Tasks 2.2, 2.3 and 2.6 touch separate folders and can run in parallel after 2.1.
 
@@ -61,7 +61,7 @@ Exit: a full report can be made end to end on PC and phone with one photo.
 
 | # | Task | SPEC | Model · effort | Agents | Est. | Actual | Status |
 |---|---|---|---|---|---|---|---|
-| 3.1 | Photo EXIF: fill place and time | 4.4 | Sonnet · medium | implementer | 20 min · 5 % | | ☐ |
+| 3.1 | Photo EXIF: fill place and time | 4.4 | Sonnet · medium | implementer | 20 min · 5 % | Pulled into the M2 session at the owner's request, ~10 min solo (Opus), ~4 % with the foldable sheet. Position part dropped after the owner's phone test: Android removes GPS from photos a browser receives (D33, D34). What remains: the capture time fills Időpont („a fotóból”) | ☑ |
 | 3.2 | Several photos, downscaling, size budget | 4.4 | Sonnet · medium | implementer | 20 min · 5 % | | ☐ |
 | 3.3 | History in IndexedDB, list, duplicate, delete, export | 4.7 | Sonnet · medium | implementer | 30 min · 7 % | | ☐ |
 | 3.4 | Settings: reporter details, address-lookup switch, plate-reader switch | 4.6, 4.9 | Sonnet · low | implementer | 15 min · 3 % | | ☐ |
@@ -104,3 +104,5 @@ Exit: a full report can be made end to end on PC and phone with one photo.
 | 2026-11-12 | Spike S1 done (D14). Phone uses the complete `mailto:` draft plus manual photo attachment, no share sheet (D15); task 2.6 adjusted. |
 | 2026-11-12 | Spike S3 done: plate reader passes its gate and stays in v1 as opt-in (D16, D17, D19). **M0 complete.** M1 workflow ready, waiting for the owner (D18). |
 | 2026-11-12 | **M1 complete.** Data files pass `validate:data`; O1 closed (D20); owner read the e-mail templates and confirmed the 30 test points. Decisions D20–D23; new open points O7, O8. |
+| 2026-11-12 | **M2 complete.** Owner made a full report end to end on PC and phone with one photo; saved photos appear in Gmail's attach dialog (D15). Whole M2: ~35 min wall-clock, ~25 % of the 5-hour window (39 % → ~64 %), 5 agents (~630k agent tokens). Decisions D24–D31; witness sentence removed from both e-mails (D31). |
+| 2026-11-12 | Photo position dropped (D34): Android strips GPS from photos given to a browser. 3.1 reduced to the capture time. SPEC 0.7. |

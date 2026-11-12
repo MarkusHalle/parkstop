@@ -1,6 +1,6 @@
 # ParkStop — Product Specification
 
-Version 0.4 · 2026-11-12 · M1: legal basis settled (O1), resolver rules for capital roads and Margit-sziget, final offence list and e-mail templates
+Version 0.7 · 2026-11-12 · M2: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed from both templates (7, D31), photo position not used (3, 4.4, 11; D34)
 
 ParkStop helps a person in Budapest report an illegally parked car: mark the spot on a map,
 see which authority is responsible, add photos, and get a ready-to-send Hungarian e-mail.
@@ -41,7 +41,7 @@ tracked lives in [docs/ROADMAP.md](docs/ROADMAP.md); who builds it and with whic
 
 ## 3. Core flow
 
-1. **Hol? (Where)** — the user drops or drags a pin on the map, taps "Saját helyzetem", searches an address, or adds a photo whose stored GPS position places the pin.
+1. **Hol? (Where)** — the user drops or drags a pin on the map, taps "Saját helyzetem", or searches an address. A photo does not place the pin (D34).
 2. **Ki az illetékes? (Who is responsible)** — the app shows the responsible authority, the reason in one sentence, how sure it is, an alternative recipient, and when the data was last verified.
 3. **Mi történt? (What happened)** — the user adds 1–5 photos; the app suggests the number plate it read from the photo and the user confirms or corrects it; then the type of offence, the time, an optional note.
 4. **E-mail** — the app shows the finished Hungarian e-mail, saves the reduced photos, and opens the user's mail app with recipient, subject and text filled in; the user attaches the photos and sends.
@@ -63,10 +63,10 @@ Deterministic resolver, pure function, fully unit-tested. Input: coordinates. Ou
 
 1. Not inside the Budapest outline → `outside` result.
 2. District = point-in-polygon against the bundled district boundaries. A point inside the Budapest outline but in no district (Margit-sziget and the Danube channels around it, which the capital administers directly — Mötv. 22. § (4)) → primary **FÖRI**, confidence `valószínű`.
-3. If the pin is within the snap distance (default 15 m) of a **capital-managed road** (roads listed in the annexes of Government Decree 432/2012 (XII. 29.)) → primary is **FÖRI**, unless the pin's road section is on the district's `districtActsOn` list (in v1: the sections the VI and VII agreements hand to the district body, which since 2021 includes KRESZ enforcement). Three listed entries cover only part of their decree row (VI Király utca even side, VI Nyugati tér street level, VII Erzsébet körút Dohány utca – Rákóczi út): there FÖRI stays primary, the district body is the first alternative and confidence is `bizonytalan`. The district agreements checked in M1 leave parking enforcement on capital roads with FÖRI everywhere else (DECISIONS D21).
+3. If the pin is within the snap distance (15 m) of a **capital-managed road** (roads listed in the annexes of Government Decree 432/2012 (XII. 29.)) → primary is **FÖRI**, unless the pin's road section is on the district's `districtActsOn` list (in v1: the sections the VI and VII agreements hand to the district body, which since 2021 includes KRESZ enforcement). Three listed entries cover only part of their decree row (VI Király utca even side, VI Nyugati tér street level, VII Erzsébet körút Dohány utca – Rákóczi út): there FÖRI stays primary, the district body is the first alternative and confidence is `bizonytalan`. The district agreements checked in M1 leave parking enforcement on capital roads with FÖRI everywhere else (DECISIONS D21). Distance band (owner, D24): when the nearest capital road is more than 8 m but at most 15 m away, FÖRI stays primary but confidence is `bizonytalan` and the card says a side-street car belongs to the district body (the first alternative). When several capital roads are equally near (within 1 m of the nearest), FÖRI wins if any of them is not on the `districtActsOn` list.
 4. Otherwise → the district's own public-space enforcement body (közterület-felügyelet / önkormányzati rendészet). If the district has none → FÖRI. (In M1 all 23 districts have one.)
-5. Always list the district police station as an alternative, and FÖRI or the district body as the other alternative.
-6. Confidence is `biztos` (clear district street), `valószínű` (capital road, Margit-sziget, or within 30 m of a district border), or `bizonytalan` (capital-road section whose ends could not be placed on the map, square/park, data older than 12 months).
+5. Always list the district police station as an alternative, and FÖRI or the district body as the other alternative. Within 30 m of a border with another district, that district's body is listed too (owner, D25).
+6. Confidence is `biztos` (clear district street), `valószínű` (capital road within 8 m, Margit-sziget, or within 30 m of a district border), or `bizonytalan` (capital road 8–15 m away, capital-road section whose ends could not be placed on the map, square/park, data older than 12 months). The lowest applicable level wins.
 7. The user can always switch to any alternative, or type a different address by hand.
 
 The result card shows: name of the authority, one-sentence reason, confidence, e-mail address, phone, link to the official source, "utoljára ellenőrizve" date. When the car may still be there, the card suggests phoning the body's (dispatcher) number as the faster route; a patrol can only act while the car is on the spot. Where a body asks for reports by phone (X. district), the phone is shown first.
@@ -99,7 +99,7 @@ and the keeper's strict liability does not cover stopping or waiting (Kkt. 21. �
 
 ### 4.4 Photos (F-PHOTO)
 
-- F-PHOTO-1 Reads EXIF GPS position and capture time on the device (library: `exifr`). If found, offers "Hely és idő kitöltése a fotóból"; the first photo with GPS auto-places the pin when no pin exists yet.
+- F-PHOTO-1 Reads the capture time from EXIF on the device (library: `exifr`) and fills "Időpont" with it unless the user has changed the time. The GPS position is not used: Android removes it from photos a browser receives, from the gallery and the file manager alike (owner's test, D33/D34).
 - F-PHOTO-2 Each photo is downscaled for the e-mail (long edge max 2000 px, JPEG ~85 %, target ≤ 1.5 MB each) so the whole message stays under 10 MB. The original file is never modified.
 - F-PHOTO-3 Files the browser cannot decode (HEIC on some devices, camera RAW such as .cr2 — met in the owner's test) are left out with a clear message asking for a JPEG; the other photos carry on.
 - F-PHOTO-4 Photos are stored only in the device's IndexedDB as part of the report.
@@ -113,7 +113,7 @@ The message is built from a template (section 7) — recipient, subject, body, a
 | Phone (Android, iPhone) | Two numbered steps on one screen: **1. "Fotók mentése"** saves the reduced photos to the phone; **2. "Megnyitás levelezőben"** — `mailto:` with recipient, subject and body. The user then attaches the saved photos in the mail app (paperclip). | The "Másolás" buttons for every part |
 | PC | **"Megnyitás levelezőben"** — `mailto:` with recipient, subject, body. Photos: **"Fotók letöltése"** (the downscaled JPEGs, to attach or drag into the draft) is the main way; "Fotó másolása" (one photo to the clipboard, to paste into the draft) is a shortcut. | The "Másolás" buttons for every part |
 
-- F-MAIL-1 If the encoded `mailto:` link would exceed 1 800 characters, only recipient and subject go into the link and the body is copied to the clipboard, with a notice.
+- F-MAIL-1 If the encoded `mailto:` link would exceed 4 000 characters (raised from 1 800, D29), only recipient and subject go into the link and the body is copied to the clipboard, with a notice.
 - F-MAIL-2 "Fotó másolása" copies a reduced image (long edge at most 1 280 px). Browsers can only put PNG on the clipboard, and a full-size PNG is several times larger than the JPEG (7.4 MB against 1 MB in the owner's test), which would hit webmail size limits.
 - F-MAIL-3 After hand-off the report is marked "Átadva a levelezőnek" with a timestamp. The app cannot know whether it was really sent and must not claim it.
 
@@ -228,7 +228,6 @@ Megjegyzés:      <szabad szöveg, ha van>
 
 A helyszínen készített <n> fényképet mellékelem. Kérem az ügy kivizsgálását és a
 szükséges intézkedés megtételét, valamint tájékoztatást az eljárás menetéről.
-Szükség esetén tanúként rendelkezésre állok.
 
 Tisztelettel:
 <név>
@@ -251,7 +250,7 @@ az alábbi helyen szabálytalanul várakozó járművet észleltem:
 
 A helyszínen készített <n> fényképet bizonyítékként mellékelem. Kérem az ügy
 kivizsgálását és a szükséges intézkedés megtételét, valamint tájékoztatást az eljárás
-menetéről. Tanúként rendelkezésre állok.
+menetéről.
 
 Tisztelettel:
 <név>
@@ -328,7 +327,7 @@ address and the photo is analysed locally. An "Adatkezelés" screen states this 
 2. All 23 districts plus FÖRI have a record with a verified source; no invented address ships.
 3. On the owner's phone (Gmail app): "Megnyitás levelezőben" opens a draft with recipient, subject and body filled in, and the photos saved by "Fotók mentése" can be picked from Gmail's attach dialog.
 4. On the PC: `mailto:` opens a filled draft with correct Hungarian letters in the owner's webmail (Proton Mail, Gmail); the downloaded photos can be attached and a copied photo can be pasted into the draft.
-5. A photo with GPS data places the pin within 20 m of the stored position and fills the time.
+5. A photo with a capture time fills "Időpont" (the position comes from the map, search or "Saját helyzetem", D34).
 6. With the network off, the app opens, the form works, history is readable.
 7. No request to any host other than the two in section 10 (checked in the end-to-end test).
 8. The only ML dependency in `package.json` is `onnxruntime-web`, used only in `src/plate/`; no AI API or SDK of any kind (checked in CI).

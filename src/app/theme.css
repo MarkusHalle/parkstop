@@ -1,0 +1,94 @@
+/* Design tokens from the approved mockups (design canvas, roadmap 0.2). Light and dark
+   follow the system (SPEC 9). Fonts are bundled (no third-party font host, SPEC 10). */
+@import '@fontsource-variable/inter';
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
+
+:root {
+  color-scheme: light;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-head: 'Space Grotesk', 'Inter Variable', system-ui, sans-serif;
+
+  --c-primary: #1849a9;
+  --c-primary-hover: #123a87;
+  --c-on-primary: #ffffff;
+  --c-text: #101828;
+  --c-text-strong: #1d2939;
+  --c-text-muted: #4a5567;
+  --c-icon: #344054;
+  --c-surface: #ffffff;
+  --c-bg: #f3f5f8;
+  --c-map-bg: #e9edf2;
+  --c-border: #d9dee7;
+  --c-border-soft: #e4e8ef;
+  --c-border-input: #aeb7c6;
+  --c-border-dashed: #8a96ab;
+  --c-outline-btn: #b9c7e6;
+  --c-handle: #c4cbd7;
+  --c-thumb: #c9d2e0;
+  --c-info-bg: #e8eefb;
+  --c-info-fg: #173b80;
+  --c-ok-bg: #e3f4ea;
+  --c-ok-fg: #17603a;
+  --c-ok-solid: #17603a;
+  --c-warn-bg: #fff1d6;
+  --c-warn-fg: #7a4b00;
+  --c-warn-border: #e8a013;
+  --c-error-bg: #fdecea;
+  --c-error-fg: #b42318;
+  --c-pin: #d92d20;
+  --c-capital-road: #f0b33a;
+  --c-hint-bg: #101828;
+  --c-hint-fg: #ffffff;
+
+  --shadow-1: 0 2px 8px rgba(16, 24, 40, 0.08);
+  --shadow-2: 0 4px 16px rgba(16, 24, 40, 0.24);
+  --shadow-sheet: 0 -6px 24px rgba(16, 24, 40, 0.12);
+  --radius-s: 10px;
+  --radius-m: 12px;
+  --radius-l: 14px;
+  --radius-xl: 20px;
+  --tap: 44px;
+  --btn-h: 52px;
+  --panel-w: 400px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --c-primary: #8fb2f5;
+    --c-primary-hover: #b3cbfa;
+    --c-on-primary: #0b1a3a;
+    --c-text: #eef1f6;
+    --c-text-strong: #dfe4ec;
+    --c-text-muted: #a7b0bf;
+    --c-icon: #c9d0dc;
+    --c-surface: #182030;
+    --c-bg: #0f1520;
+    --c-map-bg: #1a2230;
+    --c-border: #2e384a;
+    --c-border-soft: #283244;
+    --c-border-input: #4a5568;
+    --c-border-dashed: #6b778c;
+    --c-outline-btn: #3d5487;
+    --c-handle: #46516a;
+    --c-thumb: #2f3a4e;
+    --c-info-bg: #1b2b4d;
+    --c-info-fg: #c6d7fb;
+    --c-ok-bg: #143323;
+    --c-ok-fg: #9ee0b8;
+    --c-ok-solid: #2e8b57;
+    --c-warn-bg: #3a2a0a;
+    --c-warn-fg: #ffd58a;
+    --c-warn-border: #c98a12;
+    --c-error-bg: #3d1714;
+    --c-error-fg: #ffb4ab;
+    --c-pin: #f04438;
+    --c-capital-road: #f0b33a;
+    --c-hint-bg: #eef1f6;
+    --c-hint-fg: #101828;
+    --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-sheet: 0 -6px 24px rgba(0, 0, 0, 0.45);
+  }
+}

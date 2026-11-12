@@ -186,6 +186,7 @@
       "emailNote": "a polgármesteri hivatal általános címe; a felügyelet a lakossági bejelentéseket telefonon kéri",
       "phone": "+36 30 606 4712",
       "phoneNote": "0–24 órás diszpécser",
+      "prefersPhone": true,
       "web": "https://www.kobanya.hu/?module=news&fname=ugyintezes-bejelentes",
       "address": "1103 Budapest, Gergely utca 112/A–B",
       "sourceUrl": "https://www.kobanya.hu/?module=news&action=show&nid=180288",
