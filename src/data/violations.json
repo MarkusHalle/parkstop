@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "generatedOn": "2026-11-12",
+  "devNote": "Offence pick-list (SPEC 6, 15 items + Egyéb, owner's choice 2026-11-12). legalRef is printed in the e-mail after the sentence, in brackets. KRESZ = 1/1975. (II. 5.) KPM–BM együttes rendelet, consolidated text in force from 2026-04-11, checked on njt.jog.gov.hu and net.jogtar.hu by researcher and sceptic. Sentences are worded so the reporter states only what a photo can show; an unattended car is 'várakozás' by the KRESZ definition (1. számú függelék III. e)).",
+  "violations": [
+    {
+      "id": "jarda",
+      "label": "Járdán szabálytalanul",
+      "sentence": "A jármű a járdán várakozott ott, ahol ezt jelzőtábla vagy útburkolati jel nem engedte meg, illetve úgy, hogy a gyalogosok számára nem maradt 1,5 méter szabad hely.",
+      "legalRef": "KRESZ 40. § (8)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "40. § (8) a)–d): only where a sign or marking allows, at most half the pavement width, at least 1.5 m left free, axle load ≤ 1000 kg. 41. § (1) applies 40. § to waiting."
+    },
+    {
+      "id": "gyalogatkelo",
+      "label": "Gyalogátkelőhelyen vagy előtte",
+      "sentence": "A jármű a kijelölt gyalogosátkelőhelyen, illetve az előtt 5 méteren belül várakozott.",
+      "legalRef": "KRESZ 40. § (5) e)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "5 m applies to cars, motorcycles, mopeds, bicycles, handcarts; 'egyéb járművel 15 méter'. The ban is on the crossing and before it (direction of travel), not after it."
+    },
+    {
+      "id": "keresztezodes",
+      "label": "Kereszteződésben vagy 5 méteren belül",
+      "sentence": "A jármű az útkereszteződésben, illetve az úttestek széleinek metszéspontjától számított 5 méteren belül várakozott.",
+      "legalRef": "KRESZ 40. § (5) d)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Exception in the same point: opposite a T-junction mouth if turning traffic is not blocked. Also covers roundabouts."
+    },
+    {
+      "id": "megallni-tilos",
+      "label": "„Megállni tilos” tábla hatálya alatt",
+      "sentence": "A jármű „Megállni tilos” jelzőtábla hatálya alatt várakozott.",
+      "legalRef": "KRESZ 15. § (1) a)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Scope of the sign: 15. § (2)–(5) (to the next junction unless a plate says otherwise). Yellow kerb line 18. § (1) m) only reminds of a ban, not cited alone."
+    },
+    {
+      "id": "varakozni-tilos",
+      "label": "„Várakozni tilos” tábla hatálya alatt",
+      "sentence": "A jármű „Várakozni tilos” jelzőtábla hatálya alatt várakozott.",
+      "legalRef": "KRESZ 15. § (1) b)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "41. § (3): disabled-badge holders are exempt from the Várakozni tilos sign."
+    },
+    {
+      "id": "megallo",
+      "label": "Autóbusz-, villamos- vagy trolimegállóban",
+      "sentence": "A jármű az autóbusz-, villamos- vagy trolibusz-megállóhelyet jelző tábla előtt 15 méteren, illetve utána 5 méteren belül, vagy autóbuszöbölben várakozott.",
+      "legalRef": "KRESZ 40. § (5) h) és i)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "h) ends 'kivéve, ha útburkolati jelből más következik'. i) = bus bay. j) (between tram-stop island and pavement) not cited."
+    },
+    {
+      "id": "buszsav",
+      "label": "Buszsávban",
+      "sentence": "A jármű autóbusz forgalmi sávban várakozott.",
+      "legalRef": "KRESZ 40. § (5) n)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Exceptions: buses at the stop, taxis and ambulances while passengers get in or out, refuse lorries 20:00–6:00."
+    },
+    {
+      "id": "taxiallomas",
+      "label": "Taxiállomáson",
+      "sentence": "A jármű a taxiállomást jelző tábla előtt 15 méteren, illetve utána 5 méteren belül várakozott.",
+      "legalRef": "KRESZ 40. § (5) h)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Taxi stand sign defined in 17. § (1) d/1); same distance rule as a bus stop, for any vehicle other than a taxi."
+    },
+    {
+      "id": "kerekparsav",
+      "label": "Kerékpársávon, kerékpárúton",
+      "sentence": "A jármű kerékpársávon, kerékpárúton, illetve gyalog- és kerékpárúton várakozott.",
+      "legalRef": "KRESZ 40. § (5) l)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "mozgaskorlatozott",
+      "label": "Mozgáskorlátozott-helyen jogosulatlanul",
+      "sentence": "A jármű a mozgáskorlátozottak részére fenntartott várakozóhelyen várakozott, a szélvédő mögött parkolási igazolvány nem volt látható.",
+      "legalRef": "KRESZ 17. § (1) e), 51/A. §",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "KRESZ has no single 'tilos' sentence; the ban follows from 17. § (1) e) (reserved bay) and 51/A. § (card displayed); towing 59. § (1) d). 'Szélvédő mögött' per 218/2003. (XII. 11.) Korm. r. 8. § (1). Sentence states only what is observable (no visible card)."
+    },
+    {
+      "id": "kapubejarat",
+      "label": "Kapubejárat előtt",
+      "sentence": "A jármű kapubejárat előtt várakozott, akadályozva az ingatlanra való be-, illetve az onnan történő kihajtást.",
+      "legalRef": "KRESZ 41. § (2) c)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Waiting ban; the property holder's consent removes the offence, so the report is strongest from the property's own user."
+    },
+    {
+      "id": "masodik-sor",
+      "label": "Második sorban",
+      "sentence": "A jármű az úttesten második sorban, a szabályosan várakozó járművek mellett várakozott.",
+      "legalRef": "KRESZ 40. § (1), 41. § (1)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "40. § (1): only at the right edge, parallel, 'egy sorban'. If under 3 m remains, 40. § (5) b) also applies."
+    },
+    {
+      "id": "villamospalya",
+      "label": "Villamospályán",
+      "sentence": "A jármű a villamospályán, illetve ahhoz olyan közel várakozott, hogy a villamos közlekedését akadályozta.",
+      "legalRef": "KRESZ 40. § (5) g)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "rakodohely",
+      "label": "Rakodóhelyen",
+      "sentence": "A jármű kiegészítő táblával kijelölt rakodóhelyen, a tilalom időszakában, vezető nélkül várakozott.",
+      "legalRef": "KRESZ 15. § (6)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
+      "verifiedOn": "2026-11-12",
+      "devNote": "A KRESZ matter, not a municipal rule. Other vehicles may stay if the driver remains with the car; hence 'vezető nélkül'. Towing 59. § (1) c)."
+    },
+    {
+      "id": "zoldterulet",
+      "label": "Zöldterületen",
+      "sentence": "A jármű gyepfelületen, parkosított zöldterületen várakozott.",
+      "legalRef": "10/2005. (III. 8.) Főv. Kgy. rendelet 6. § (13)",
+      "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/2005-10-SP-5Y4191",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Not KRESZ: capital green-area decree, scope 2. § a)–e) (can reach district-owned 'kiemelt' green areas). District decrees cover other district green areas (not verified). The decree's sanction section (7. §) was repealed in 2012, so nothing must imply a fine."
+    },
+    {
+      "id": "egyeb",
+      "label": "Egyéb (saját leírás)",
+      "sentence": null,
+      "legalRef": null,
+      "legalSourceUrl": null,
+      "verifiedOn": null,
+      "devNote": "Free text from the user; the e-mail cites no legal reference."
+    }
+  ]
+}

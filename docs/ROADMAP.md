@@ -1,4 +1,4 @@
-# ParkStop — Roadmap
+# ParkStop —| workflow (10 agents, 2.48M agent tokens) ~31 min · ~40 % shared by 1.1, 1.2, 1.3, 1.6; O1 closed (D20) | ☑| workflow (10 agents, 2.48M agent tokens) ~31 min · ~40 % shared by 1.1, 1.2, 1.3, 1.6; 23 districts + FÖRI + 22 police records; 4 refuted rows taken from the sceptic's official corrections; FÖRI confirmed by the owner (D23) | ☑| workflow (10 agents, 2.48M agent tokens) ~31 min · ~40 % shared by 1.1, 1.2, 1.3, 1.6; 15 offences + Egyéb (D22); owner approved templates A and B (D20) | ☑ |||Roadmap
 
 Status key: ☐ not started · ◐ in progress · ☑ done · ✖ dropped
 
@@ -30,13 +30,13 @@ Goal: the facts the app stands on, each with a source.
 
 | # | Task | SPEC | Model · effort | Agents | Est. | Actual | Status |
 |---|---|---|---|---|---|---|---|
-| 1.1 | Legal research: who may act on a citizen's photo report, what the report must contain, correct addressee (resolves O1) | 4.2, R1 | Opus · high | researcher, then sceptic (Fable · high) | 25 min · 15 % | | ☐ |
-| 1.2 | Authority directory: 23 districts + FÖRI + district police stations, with source and date | 5 | Sonnet · medium | 3 researchers in parallel (districts I–VIII, IX–XVI, XVII–XXIII), then sceptic spot-check (Opus · medium) | 30 min · 20 % | | ☐ |
-| 1.3 | District agreements: which districts have no own body, which also act on capital roads | 4.2, 5 | Opus · high | researcher + sceptic | 20 min · 10 % | | ☐ |
-| 1.4 | `districts.geojson` build script (OSM, simplified) | 5 | Sonnet · medium | implementer | 15 min · 4 % | | ☐ |
-| 1.5 | `capital-roads.geojson`: parse Decree 432/2012 annexes, match to OSM geometry, flag partial sections | 5, R4 | Opus · high | implementer, reviewer (Fable · high) | 45 min · 20 % | | ☐ |
-| 1.6 | Offence list with KRESZ references; final Hungarian e-mail wording | 6, 7 | Opus · medium | researcher; user reads the final text | 20 min · 8 % | | ☐ |
-| 1.7 | 30 human-reviewed test points (fixture for acceptance criterion 1) | 11 | Sonnet · medium | implementer; user confirms | 15 min · 4 % | | ☐ |
+| 1.1 | Legal research: who may act on a citizen's photo report, what the report must contain, correct addressee (resolves O1) | 4.2, R1 | Opus · high | researcher, then sceptic (Fable · high) | 25 min · 15 % | Workflow for 1.1–1.3 + 1.6 (10 agents, 2.48M agent tokens): ~31 min · ~40 % in total. O1 closed (D20) | ☑ |
+| 1.2 | Authority directory: 23 districts + FÖRI + district police stations, with source and date | 5 | Sonnet · medium | 3 researchers in parallel (districts I–VIII, IX–XVI, XVII–XXIII), then sceptic spot-check (Opus · medium) | 30 min · 20 % | Shared workflow (see 1.1). 23 districts + FÖRI + 22 police records; sceptic corrections used for III, IX, XV, XXI; FÖRI confirmed by the owner (D23) | ☑ |
+| 1.3 | District agreements: which districts have no own body, which also act on capital roads | 4.2, 5 | Opus · high | researcher + sceptic | 20 min · 10 % | Shared workflow (see 1.1) + VI/VII list researcher ~10 min (219k) + Fable sceptic ~12 min (262k), ~8 %. All 23 districts have an own body; capital-road rule per district (D21); VI (14) and VII (20) `districtActsOn` sections CONFIRMED on the agreement page images; 14 districts not read (O7) | ☑ |
+| 1.4 | `districts.geojson` build script (OSM, simplified) | 5 | Sonnet · medium | implementer | 15 min · 4 % | ~17 min agent time over 3 rounds (105k agent tokens) · ~3 %; 47 KB → 57 KB with the Budapest outline; max border deviation 4.4 m. Margit-sziget and the Danube channels around it lie in Budapest but in no district (Mötv. 22. § (4)) — resolver rule decided: FÖRI (D21) | ☑ |
+| 1.5 | `capital-roads.geojson`: parse Decree 432/2012 annexes, match to OSM geometry, flag partial sections | 5, R4 | Opus · high | implementer, reviewer (Fable · high) | 45 min · 20 % | Build ~26 min (327k) + Fable review ~17 min (286k) + fix round ~13 min: ~56 min agent time, ~1.1M agent tokens, ~18 %. 1332 decree rows (incl. 71a, 138a), 1297 matched (127 whole, 1070 cut of which 47 `cutApprox`, 100 uncut), 35 unmatched against a committed expected list; 727 KB. Review: accept with fixes — all applied except the 2/179 Kunigunda útja cut (stays uncut) | ☑ |
+| 1.6 | Offence list with KRESZ references; final Hungarian e-mail wording | 6, 7 | Opus · medium | researcher; user reads the final text | 20 min · 8 % | Shared workflow (see 1.1). 15 offences + Egyéb (D22); owner read and approved e-mail templates A and B (D20) | ☑ |
+| 1.7 | 30 human-reviewed test points (fixture for acceptance criterion 1) | 11 | Sonnet · medium | implementer; user confirms | 15 min · 4 % | ~3 min solo (Opus) · ~2 %: `scripts/make-test-points.mjs` → `tests/fixtures/authority-test-points.json` (30 points, 8 categories); `tests/data/test-points.test.ts` checks the data agrees (31 tests pass). Owner confirmed all 30 on 2026-11-12 | ☑ |
 
 Tasks 1.1, 1.2, 1.3 and 1.6 run together as one workflow (D18): five researchers (Opus for 1.1, 1.3, 1.6; Sonnet for the two halves of 1.2), each followed by a Fable sceptic — 10 agents. Script ready, start after the 5-hour reset. The researchers only return data; the main session writes `src/data/` from the verified rows. Tasks 1.4, 1.5 and 1.7 follow afterwards.
 
@@ -48,7 +48,7 @@ Exit: data files pass the validation script; O1 closed in DECISIONS.md; user has
 |---|---|---|---|---|---|---|---|
 | 2.1 | App shell, layout (phone bottom sheet / PC side panel), theme tokens, `hu.ts` | 8, 9 | Sonnet · medium | implementer | 30 min · 8 % | | ☐ |
 | 2.2 | Map, pin, geolocation, address search and reverse lookup | 4.1 | Sonnet · medium | implementer | 30 min · 8 % | | ☐ |
-| 2.3 | Authority resolver (pure) + unit tests against the 30 test points | 4.2 | Opus · medium | implementer, sceptic (Fable · high) | 30 min · 10 % | | ☐ |
+| 2.3 | Authority resolver (pure) + unit tests against the 30 test points. Inputs from M1: `budapest` outline + Margit-sziget rule, `districtActsOn` sections (VI, VII), confidence lowered when `partial && (!cutApplied \|\| cutApprox)`. To decide with the owner: the 1.5 reviewer's distance band — the 15 m snap catches ~4 % of residential street length at junctions, so beyond ~8 m keep FÖRI but lower confidence and name the district body | 4.2 | Opus · medium | implementer, sceptic (Fable · high) | 30 min · 10 % | | ☐ |
 | 2.4 | Authority result card with alternatives and manual override | 4.2 | Sonnet · medium | implementer | 20 min · 5 % | | ☐ |
 | 2.5 | Report form and validation | 4.3 | Sonnet · medium | implementer | 20 min · 5 % | | ☐ |
 | 2.6 | Mail module: template, `mailto:` with length fallback, photo download and reduced clipboard copy, copy buttons + unit tests; check on the owner's phone that saved photos appear in Gmail's attach dialog (D15) | 4.5 | Opus · medium | implementer, reviewer | 40 min · 12 % | | ☐ |
@@ -103,3 +103,4 @@ Exit: a full report can be made end to end on PC and phone with one photo.
 | 2026-11-12 | Spike S2 done (D11). `.eml` draft file dropped from v1 and moved to the backlog (D13); task 2.6 adjusted. |
 | 2026-11-12 | Spike S1 done (D14). Phone uses the complete `mailto:` draft plus manual photo attachment, no share sheet (D15); task 2.6 adjusted. |
 | 2026-11-12 | Spike S3 done: plate reader passes its gate and stays in v1 as opt-in (D16, D17, D19). **M0 complete.** M1 workflow ready, waiting for the owner (D18). |
+| 2026-11-12 | **M1 complete.** Data files pass `validate:data`; O1 closed (D20); owner read the e-mail templates and confirmed the 30 test points. Decisions D20–D23; new open points O7, O8. |

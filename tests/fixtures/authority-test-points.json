@@ -1,0 +1,487 @@
+{
+  "generatedOn": "2026-11-12",
+  "confirmedByOwner": "2026-11-12",
+  "devNote": "Roadmap 1.7: resolver test points (SPEC 11.1). `expected` is what the resolver must return (SPEC 4.2, D21). Picked by scripts/make-test-points.mjs, reviewed by a human; tests/data/test-points.test.ts checks the bundled data still agrees.",
+  "points": [
+    {
+      "id": "P01",
+      "category": "district-street",
+      "label": "Hunfalvy utca (I.)",
+      "lat": 47.505225,
+      "lon": 19.033754,
+      "expected": {
+        "district": 1,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-01",
+        "policeId": "police-01",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 23605360)."
+    },
+    {
+      "id": "P02",
+      "category": "district-street",
+      "label": "Zuhatag sor (II.)",
+      "lat": 47.528695,
+      "lon": 18.983738,
+      "expected": {
+        "district": 2,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-02",
+        "policeId": "police-02",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 8034702)."
+    },
+    {
+      "id": "P03",
+      "category": "district-street",
+      "label": "Kossuth Lajos üdülőpart (III.)",
+      "lat": 47.601028,
+      "lon": 19.070153,
+      "expected": {
+        "district": 3,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-03",
+        "policeId": "police-03",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 7835505)."
+    },
+    {
+      "id": "P04",
+      "category": "district-street",
+      "label": "Corvin utca (IV.)",
+      "lat": 47.565876,
+      "lon": 19.098148,
+      "expected": {
+        "district": 4,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-04",
+        "policeId": "police-04",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 7832965)."
+    },
+    {
+      "id": "P05",
+      "category": "district-street",
+      "label": "Bakáts tér (IX.)",
+      "lat": 47.483658,
+      "lon": 19.066894,
+      "expected": {
+        "district": 9,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-09",
+        "policeId": "police-09",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 24269245)."
+    },
+    {
+      "id": "P06",
+      "category": "district-street",
+      "label": "Szamos utca (XII.)",
+      "lat": 47.506837,
+      "lon": 19.01838,
+      "expected": {
+        "district": 12,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-12",
+        "policeId": "police-12",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 8034509)."
+    },
+    {
+      "id": "P07",
+      "category": "district-street",
+      "label": "Cházár András utca (XIV.)",
+      "lat": 47.505029,
+      "lon": 19.091936,
+      "expected": {
+        "district": 14,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-14",
+        "policeId": "police-14",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 4380561)."
+    },
+    {
+      "id": "P08",
+      "category": "district-street",
+      "label": "Lőcs utca (XVI.)",
+      "lat": 47.518741,
+      "lon": 19.179208,
+      "expected": {
+        "district": 16,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-16",
+        "policeId": "police-16",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 4904977)."
+    },
+    {
+      "id": "P09",
+      "category": "district-street",
+      "label": "Zombor utca (XIX.)",
+      "lat": 47.430234,
+      "lon": 19.161512,
+      "expected": {
+        "district": 19,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-19",
+        "policeId": "police-19",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 25725212)."
+    },
+    {
+      "id": "P10",
+      "category": "district-street",
+      "label": "Péter Pál utca (XXII.)",
+      "lat": 47.431086,
+      "lon": 19.016639,
+      "expected": {
+        "district": 22,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-22",
+        "policeId": "police-22",
+        "confidence": "biztos"
+      },
+      "why": "Residential street not named in Decree 432/2012, over 60 m from any capital road and over 120 m from the district border (OSM way 9618393)."
+    },
+    {
+      "id": "P11",
+      "category": "capital-road",
+      "label": "Andrássy út (VI.)",
+      "lat": 47.50017,
+      "lon": 19.055746,
+      "expected": {
+        "district": 6,
+        "insideBudapest": true,
+        "capitalRoad": "2/312",
+        "primaryId": "fori",
+        "policeId": "police-06",
+        "confidence": "valószínű"
+      },
+      "why": "On decree row 2/312 (Bajcsy-Zsilinszky út – Dózsa György út), not on a districtActsOn list, so FÖRI (D21)."
+    },
+    {
+      "id": "P12",
+      "category": "capital-road",
+      "label": "Teréz körút (VI.)",
+      "lat": 47.507877,
+      "lon": 19.059474,
+      "expected": {
+        "district": 6,
+        "insideBudapest": true,
+        "capitalRoad": "2/332",
+        "primaryId": "fori",
+        "policeId": "police-06",
+        "confidence": "valószínű"
+      },
+      "why": "On decree row 2/332 (Nyugati tér – Király utca), not on a districtActsOn list, so FÖRI (D21)."
+    },
+    {
+      "id": "P13",
+      "category": "capital-road",
+      "label": "Váci út (IV.)",
+      "lat": 47.588485,
+      "lon": 19.082229,
+      "expected": {
+        "district": 4,
+        "insideBudapest": true,
+        "capitalRoad": "1/2",
+        "primaryId": "fori",
+        "policeId": "police-04",
+        "confidence": "valószínű"
+      },
+      "why": "On decree row 1/2 (városhatár – Róbert Károly körút), not on a districtActsOn list, so FÖRI (D21)."
+    },
+    {
+      "id": "P14",
+      "category": "capital-road",
+      "label": "Teleki László tér (VIII.)",
+      "lat": 47.493619,
+      "lon": 19.086063,
+      "expected": {
+        "district": 8,
+        "insideBudapest": true,
+        "capitalRoad": "2/406",
+        "primaryId": "fori",
+        "policeId": "police-08",
+        "confidence": "bizonytalan"
+      },
+      "why": "On decree row 2/406 (Dobozi utca – Népszínház utca), not on a districtActsOn list, so FÖRI (D21). Section ends approximate, so bizonytalan."
+    },
+    {
+      "id": "P15",
+      "category": "capital-road",
+      "label": "Budai alsó rakpart (XI.)",
+      "lat": 47.474417,
+      "lon": 19.063507,
+      "expected": {
+        "district": 11,
+        "insideBudapest": true,
+        "capitalRoad": "2/545",
+        "primaryId": "fori",
+        "policeId": "police-11",
+        "confidence": "valószínű"
+      },
+      "why": "On decree row 2/545 (Petőfi híd – Rákóczi híd), not on a districtActsOn list, so FÖRI (D21)."
+    },
+    {
+      "id": "P16",
+      "category": "capital-road",
+      "label": "Zöld lomb utca (II.)",
+      "lat": 47.530057,
+      "lon": 19.008526,
+      "expected": {
+        "district": 2,
+        "insideBudapest": true,
+        "capitalRoad": "2/134",
+        "primaryId": "fori",
+        "policeId": "police-02",
+        "confidence": "valószínű"
+      },
+      "why": "On decree row 2/134 (Szépvölgyi út – Pitypang utca), not on a districtActsOn list, so FÖRI (D21)."
+    },
+    {
+      "id": "P17",
+      "category": "capital-road",
+      "label": "Kossuth Lajos utca (V.)",
+      "lat": 47.494314,
+      "lon": 19.059963,
+      "expected": {
+        "district": 5,
+        "insideBudapest": true,
+        "capitalRoad": "1/3.5",
+        "primaryId": "fori",
+        "policeId": "police-05",
+        "confidence": "valószínű"
+      },
+      "why": "On decree row 1/3.5 (whole road), not on a districtActsOn list, so FÖRI (D21)."
+    },
+    {
+      "id": "P18",
+      "category": "capital-road",
+      "label": "Bécsi út (II.)",
+      "lat": 47.524473,
+      "lon": 19.036883,
+      "expected": {
+        "district": 2,
+        "insideBudapest": true,
+        "capitalRoad": "2/71a",
+        "primaryId": "fori",
+        "policeId": "police-02",
+        "confidence": "bizonytalan"
+      },
+      "why": "On decree row 2/71a (Frankel Leó utca – Szépvölgyi út), not on a districtActsOn list, so FÖRI (D21). Section ends approximate, so bizonytalan."
+    },
+    {
+      "id": "P19",
+      "category": "district-acts-on",
+      "label": "Podmaniczky utca (VI.)",
+      "lat": 47.508496,
+      "lon": 19.057431,
+      "expected": {
+        "district": 6,
+        "insideBudapest": true,
+        "capitalRoad": "2/329",
+        "primaryId": "district-06",
+        "policeId": "police-06",
+        "confidence": "valószínű"
+      },
+      "why": "Decree row 2/329 is on the VI. district's agreement list, so the district body is primary (D21)."
+    },
+    {
+      "id": "P20",
+      "category": "district-acts-on",
+      "label": "Dohány utca (VII.)",
+      "lat": 47.496415,
+      "lon": 19.065966,
+      "expected": {
+        "district": 7,
+        "insideBudapest": true,
+        "capitalRoad": "2/344",
+        "primaryId": "district-07",
+        "policeId": "police-07",
+        "confidence": "valószínű"
+      },
+      "why": "Decree row 2/344 is on the VII. district's agreement list, so the district body is primary (D21)."
+    },
+    {
+      "id": "P21",
+      "category": "district-acts-on",
+      "label": "Erzsébet körút (VII.)",
+      "lat": 47.499761,
+      "lon": 19.069154,
+      "expected": {
+        "district": 7,
+        "insideBudapest": true,
+        "capitalRoad": "2/346",
+        "primaryId": "fori",
+        "policeId": "police-07",
+        "confidence": "bizonytalan"
+      },
+      "why": "Decree row 2/346 is only partly on the VII list (Dohány utca – Rákóczi út): FÖRI stays primary, district body first alternative, bizonytalan."
+    },
+    {
+      "id": "P22",
+      "category": "border",
+      "label": "Cirbolya utca (II., kerülethatár mellett)",
+      "lat": 47.541201,
+      "lon": 19.007041,
+      "expected": {
+        "district": 2,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-02",
+        "policeId": "police-02",
+        "confidence": "valószínű"
+      },
+      "why": "22 m from the district border (inside the 30 m band), not near a capital road (OSM way 10370556)."
+    },
+    {
+      "id": "P23",
+      "category": "border",
+      "label": "Zichy Mihály utca (IV., kerülethatár mellett)",
+      "lat": 47.559812,
+      "lon": 19.109709,
+      "expected": {
+        "district": 4,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "district-04",
+        "policeId": "police-04",
+        "confidence": "valószínű"
+      },
+      "why": "9 m from the district border (inside the 30 m band), not near a capital road (OSM way 14003810)."
+    },
+    {
+      "id": "P24",
+      "category": "no-district",
+      "label": "Margitsziget, a sziget közepe",
+      "lat": 47.527,
+      "lon": 19.048,
+      "expected": {
+        "district": null,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "fori",
+        "policeId": null,
+        "confidence": "valószínű"
+      },
+      "why": "Inside Budapest, in no district (Mötv. 22. § (4)) → FÖRI (D21). No police alternative yet (O8)."
+    },
+    {
+      "id": "P25",
+      "category": "no-district",
+      "label": "Duna, a Margitsziget és az óbudai part között",
+      "lat": 47.53,
+      "lon": 19.045,
+      "expected": {
+        "district": null,
+        "insideBudapest": true,
+        "capitalRoad": null,
+        "primaryId": "fori",
+        "policeId": null,
+        "confidence": "valószínű"
+      },
+      "why": "River channel beside Margit-sziget: inside Budapest, in no district → FÖRI."
+    },
+    {
+      "id": "P26",
+      "category": "outside",
+      "label": "Budaörs, városközpont",
+      "lat": 47.461,
+      "lon": 18.958,
+      "expected": {
+        "district": null,
+        "insideBudapest": false,
+        "capitalRoad": null,
+        "primaryId": null,
+        "policeId": null,
+        "confidence": null
+      },
+      "why": "Outside the Budapest outline → \"outside\" result."
+    },
+    {
+      "id": "P27",
+      "category": "outside",
+      "label": "Budakeszi",
+      "lat": 47.51,
+      "lon": 18.93,
+      "expected": {
+        "district": null,
+        "insideBudapest": false,
+        "capitalRoad": null,
+        "primaryId": null,
+        "policeId": null,
+        "confidence": null
+      },
+      "why": "Outside the Budapest outline → \"outside\" result."
+    },
+    {
+      "id": "P28",
+      "category": "outside",
+      "label": "Szentendre, Fő tér",
+      "lat": 47.669,
+      "lon": 19.075,
+      "expected": {
+        "district": null,
+        "insideBudapest": false,
+        "capitalRoad": null,
+        "primaryId": null,
+        "policeId": null,
+        "confidence": null
+      },
+      "why": "Outside the Budapest outline → \"outside\" result."
+    },
+    {
+      "id": "P29",
+      "category": "square",
+      "label": "Széll Kálmán tér (II.)",
+      "lat": 47.507804,
+      "lon": 19.022466,
+      "expected": {
+        "district": 2,
+        "insideBudapest": true,
+        "capitalRoad": "2/118",
+        "primaryId": "fori",
+        "policeId": "police-02",
+        "confidence": "bizonytalan"
+      },
+      "why": "A square on a capital-road row: squares stay \"bizonytalan\" (SPEC 4.2 step 6)."
+    },
+    {
+      "id": "P30",
+      "category": "partial-uncut",
+      "label": "Kunigunda útja (III.)",
+      "lat": 47.559561,
+      "lon": 19.034894,
+      "expected": {
+        "district": 3,
+        "insideBudapest": true,
+        "capitalRoad": "2/179",
+        "primaryId": "fori",
+        "policeId": "police-03",
+        "confidence": "bizonytalan"
+      },
+      "why": "Section listed between two junctions that could not be placed on the map (cutApplied false) → bizonytalan."
+    }
+  ]
+}

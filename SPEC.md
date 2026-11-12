@@ -1,6 +1,6 @@
 # ParkStop — Product Specification
 
-Version 0.3 · 2026-11-12 · on-device plate reader added; `.eml` draft file dropped from v1
+Version 0.4 · 2026-11-12 · M1: legal basis settled (O1), resolver rules for capital roads and Margit-sziget, final offence list and e-mail templates
 
 ParkStop helps a person in Budapest report an illegally parked car: mark the spot on a map,
 see which authority is responsible, add photos, and get a ready-to-send Hungarian e-mail.
@@ -61,22 +61,30 @@ tracked lives in [docs/ROADMAP.md](docs/ROADMAP.md); who builds it and with whic
 
 Deterministic resolver, pure function, fully unit-tested. Input: coordinates. Output: primary authority, alternatives, reason, confidence.
 
-1. Not inside any Budapest district polygon → `outside` result.
-2. District = point-in-polygon against the bundled district boundaries.
-3. If the pin is within the snap distance (default 15 m) of a **capital-managed road** (roads listed in the annexes of Government Decree 432/2012 (XII. 29.)) → primary is **FÖRI**, unless the district's record says the district body also acts on those roads.
-4. Otherwise → the district's own public-space enforcement body (közterület-felügyelet / önkormányzati rendészet). If the district has none → FÖRI.
+1. Not inside the Budapest outline → `outside` result.
+2. District = point-in-polygon against the bundled district boundaries. A point inside the Budapest outline but in no district (Margit-sziget and the Danube channels around it, which the capital administers directly — Mötv. 22. § (4)) → primary **FÖRI**, confidence `valószínű`.
+3. If the pin is within the snap distance (default 15 m) of a **capital-managed road** (roads listed in the annexes of Government Decree 432/2012 (XII. 29.)) → primary is **FÖRI**, unless the pin's road section is on the district's `districtActsOn` list (in v1: the sections the VI and VII agreements hand to the district body, which since 2021 includes KRESZ enforcement). Three listed entries cover only part of their decree row (VI Király utca even side, VI Nyugati tér street level, VII Erzsébet körút Dohány utca – Rákóczi út): there FÖRI stays primary, the district body is the first alternative and confidence is `bizonytalan`. The district agreements checked in M1 leave parking enforcement on capital roads with FÖRI everywhere else (DECISIONS D21).
+4. Otherwise → the district's own public-space enforcement body (közterület-felügyelet / önkormányzati rendészet). If the district has none → FÖRI. (In M1 all 23 districts have one.)
 5. Always list the district police station as an alternative, and FÖRI or the district body as the other alternative.
-6. Confidence is `biztos` (clear district street), `valószínű` (capital road, or within 30 m of a district border), or `bizonytalan` (road only partly capital-managed, square/park, data older than 12 months).
+6. Confidence is `biztos` (clear district street), `valószínű` (capital road, Margit-sziget, or within 30 m of a district border), or `bizonytalan` (capital-road section whose ends could not be placed on the map, square/park, data older than 12 months).
 7. The user can always switch to any alternative, or type a different address by hand.
 
-The result card shows: name of the authority, one-sentence reason, confidence, e-mail address, phone, link to the official source, "utoljára ellenőrizve" date.
+The result card shows: name of the authority, one-sentence reason, confidence, e-mail address, phone, link to the official source, "utoljára ellenőrizve" date. When the car may still be there, the card suggests phoning the body's (dispatcher) number as the faster route; a patrol can only act while the car is on the spot. Where a body asks for reports by phone (X. district), the phone is shown first.
 
-> **Open point O1 (resolved in milestone M1):** the split above is what official sources describe
-> for *where each body patrols*. Whether a citizen's photo report leads to a fine, and whether
-> the correct legal addressee for a photo-based report is the enforcement body or the police
-> (as the petty-offence authority for KRESZ violations), must be verified from primary legal
-> sources before the default recipient and the e-mail wording are final. Until then the app
-> must not promise a fine anywhere in its text.
+**Default recipient and what the e-mail is (O1, resolved in M1 — DECISIONS D20).** No authority can
+fine on the strength of a citizen's photo alone: an on-the-spot fine (also in the driver's absence)
+needs the enforcement officer's or police officer's own observation (Szabs. tv. 39. § (2), 99–100. §),
+and the keeper's strict liability does not cover stopping or waiting (Kkt. 21. § (1)). Therefore:
+
+- The **default recipient is the enforcement body** chosen above (district body or FÖRI). The e-mail
+  is a *bejelentés*: a request to check and act (template A in section 7).
+- The **district police station** is always offered as the alternative. Choosing it switches the
+  e-mail to a formal *szabálysértési feljelentés* against an unknown offender (template B), the legal
+  route for an after-the-fact report (Szabs. tv. 78. §). The app states that the police's formal
+  electronic channel is form IN-100100 on ugyintezes.police.hu and that e-mail acceptance is not
+  confirmed; BRFK itself is never the addressee.
+- The app never promises or asks for a fine, never calls a message to an enforcement body a
+  *feljelentés*, and never claims the keeper is liable.
 
 ### 4.3 Report form (F-FORM)
 
@@ -177,7 +185,7 @@ from `fast-plate-ocr`), run in the browser with ONNX Runtime Web.
 
 | File | Content | Source |
 |---|---|---|
-| `data/districts.geojson` | 23 district polygons, simplified | OpenStreetMap (ODbL) |
+| `data/districts.geojson` | 23 district polygons, simplified, plus the Budapest outline (top-level `budapest` member) | OpenStreetMap (ODbL) |
 | `data/capital-roads.geojson` | Line geometry of capital-managed roads, with `partial` flag for roads listed only between two junctions | Names from Decree 432/2012 annexes 1–2, geometry from OpenStreetMap, built by script |
 | `data/authorities.json` | One record per body: id, name, type (`district` / `fori` / `police`), district(s), e-mail, phone, web, `sourceUrl`, `verifiedOn`, per-district rule overrides | Official websites only |
 | `data/violations.json` | Offence types, Hungarian label, template sentence, legal reference | KRESZ (1/1975 KPM–BM), verified in M1 |
@@ -185,15 +193,24 @@ from `fast-plate-ocr`), run in the browser with ONNX Runtime Web.
 
 Rules for this data: every e-mail address has an official `sourceUrl` and a `verifiedOn` date; nothing is guessed or derived from a pattern; a record without a verified address is shipped as "nincs ellenőrzött e-mail cím" with the phone number and website instead. Details in [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md).
 
-## 6. Offence types (draft list, wording and legal references finalised in M1)
+## 6. Offence types (final in M1 — DECISIONS D22)
+
+Fifteen items plus free text, in this order. Each has a Hungarian e-mail sentence and a verified
+legal reference in `src/data/violations.json`:
 
 Járdán szabálytalanul · Gyalogátkelőhelyen vagy előtte · Kereszteződésben vagy 5 méteren belül ·
-"Megállni tilos" / "Várakozni tilos" tábla hatálya alatt · Autóbusz- vagy villamosmegállóban ·
-Kerékpársávon, kerékpárúton · Mozgáskorlátozottaknak fenntartott helyen jogosulatlanul ·
-Kapubejáró előtt · Második sorban (úttesten, forgalmat akadályozva) · Villamospályán ·
-Rakodóhelyen · Zöldterületen · Egyéb (szabad szöveg).
+„Megállni tilos” tábla hatálya alatt · „Várakozni tilos” tábla hatálya alatt ·
+Autóbusz-, villamos- vagy trolimegállóban · Buszsávban · Taxiállomáson ·
+Kerékpársávon, kerékpárúton · Mozgáskorlátozott-helyen jogosulatlanul · Kapubejárat előtt ·
+Második sorban · Villamospályán · Rakodóhelyen · Zöldterületen · Egyéb (saját leírás).
 
-## 7. E-mail template (structure; final Hungarian wording in M1)
+All except "Zöldterületen" and "Egyéb" are KRESZ stopping/waiting rules (1/1975. (II. 5.) KPM–BM),
+which are petty offences under Szabs. tv. 224. §. "Zöldterületen" is a municipal ban
+(10/2005. (III. 8.) Főv. Kgy. rendelet 6. § (13)) with no sanction in the decree; "Egyéb" cites nothing.
+
+## 7. E-mail templates (final in M1 — read and approved by the owner 2026-11-12, DECISIONS D20)
+
+**A — to an enforcement body (district body or FÖRI), the default:**
 
 ```
 Címzett:  <authority e-mail>
@@ -201,16 +218,17 @@ Tárgy:    Szabálytalan parkolás bejelentése – <RENDSZÁM> – <cím>
 
 Tisztelt <authority name>!
 
-<dátum, idő>-kor az alábbi helyen szabálytalanul várakozó járművet észleltem:
+<dátum>-én/-án <idő>-kor az alábbi helyen szabálytalanul várakozó járművet észleltem:
 
-Helyszín:      <cím> (<kerület>), GPS: <lat>, <lon>
-Rendszám:      <RENDSZÁM>
-Jármű:         <leírás, ha van>
-Szabálysértés: <típus mondata + jogszabályi hivatkozás>
-Megjegyzés:    <szabad szöveg, ha van>
+Helyszín:        <cím> (<kerület>. kerület), GPS: <lat>, <lon>
+Rendszám:        <RENDSZÁM>
+Jármű:           <leírás, ha van>
+Szabálytalanság: <típus mondata> (<jogszabályi hivatkozás>)
+Megjegyzés:      <szabad szöveg, ha van>
 
 A helyszínen készített <n> fényképet mellékelem. Kérem az ügy kivizsgálását és a
 szükséges intézkedés megtételét, valamint tájékoztatást az eljárás menetéről.
+Szükség esetén tanúként rendelkezésre állok.
 
 Tisztelettel:
 <név>
@@ -218,7 +236,39 @@ Tisztelettel:
 <e-mail, telefon>
 ```
 
-Plain text only. No promise or demand of a specific fine.
+**B — to the district police station (when the user picks the police alternative):**
+
+```
+Címzett:  <kapitányság e-mail>
+Tárgy:    Szabálysértési feljelentés – <RENDSZÁM> – <cím>
+
+Tisztelt <kapitányság neve>!
+
+Szabálysértési feljelentést teszek ismeretlen elkövető ellen. <dátum>-én/-án <idő>-kor
+az alábbi helyen szabálytalanul várakozó járművet észleltem:
+
+<the same Helyszín … Megjegyzés block as template A>
+
+A helyszínen készített <n> fényképet bizonyítékként mellékelem. Kérem az ügy
+kivizsgálását és a szükséges intézkedés megtételét, valamint tájékoztatást az eljárás
+menetéről. Tanúként rendelkezésre állok.
+
+Tisztelettel:
+<név>
+<lakcím>
+<e-mail, telefon>
+```
+
+Rules for both:
+
+- Plain text only. No promise or demand of a fine; no amounts; no claim that the keeper is liable.
+- The block carries what Szabs. tv. 78. § (3) asks of a report: place, time, circumstances, the
+  plate, and the photos named.
+- For "Egyéb" the line reads `Szabálytalanság: <the user's text>` with no reference. Empty optional
+  lines (Jármű, Megjegyzés) are left out.
+- The "Megjegyzés" and help text may remind the user: report promptly (a patrol can only act while
+  the car is there; petty-offence liability lapses after 6 months), and a witness may ask for their
+  details to be handled confidentially (Szabs. tv. 63. § (1)).
 
 ## 8. Technical design
 
@@ -290,10 +340,10 @@ address and the photo is analysed locally. An "Adatkezelés" screen states this 
 
 | Risk | Effect | Mitigation |
 |---|---|---|
-| R1 Authorities may not fine from a citizen's photo | The app's promise is weaker than the user expects | Resolve O1 in M1; honest wording; police offered as alternative |
+| R1 Authorities may not fine from a citizen's photo (confirmed in M1, D20) | The app's promise is weaker than the user expects | Honest wording (no fine promised); "phone if the car is still there" hint; police feljelentés offered as alternative |
 | R2 The user forgets to attach the photos, or cannot find the saved ones in the mail app | Report arrives without evidence | Numbered steps on the e-mail screen; the "Átadva" checklist starts with attaching the photos; verify on the owner's phone in M2 that the saved photos appear in Gmail's attach dialog |
 | R3 Authority contacts and agreements change | Mail goes to the wrong body | `verifiedOn` dates, yearly check script, "bizonytalan" when stale |
-| R4 Capital-road matching is imperfect (partial road sections, squares) | Wrong primary authority | `partial` flag lowers confidence; alternatives always shown; human-reviewed test points |
+| R4 Capital-road matching is imperfect (partial road sections, squares) | Wrong primary authority | Sections are cut to their junctions; a section whose ends could not be placed (`partial` and not cut, or `cutApprox`) lowers confidence; alternatives always shown; human-reviewed test points |
 | R5 Free services change terms or go down | Map or address lookup fails | Tile style URL and lookup URL are configuration; manual address entry always works |
 | R6 `mailto:` length limits | Truncated body | F-MAIL-1 fallback |
 | R7 Plate reader misreads a Hungarian plate, is slow on the phone, or the models are too large | A wrong plate in a report sent to an authority | Spike S3 gate before building; suggestion only, user must confirm; crop shown next to the field; switch in Settings |

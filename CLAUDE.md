@@ -39,6 +39,14 @@ When the user asks for a feature, fix or other task:
    roadmap status and record the actual time and usage next to the estimate.
 5. If the work changes behaviour described in the SPEC, update the SPEC in the same change.
 
+## Milestones run in their own sessions
+
+Each milestone (M1, M2, …) runs in its own session titled "ParkStop M<n>: <short name>",
+started from the main ParkStop session with a fresh brief. The milestone session does the
+work, keeps [docs/ROADMAP.md](docs/ROADMAP.md) and [docs/DECISIONS.md](docs/DECISIONS.md)
+current, and reports back; the main session coordinates, checks the result and starts the next
+milestone. Side tasks that come up inside a milestone may get their own sessions too.
+
 ## Checks before calling a task done
 
 - `npm run typecheck`, `npm run lint`, `npm test` pass (once the project is scaffolded).

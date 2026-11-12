@@ -1,0 +1,1301 @@
+{
+  "schemaVersion": 1,
+  "generatedOn": "2026-11-12",
+  "devNote": "Built in M1 from researcher rows confirmed by a sceptic (or refuted with an official correctedValue). emailNote/phoneNote are Hungarian and may be shown to the user; devNote fields are English and internal. See docs/DATA-SOURCES.md.",
+  "authorities": [
+    {
+      "id": "fori",
+      "name": "Fővárosi Önkormányzati Rendészeti Igazgatóság (FÖRI)",
+      "type": "fori",
+      "districts": [],
+      "email": "fori@fori.hu",
+      "emailNote": "központi cím",
+      "phone": "+36 1 301 7500",
+      "phoneNote": "Fővárosi Ügyeleti és Irányító Központ, 0–24",
+      "web": "https://fori.hu/",
+      "address": "1054 Budapest, Akadémia u. 1.",
+      "sourceUrl": "https://fori.hu/",
+      "verifiedOn": "2026-11-12",
+      "devNote": "fori.hu blocks automated clients (Cloudflare). Researchers read a cached copy (2026-11-05); the owner confirmed e-mail and phone on the live page in a browser on 2026-11-12. Phone also printed in the I. district agreement (+361 301 7500)."
+    },
+    {
+      "id": "district-01",
+      "name": "Budavári Rendészet",
+      "type": "district",
+      "districts": [
+        1
+      ],
+      "email": "budavarirendeszet@budavar.hu",
+      "emailNote": "a rendészet általános címe",
+      "phone": "+36 1 225 7271",
+      "phoneNote": "a felügyelők 0–24 órában szolgálatban; másik szám: 06 20 501 2081",
+      "web": "https://budavar.hu/institutions/kozterulet-felugyeleti-iroda/",
+      "address": "1014 Budapest, Országház utca 9.",
+      "sourceUrl": "https://budavar.hu/institutions/kozterulet-felugyeleti-iroda/",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-02",
+      "name": "Városrendészeti Osztály (II. kerületi Polgármesteri Hivatal)",
+      "type": "district",
+      "districts": [
+        2
+      ],
+      "email": "kozterulet@masodikkerulet.hu",
+      "emailNote": "szabálysértési, szabályszegési ügyek címe",
+      "phone": "+36 80 204 965",
+      "phoneNote": "ingyenes zöld szám bejelentésekhez",
+      "web": "https://masodikkerulet.hu/varosuzemeltetes/kapcsolatfelvetel",
+      "address": "1024 Budapest, Buday László utca 5/c",
+      "sourceUrl": "https://masodikkerulet.hu/varosuzemeltetes/kapcsolatfelvetel",
+      "verifiedOn": "2026-11-12",
+      "devNote": "0-24 line 274-6073 belongs to the Hidegkúti Rendészeti Központ; not used as main phone."
+    },
+    {
+      "id": "district-03",
+      "name": "Óbuda-Békásmegyer Közterület-felügyelet",
+      "type": "district",
+      "districts": [
+        3
+      ],
+      "email": "ugyfelszolgalat@obkf.hu",
+      "emailNote": "bejelentési cím",
+      "phone": "+36 1 453 2618",
+      "phoneNote": "ügyfélszolgálati időn túl a diszpécserek veszik fel",
+      "web": "https://obkf.hu/bejelentes/",
+      "address": "1033 Budapest, Mozaik u. 7.",
+      "sourceUrl": "https://obkf.hu/kapcsolat/",
+      "verifiedOn": "2026-11-12",
+      "devNote": "web corrected by the sceptic to the body's report form page."
+    },
+    {
+      "id": "district-04",
+      "name": "Újpesti Önkormányzati Rendészet",
+      "type": "district",
+      "districts": [
+        4
+      ],
+      "email": "ujpest.rendeszet@ujpest.hu",
+      "emailNote": "a rendészet hivatali címe",
+      "phone": "+36 70 452 0590",
+      "phoneNote": "0–24 órás szám; vezetékes: +36 1 231 3250",
+      "web": "https://ujpest.hu/szervezeti-egysegek/",
+      "address": "1042 Budapest, Király utca 9. I. emelet",
+      "sourceUrl": "https://ujpest.hu/szervezeti-egysegek/",
+      "verifiedOn": "2026-11-12",
+      "fieldSources": {
+        "phone": {
+          "url": "https://ujpest.hu/elszallitott-jarmuvek-listaja/",
+          "verifiedOn": "2026-11-12"
+        }
+      },
+      "devNote": "24h status is stated in the wheel-clamp section of the phone source."
+    },
+    {
+      "id": "district-05",
+      "name": "Belváros-Lipótváros Közterület-felügyelet",
+      "type": "district",
+      "districts": [
+        5
+      ],
+      "email": "diszpecser@belvaros-lipotvaros.hu",
+      "emailNote": "diszpécserszolgálat, bejelentésekhez",
+      "phone": "+36 1 872 7610",
+      "phoneNote": "0–24 órás diszpécser",
+      "web": "https://www.belvaros-lipotvaros.hu/blkf_kapcsolat",
+      "address": "1054 Budapest, Podmaniczky Frigyes tér 6.",
+      "sourceUrl": "https://www.belvaros-lipotvaros.hu/blkf_kapcsolat",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-06",
+      "name": "Terézvárosi Rendészet (Terézvárosi Polgármesteri Hivatal)",
+      "type": "district",
+      "districts": [
+        6
+      ],
+      "email": "ugyelet.kozter@terezvaros.hu",
+      "emailNote": "ügyeleti cím",
+      "phone": "+36 1 279 2470",
+      "phoneNote": "0–24 órás ügyelet",
+      "web": "https://terezvaros.hu/kapcsolat",
+      "address": null,
+      "sourceUrl": "https://terezvaros.hu/kapcsolat",
+      "verifiedOn": "2026-11-12",
+      "devNote": "terezvaros.hu is a JS app; read via an extraction service (snapshot 2026-11-06). Address 1063 Szív u. 40. seen only in a search-index excerpt, so left null."
+    },
+    {
+      "id": "district-07",
+      "name": "Erzsébetváros Rendészeti Igazgatósága (ERI)",
+      "type": "district",
+      "districts": [
+        7
+      ],
+      "email": "diszpecser@evkf.hu",
+      "emailNote": "diszpécserszolgálat, bejelentésekhez",
+      "phone": "+36 1 461 9040",
+      "phoneNote": "0–24 órás diszpécser",
+      "web": "https://erzsebetvaros.hu/page/erzsebetvaros-rendeszeti-igazgatosaga",
+      "address": "1076 Budapest, Százház utca 10–18.",
+      "sourceUrl": "https://erzsebetvaros.hu/page/erzsebetvaros-rendeszeti-igazgatosaga",
+      "verifiedOn": "2026-11-12",
+      "devNote": "evkf.hu domain also printed on the body's own site https://eri7.hu/ ('Ügyelet a nap 24 órájában +36 1 461 9040 · diszpecser@evkf.hu')."
+    },
+    {
+      "id": "district-08",
+      "name": "Józsefvárosi Rendészet",
+      "type": "district",
+      "districts": [
+        8
+      ],
+      "email": "info@jozsefvarosirendeszet.hu",
+      "emailNote": "általános cím",
+      "phone": "+36 80 204 618",
+      "phoneNote": "ingyenes zöld szám",
+      "web": "https://rendeszet.jozsefvaros.hu/kapcsolat/",
+      "address": "1084 Budapest, Német u. 13.",
+      "sourceUrl": "https://rendeszet.jozsefvaros.hu/kapcsolat/",
+      "verifiedOn": "2026-11-12",
+      "devNote": "24h status of the green number only in a 2024 news item; not claimed."
+    },
+    {
+      "id": "district-09",
+      "name": "Ferencvárosi Közterület-felügyelet (Közterület-felügyeleti Iroda)",
+      "type": "district",
+      "districts": [
+        9
+      ],
+      "email": "kozter@ferencvaros.hu",
+      "emailNote": "bejelentésekhez is használható cím",
+      "phone": "+36 80 399 999",
+      "phoneNote": "0–24 órás ingyenes zöld szám",
+      "web": "https://fvkf.hu/",
+      "address": "1092 Budapest, Ferenc krt. 8.",
+      "sourceUrl": "https://ferencvaros.hu/polgarmesteri-hivatal/szervezeti-egysegek/kozterulet-felugyeleti-iroda/22",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Sources corrected by the sceptic after the ferencvaros.hu redesign (old URLs 404). Personal customer service moved to Bakáts tér 14. per fvkf.hu."
+    },
+    {
+      "id": "district-10",
+      "name": "Kőbányai Közterület-felügyelet",
+      "type": "district",
+      "districts": [
+        10
+      ],
+      "email": "hivatal@kobanya.hu",
+      "emailNote": "a polgármesteri hivatal általános címe; a felügyelet a lakossági bejelentéseket telefonon kéri",
+      "phone": "+36 30 606 4712",
+      "phoneNote": "0–24 órás diszpécser",
+      "web": "https://www.kobanya.hu/?module=news&fname=ugyintezes-bejelentes",
+      "address": "1103 Budapest, Gergely utca 112/A–B",
+      "sourceUrl": "https://www.kobanya.hu/?module=news&action=show&nid=180288",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Page: 'KÉRJÜK, HOGY LAKOSSÁGI BEJELENTÉSEKET A FENTI TELEFONSZÁMON TEGYÉK MEG!' — the UI should push the phone here."
+    },
+    {
+      "id": "district-11",
+      "name": "Újbudai Közterület-felügyelet",
+      "type": "district",
+      "districts": [
+        11
+      ],
+      "email": "kozteruletfelugyelet@ujbudakf.hu",
+      "emailNote": "a felügyelet címe",
+      "phone": "+36 70 684 8857",
+      "phoneNote": "0–24 órás diszpécser; zöld szám: 06 80 411 112",
+      "web": "https://ubkf.ujbuda.hu/Kapcsolat",
+      "address": "1115 Budapest, Fraknó u. 32/B–C",
+      "sourceUrl": "https://ubkf.ujbuda.hu/",
+      "verifiedOn": "2026-11-12",
+      "fieldSources": {
+        "phone": {
+          "url": "https://ubkf.ujbuda.hu/Kapcsolat",
+          "verifiedOn": "2026-11-12"
+        }
+      },
+      "devNote": "Old address kozteruletfelugyelet@ktf.ujbuda.hu is superseded (the Kapcsolat page says the e-mail changed)."
+    },
+    {
+      "id": "district-12",
+      "name": "Hegyvidéki Rendészet",
+      "type": "district",
+      "districts": [
+        12
+      ],
+      "email": "kozteruletfelugyelet@hegyvidek.hu",
+      "emailNote": "a rendészet címe (parkolási ügyekben is)",
+      "phone": "+36 30 623 9973",
+      "phoneNote": "éjjel-nappal hívható",
+      "web": "https://hegyvidek.hu/elet-a-hegyvideken/kozbiztonsag",
+      "address": "1126 Budapest, Kiss János altábornagy u. 47.",
+      "sourceUrl": "https://hegyvidek.hu/elet-a-hegyvideken/kozbiztonsag",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-13",
+      "name": "Budapest Főváros XIII. Kerületi Közterület-felügyelet",
+      "type": "district",
+      "districts": [
+        13
+      ],
+      "email": "ktf-ugyelet@bp13.hu",
+      "emailNote": "ügyeleti cím",
+      "phone": "+36 1 773 1313",
+      "phoneNote": "0–24 órás ügyelet; mobil: +36 30 460 9355",
+      "web": "https://www.budapest13.hu/kozterulet-felugyelet/",
+      "address": "1139 Budapest, Hajdú utca 29. (bejárat a Fáy utca felől)",
+      "sourceUrl": "https://www.budapest13.hu/kozterulet-felugyelet/",
+      "verifiedOn": "2026-11-12",
+      "fieldSources": {
+        "email": {
+          "url": "https://budapest13.hu/wp-content/uploads/2024/11/ADATKEZELESI-TAJEKOZTATO-testkamerakhoz-2024-11-1.0.pdf",
+          "verifiedOn": "2026-11-12"
+        }
+      }
+    },
+    {
+      "id": "district-14",
+      "name": "Zuglói Önkormányzati Rendészet",
+      "type": "district",
+      "districts": [
+        14
+      ],
+      "email": "ugyfelszolgalat@zugloirendeszet.hu",
+      "emailNote": "ügyfélszolgálati cím",
+      "phone": "+36 1 211 2233",
+      "phoneNote": "0–24 órás szám",
+      "web": "https://www.zugloirendeszet.hu/",
+      "address": "1145 Budapest, Laky Adolf utca 36.",
+      "sourceUrl": "https://www.zuglo.hu/zugloi-onkormanyzati-rendeszet/",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-15",
+      "name": "Önkormányzati Rendészet (XV. kerületi Polgármesteri Hivatal)",
+      "type": "district",
+      "districts": [
+        15
+      ],
+      "email": "rendeszet@bpxv.hu",
+      "emailNote": "a rendészet címe",
+      "phone": "+36 1 305 3147",
+      "phoneNote": "0–24 órás ügyelet",
+      "web": "https://www.bpxv.hu/varoshaza/polgarmesteri-hivatal/szervezeti-egysegek/onkormanyzati-rendeszet",
+      "address": "1153 Budapest, Illyés Gyula utca 28.",
+      "sourceUrl": "https://www.bpxv.hu/varoshaza/polgarmesteri-hivatal/szervezeti-egysegek/onkormanyzati-rendeszet",
+      "verifiedOn": "2026-11-12",
+      "fieldSources": {
+        "phone": {
+          "url": "https://www.bpxv.hu/aktualitasok/valtozik-az-onkormanyzati-rendeszet-elerhetosege-es-ugyfelfogadasa",
+          "verifiedOn": "2026-11-12"
+        }
+      },
+      "devNote": "E-mail and address corrected by the sceptic (researcher had the general info@bpxv.hu)."
+    },
+    {
+      "id": "district-16",
+      "name": "Közterület-felügyeleti Iroda (XVI. kerületi Polgármesteri Hivatal)",
+      "type": "district",
+      "districts": [
+        16
+      ],
+      "email": "info@bp16.hu",
+      "emailNote": "a polgármesteri hivatal általános címe",
+      "phone": "+36 1 401 1450",
+      "phoneNote": "nem 0–24: hétfő–csütörtök 7–20, péntek 7-től vasárnap 7-ig; mobil: 06 20 808 9769",
+      "web": "https://www.bp16.hu/kozterulet-felugyelet-informaciok-roncsautok-elszallitasa",
+      "address": "1163 Budapest, Havashalom utca 43.",
+      "sourceUrl": "https://www.bp16.hu/polgarmesteri-hivatal-elerhetosege-ugyfelfogadasi-rend",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Page prints the number as 4011-450 (Budapest local); +36 1 added. No enforcement-specific e-mail published."
+    },
+    {
+      "id": "district-17",
+      "name": "Rákosmente Közterület-felügyelete",
+      "type": "district",
+      "districts": [
+        17
+      ],
+      "email": "kozterulet-felugyelet@rakosmente.hu",
+      "emailNote": "a felügyelet címe",
+      "phone": "+36 20 210 9625",
+      "phoneNote": "nem 0–24: hétfő–szombat 8–20",
+      "web": "https://www.rakosmente.hu/static-pages/koezteruelet-feluegyelet-1",
+      "address": "1173 Budapest, Egészségház utca 3.",
+      "sourceUrl": "https://www.rakosmente.hu/static-pages/koezteruelet-feluegyelet-1",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-18",
+      "name": "Városrendészet18 Osztály (Pestszentlőrinc-Pestszentimre)",
+      "type": "district",
+      "districts": [
+        18
+      ],
+      "email": "varosrendeszet18@bp18.hu",
+      "emailNote": "a városrendészet címe (munkaidőben)",
+      "phone": "+36 1 294 1011",
+      "phoneNote": "nem 0–24: hétfő–péntek 6–20 (nyáron 6–22); mobil: 06 30 649 1203",
+      "web": "https://www.bp18.hu/pestszentlorincpestszentimre/a-hivatal/a_kozteruletfelugyelet_varosrendeszet18_osztaly",
+      "address": "1181 Budapest, Kondor Béla sétány 1.",
+      "sourceUrl": "https://www.bp18.hu/pestszentlorincpestszentimre/a-hivatal/a_kozteruletfelugyelet_varosrendeszet18_osztaly",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-19",
+      "name": "Kispesti Rendészeti Központ",
+      "type": "district",
+      "districts": [
+        19
+      ],
+      "email": "rendeszet@krk.kispest.hu",
+      "emailNote": "a központ általános címe",
+      "phone": "+36 1 347 4900",
+      "phoneNote": "munkaidőben; szabálysértési ügyek: 9459-es mellék",
+      "web": "https://krk.kispest.hu/kapcsolat/",
+      "address": "1191 Budapest, Eötvös utca 3–7.",
+      "sourceUrl": "https://krk.kispest.hu/kapcsolat/",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Page writes the @ as '(kukac)'. Competence limited to district-owned public spaces (krk.kispest.hu/rolunk)."
+    },
+    {
+      "id": "district-20",
+      "name": "Pesterzsébeti Közterület-felügyelet (Rendvédelmi Osztály)",
+      "type": "district",
+      "districts": [
+        20
+      ],
+      "email": "kozterulet-felugyelet@pesterzsebet.hu",
+      "emailNote": "a járőrszolgálat címe",
+      "phone": "+36 20 255 5842",
+      "phoneNote": "sürgős ügyben bármikor; vezetékes: +36 1 289 2508",
+      "web": "https://pesterzsebet.hu/lakossagi-bejelentes/",
+      "address": "1201 Budapest, Kossuth Lajos utca 22–24.",
+      "sourceUrl": "https://pesterzsebet.hu/hova-fordulhatunk/",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "district-21",
+      "name": "Csepeli Városrendészeti Igazgatóság",
+      "type": "district",
+      "districts": [
+        21
+      ],
+      "email": "rendeszet@cseri21.hu",
+      "emailNote": "a városrendészet címe",
+      "phone": "+36 70 795 7014",
+      "phoneNote": "ügyeleti szám; titkárság: (06 1) 427 0284",
+      "web": "http://cseri21.hu/",
+      "address": "1211 Budapest, Szent Imre tér 9.",
+      "sourceUrl": "http://cseri21.hu/",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Researcher left these empty (cseri21.hu failed TLS); sceptic found them on the body's own site; main session re-read them live over http on 2026-11-12. HTTPS is broken on that host, hence the http URL. Formal name also on csepel.hu."
+    },
+    {
+      "id": "district-22",
+      "name": "Budafok-Tétény Közterület-felügyeleti Csoport",
+      "type": "district",
+      "districts": [
+        22
+      ],
+      "email": "kozter@bp22.hu",
+      "emailNote": "a csoport címe",
+      "phone": "+36 20 386 5942",
+      "phoneNote": "bejelentésekhez",
+      "web": "https://www.budafokteteny.hu/ugyintezes/kozterulet-felugyelet",
+      "address": "1221 Budapest, Városház tér 11.",
+      "sourceUrl": "https://www.budafokteteny.hu/ugyintezes/kozterulet-felugyelet",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Page marked 'FRISSÍTÉS ALATT' and the mailto link is malformed; the address itself reads kozter@bp22.hu."
+    },
+    {
+      "id": "district-23",
+      "name": "Rendészeti és Mezőőri Osztály (Soroksári Polgármesteri Hivatal)",
+      "type": "district",
+      "districts": [
+        23
+      ],
+      "email": "rendeszet@ph.soroksar.hu",
+      "emailNote": "az osztály címe",
+      "phone": "+36 30 978 7798",
+      "phoneNote": "0–24 órás (kamerás) ügyelet",
+      "web": "https://soroksar.hu/rendeszeti-es-mezoori-osztaly-978/",
+      "address": "1238 Budapest, Grassalkovich út 170.",
+      "sourceUrl": "https://soroksar.hu/rendeszeti-es-mezoori-osztaly-978/",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-01",
+      "name": "BRFK I. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        1
+      ],
+      "email": "01rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 457 5600",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "Budapest, I. kerület, Pauler utca 13.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/i-keruleti",
+      "verifiedOn": "2026-11-12",
+      "devNote": "The police.hu page gives no postcode for the street address; none is added."
+    },
+    {
+      "id": "police-02",
+      "name": "BRFK II. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        2
+      ],
+      "email": "02rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 346 1800",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1024 Budapest, Rómer Flóris utca 10.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/ii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-03",
+      "name": "BRFK III. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        3
+      ],
+      "email": "03rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 430 4700",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1036 Budapest, Tímár u. 9/a.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/iii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-04",
+      "name": "BRFK IV. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        4
+      ],
+      "email": "04rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 231 3400",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1042 Budapest, Árpád út 87.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/iv-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-05",
+      "name": "BRFK V. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        5
+      ],
+      "email": "05rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 373 1000",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1055 Budapest, Szalay utca 11–13.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/v-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-06",
+      "name": "BRFK VI. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        6
+      ],
+      "email": "06rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 461 8141",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1063 Budapest, Szinyei Merse utca 4.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/vi-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-07",
+      "name": "BRFK VII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        7
+      ],
+      "email": "07rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 461 8100",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1071 Budapest, Dózsa György út 18–24.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/vii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-08",
+      "name": "BRFK VIII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        8
+      ],
+      "email": "08rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 477 3700",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1084 Budapest, Víg utca 36.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/viii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-09",
+      "name": "BRFK IX. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        9
+      ],
+      "email": "09rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 455 4800",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1096 Budapest, Haller u. 7–9.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/ix-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-10",
+      "name": "BRFK X. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        10
+      ],
+      "email": "10rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 263 7200",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1102 Budapest, Harmat u. 6–8.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/x-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-11",
+      "name": "BRFK XI. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        11
+      ],
+      "email": "11rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 381 4300",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1113 Budapest, Bocskai út 90.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xi-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-12",
+      "name": "BRFK XII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        12
+      ],
+      "email": "12rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 457 5650",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1122 Budapest, Maros utca 3–5.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-13",
+      "name": "BRFK XIII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        13
+      ],
+      "email": "13rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 236 2800",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1135 Budapest, Szabolcs utca 36.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xiii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-14",
+      "name": "BRFK XIV. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        14
+      ],
+      "email": "14rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 461 8150",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1143 Budapest, Stefánia út 83–85.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xiv-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-15",
+      "name": "BRFK XV. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        15
+      ],
+      "email": "15rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 231 3450",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1152 Budapest, Széchenyi tér 5.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xv-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-16",
+      "name": "BRFK XVI. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        16
+      ],
+      "email": "16rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 491 8400",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1163 Budapest, Veres Péter út 101.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xvi-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-17",
+      "name": "BRFK XVII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        17
+      ],
+      "email": "17rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 443 5000",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1173 Budapest, Ferihegyi út 79.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xvii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-18",
+      "name": "BRFK XVIII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        18
+      ],
+      "email": "18rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 292 9200",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1183 Budapest, Üllői út 438.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xviii-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-19",
+      "name": "BRFK XIX. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        19
+      ],
+      "email": "19rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 292 9250",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1191 Budapest, Ady Endre út 29.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xix-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-20-23",
+      "name": "BRFK XX. és XXIII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        20,
+        23
+      ],
+      "email": "20rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe (a Soroksári Rendőrőrsé is)",
+      "phone": "+36 1 421 1800",
+      "phoneNote": "központ; Soroksári Rendőrőrs: +36 1 421 1843; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1204 Budapest, Török Flóris utca 78–82.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xx-es-xxiii-keruleti",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Soroksári Rendőrőrs (1238 Budapest, Templom u. 20.) is a sub-unit; page https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xx-es-xxiii-keruleti-0"
+    },
+    {
+      "id": "police-21",
+      "name": "BRFK XXI. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        21
+      ],
+      "email": "21rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 427 4600",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1211 Budapest, Szent Imre tér 23.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xxi-keruleti",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "id": "police-22",
+      "name": "BRFK XXII. kerületi Rendőrkapitányság",
+      "type": "police",
+      "districts": [
+        22
+      ],
+      "email": "22rk@budapest.police.hu",
+      "emailNote": "a kapitányság általános címe",
+      "phone": "+36 1 491 8300",
+      "phoneNote": "központ; sürgős esetben 112",
+      "web": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+      "address": "1221 Budapest, Városház tér 7.",
+      "sourceUrl": "https://www.police.hu/hu/ugyintezes/szerv/orszagos-rendor-fokapitanysag/budapesti-rendor-fokapitanysag/xxii-keruleti",
+      "verifiedOn": "2026-11-12"
+    }
+  ],
+  "policeNote": {
+    "hu": "A kapitányságok e-mail címe általános cím; hogy e-mailben tett szabálysértési feljelentést befogadnak-e, nem megerősített. A hivatalos elektronikus út az IN-100100 azonosítójú űrlap az ugyintezes.police.hu oldalon (ügyfélkapus belépéssel). A BRFK nem címezhető feljelentéssel; a helyszín szerinti kapitányság illetékes.",
+    "sourceUrl": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
+    "verifiedOn": "2026-11-12"
+  },
+  "districtRules": [
+    {
+      "district": 1,
+      "roman": "I",
+      "ownBody": true,
+      "primaryId": "district-01",
+      "policeId": "police-01",
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "FPH015/2-7/2014 (2014-05-21), approved 16/2014. (I. 29.) Főv. Kgy. h.; amended by 1626/2021. (X. 27.) (Vérmező, Tabán park to the district). II.1 subtasks on capital areas do not include KRESZ checks; FÖRI keeps annex 1 areas (Lánchíd, Alagút, Erzsébet híd, rakpart sections, Hegyalja út, underpasses).",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/114456?fileId=180824&filename=f01_Iker%20Onk_Megallapodas.pdf&key=fovarosi-kozgyules-nyilvanos-ulesei&organizationtype=2&parentId=12206&parenttype=2&prevaction=DvdItem&prevcont=Session&sessionType=1&type=5",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 2,
+      "roman": "II",
+      "ownBody": true,
+      "primaryId": "district-02",
+      "policeId": "police-02",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 17/2014. (I. 29.) Főv. Kgy. h.; text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 3,
+      "roman": "III",
+      "ownBody": true,
+      "primaryId": "district-03",
+      "policeId": "police-03",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 18/2014. (I. 29.) Főv. Kgy. h.; text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 4,
+      "roman": "IV",
+      "ownBody": true,
+      "primaryId": "district-04",
+      "policeId": "police-04",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 4/2015. (I. 28.) Főv. Kgy. h.; text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A15H0401.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 5,
+      "roman": "V",
+      "ownBody": true,
+      "primaryId": "district-05",
+      "policeId": "police-05",
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "verified",
+      "agreement": "FPH015/40-5/2014 terminated by the capital from 2022-01-01: 1206/2021. (VI. 14.) Főv. Kgy. határozat. No later agreement found.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadSessionDvD/12183?fileId=178792",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 6,
+      "roman": "VI",
+      "ownBody": true,
+      "primaryId": "district-06",
+      "policeId": "police-06",
+      "capitalRoads": "both",
+      "capitalRoadsBasis": "verified",
+      "districtActsOn": [
+        {
+          "annex": 2,
+          "row": "315",
+          "text": "Bajza utca (Szondi utca – Podmaniczky utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "318",
+          "text": "Ferdinánd híd",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "319",
+          "text": "Ferdinánd híd le- és felhajtó útjai és aluljárója",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "320",
+          "text": "Izabella utca (Király utca – Podmaniczky utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "321",
+          "text": "Király utca (Nagymező utca – Lövölde tér közötti páros oldali szakasza)",
+          "scope": "narrower",
+          "devNote": "Even-numbered side only; the pin side cannot be told reliably."
+        },
+        {
+          "annex": 2,
+          "row": "323",
+          "text": "Lehel utca (Váci út – Bulcsú utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "324",
+          "text": "Lövölde tér",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "325",
+          "text": "Munkácsy Mihály utca (Szondi utca – Podmaniczky utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "326",
+          "text": "Nagymező utca (Bajcsy-Zsilinszky út – Király utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "327",
+          "text": "Nyugati tér (… kizárólag a VI. kerületet érintő területe) utcaszinten lévő területe",
+          "scope": "narrower",
+          "devNote": "Street level and VI part only."
+        },
+        {
+          "annex": 2,
+          "row": "329",
+          "text": "Podmaniczky utca (Bajcsy-Zsilinszky út – Dózsa György út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "330",
+          "text": "Szondi utca (Dózsa György út – Bajza utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "331",
+          "text": "Szondi utca (Izabella utca – Vörösmarty utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "335",
+          "text": "Vörösmarty utca (Podmaniczky utca – Szondi utca)",
+          "scope": "full"
+        }
+      ],
+      "agreement": "FPH015/36-5/2014, approved 142/2014. (II. 26.); amended by 676/2021. (III. 31.): the district body acts (incl. KRESZ checks, towing) only on an enumerated list of capital areas; FÖRI on all others.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/110570?fileId=174281&filename=01_el%C3%B6terjeszt%C3%A9s.pdf&key=fovarosi-kozgyules-nyilvanos-ulesei&organizationtype=2&parentId=12170&parenttype=2&prevaction=DvdItem&prevcont=Session&sessionType=1&type=5",
+      "verifiedOn": "2026-11-12",
+      "districtActsOnSource": {
+        "url": "https://einfoszab.budapest.hu/File/DownloadDvD/110570?fileId=174077",
+        "verifiedOn": "2026-11-12",
+        "devNote": "676/2021. (III. 31.) Főv. Kgy. h., signed 2021-05-17; list in annex 1b / consolidated 1c II.1; KRESZ enforcement = II.1 o). No later amendment found through 2026-11-12. Ferdinánd híd underpass (VI) has no decree row of its own. Sceptic (Fable) re-read the page images 2026-11-12: list CONFIRMED (14 items), KRESZ clause II.1 o) is in the adopted 1b text. Towing: district on listed areas except vehicles obstructing public transport (FÖRI)."
+      }
+    },
+    {
+      "district": 7,
+      "roman": "VII",
+      "ownBody": true,
+      "primaryId": "district-07",
+      "policeId": "police-07",
+      "capitalRoads": "both",
+      "capitalRoadsBasis": "verified",
+      "districtActsOn": [
+        {
+          "annex": 2,
+          "row": "336",
+          "text": "Almássy tér (Csengery utca – Vörösmarty utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "337",
+          "text": "Alpár utca (Garay tér – Dózsa György út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "338",
+          "text": "Bajza utca (Városligeti fasor – Damjanich utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "340",
+          "text": "Bethlen Gábor tér",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "341",
+          "text": "Bethlen Gábor utca (Damjanich utca – Baross tér)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "342",
+          "text": "Damjanich utca (Rottenbiller utca – Dózsa György út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "343",
+          "text": "Dembinszky utca (Rottenbiller utca – Dózsa György út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "344",
+          "text": "Dohány utca (Wesselényi utca – Rottenbiller utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "346",
+          "text": "Erzsébet körút (Dohány utca – Rákóczi út)",
+          "scope": "narrower",
+          "devNote": "Decree row 2/346 is Király utca – Rákóczi út; the Király utca – Dohány utca part stays with FÖRI."
+        },
+        {
+          "annex": 2,
+          "row": "347",
+          "text": "Garay tér (Murányi utca – Cserhát utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "348",
+          "text": "Garay utca (Bethlen Gábor utca – Garay tér)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "349",
+          "text": "István út (Rottenbiller utca – Dózsa György út)",
+          "scope": "full",
+          "devNote": "The agreement annex prints \"István út\"; the street is István utca (VII). Matched by decree row, not by name."
+        },
+        {
+          "annex": 2,
+          "row": "350",
+          "text": "Izabella utca (Rózsák tere – Király utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "352",
+          "text": "Lövölde tér",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "353",
+          "text": "Nefelejcs utca (Garay utca – Damjanich utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "355",
+          "text": "Rottenbiller utca (Baross tér – Lövölde tér)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "356",
+          "text": "Rózsák tere (Dohány utca vonala)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "357",
+          "text": "Síp utca (Dohány utca – Rákóczi út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "360",
+          "text": "Verseny utca (Baross tér – Dózsa György út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "361",
+          "text": "Wesselényi utca (Dohány utca – Rottenbiller utca)",
+          "scope": "full"
+        }
+      ],
+      "agreement": "FPH015/44-6/2015, approved 249/2015. (III. 23.); amended by 677/2021. (III. 31.): the district body acts (incl. KRESZ checks) only on an enumerated list of capital areas; FÖRI on all others. 2025-05-21 district request for more FÖRI patrols: no outcome found.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/110570?fileId=174281&filename=01_el%C3%B6terjeszt%C3%A9s.pdf&key=fovarosi-kozgyules-nyilvanos-ulesei&organizationtype=2&parentId=12170&parenttype=2&prevaction=DvdItem&prevcont=Session&sessionType=1&type=5",
+      "verifiedOn": "2026-11-12",
+      "districtActsOnSource": {
+        "url": "https://einfoszab.budapest.hu/File/DownloadDvD/110570?fileId=174077",
+        "verifiedOn": "2026-11-12",
+        "devNote": "677/2021. (III. 31.) Főv. Kgy. h., signed 2021-04-29; list in annex 2b / consolidated 2c Melléklet 1.; KRESZ enforcement = II.1 p). No later amendment found through 2026-11-12. Ferdinánd híd underpass (VI) has no decree row of its own. Sceptic (Fable) re-read the page images 2026-11-12: list CONFIRMED (20 items), KRESZ clause II.1 p) is in the adopted 2b text. FÖRI does all hazard towing in VII. VII council 183/2025. (V. 21.) asked for more FÖRI patrols; only KKVB 302/2025. (09.01.) followed, not an amendment."
+      }
+    },
+    {
+      "district": 8,
+      "roman": "VIII",
+      "ownBody": true,
+      "primaryId": "district-08",
+      "policeId": "police-08",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 872/2014. (VI. 30.); text not read; body reorganised 2026-04-01.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H1201.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 9,
+      "roman": "IX",
+      "ownBody": true,
+      "primaryId": "district-09",
+      "policeId": "police-09",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 230/2015. (II. 25.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A15H0501.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 10,
+      "roman": "X",
+      "ownBody": true,
+      "primaryId": "district-10",
+      "policeId": "police-10",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 143/2014. (II. 26.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 11,
+      "roman": "XI",
+      "ownBody": true,
+      "primaryId": "district-11",
+      "policeId": "police-11",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 144/2014. (II. 26.). District decree 29/2015. (IV. 29.) 1. § (1) b): body also acts on capital areas handed over by the agreement; which roads and subtasks not stated.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 12,
+      "roman": "XII",
+      "ownBody": true,
+      "primaryId": "district-12",
+      "policeId": "police-12",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 145/2014. (II. 26.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 13,
+      "roman": "XIII",
+      "ownBody": true,
+      "primaryId": "district-13",
+      "policeId": "police-13",
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "FPH015/52-6/2014 (2014-10-10), approved 20/2014. (I. 29.). District performs II.1 a)–j) (incl. wheel clamps) on capital areas except underpasses, without KRESZ sanctioning; FÖRI tows. Amendment no. 1 approved 2026-10-30: from 2027-01-01 Carl Lutz rakpart and Szent István körút return fully to FÖRI.",
+      "sourceUrl": "https://einfoszab.budapest.hu/Session/DvdItem/131664?sessionType=1&organizationtype=2&parentId=18586&parenttype=1&key=fovarosi-kozgyules-nyilvanos-ulesei&type=5",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 14,
+      "roman": "XIV",
+      "ownBody": true,
+      "primaryId": "district-14",
+      "policeId": "police-14",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 21/2014. (I. 29.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 15,
+      "roman": "XV",
+      "ownBody": true,
+      "primaryId": "district-15",
+      "policeId": "police-15",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 873/2014. (VI. 30.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H1201.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 16,
+      "roman": "XVI",
+      "ownBody": true,
+      "primaryId": "district-16",
+      "policeId": "police-16",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 22/2014. (I. 29.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 17,
+      "roman": "XVII",
+      "ownBody": true,
+      "primaryId": "district-17",
+      "policeId": "police-17",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 23/2014. (I. 29.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 18,
+      "roman": "XVIII",
+      "ownBody": true,
+      "primaryId": "district-18",
+      "policeId": "police-18",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 24/2014. (I. 29.); district page says some capital tasks were taken over, not which.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 19,
+      "roman": "XIX",
+      "ownBody": true,
+      "primaryId": "district-19",
+      "policeId": "police-19",
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 874/2014. (VI. 30.); text not read. Kispesti Rendészeti Központ states its competence covers district-owned areas and FÖRI acts on capital-managed areas (krk.kispest.hu/rolunk).",
+      "sourceUrl": "https://krk.kispest.hu/rolunk/",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 20,
+      "roman": "XX",
+      "ownBody": true,
+      "primaryId": "district-20",
+      "policeId": "police-20-23",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 25/2014. (I. 29.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 21,
+      "roman": "XXI",
+      "ownBody": true,
+      "primaryId": "district-21",
+      "policeId": "police-21",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 146/2014. (II. 26.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 22,
+      "roman": "XXII",
+      "ownBody": true,
+      "primaryId": "district-22",
+      "policeId": "police-22",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 26/2014. (I. 29.); local take-over decree 3/2014. (II. 11.) not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
+      "verifiedOn": "2026-11-12"
+    },
+    {
+      "district": 23,
+      "roman": "XXIII",
+      "ownBody": true,
+      "primaryId": "district-23",
+      "policeId": "police-20-23",
+      "capitalRoads": "unknown",
+      "capitalRoadsBasis": "none",
+      "agreement": "Agreement approved by 427/2014. (IV. 30.); text not read.",
+      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H1001.FOV",
+      "verifiedOn": "2026-11-12"
+    }
+  ],
+  "noDistrictAreas": [
+    {
+      "id": "margitsziget",
+      "name": "Margitsziget",
+      "primaryId": "fori",
+      "policeId": null,
+      "legalBasis": "Mötv. (2011. évi CLXXXIX. törvény) 22. § (4)",
+      "sourceUrl": "https://njt.jog.gov.hu/jogszabaly/2011-189-00-00",
+      "verifiedOn": "2026-11-12",
+      "devNote": "Inside the Budapest outline but in no district polygon (also the Danube channels around it). Directly administered by the capital, so FÖRI is primary. Which police station covers the island is not verified, so no police alternative is set."
+    }
+  ],
+  "devNoteRules": "capitalRoads = who handles parking (KRESZ stopping/waiting) enforcement on capital-managed roads in that district: fori | district | both (district on the listed districtActsOn sections, FÖRI elsewhere) | unknown. Resolver (SPEC 4.2): FÖRI is primary on every capital road unless the pin's road section is listed in districtActsOn. Entries with scope \"narrower\" cover only part of the decree row: the resolver keeps FÖRI primary there, lowers confidence and names the district body as the first alternative."
+}

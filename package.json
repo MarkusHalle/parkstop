@@ -11,14 +11,23 @@
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "check:deps": "node scripts/check-deps.mjs"
+    "check:deps": "node scripts/check-deps.mjs",
+    "validate:data": "node scripts/validate-data.mjs",
+    "build:districts": "node scripts/build-districts.mjs",
+    "build:capital-roads": "node scripts/build-capital-roads.mjs"
   },
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.4.0",
+    "@turf/helpers": "^7.4.0",
+    "@turf/point-to-line-distance": "^7.4.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@turf/length": "^7.4.0",
+    "@turf/line-slice": "^7.4.0",
+    "@turf/simplify": "^7.4.0",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -27,6 +36,7 @@
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
+    "osmtogeojson": "^3.0.0-beta.5",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.8",
