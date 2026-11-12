@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>PC test - opening an e-mail draft</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <div class="progress">
+    <span id="progtext">Step 1</span>
+    <div class="bar"><div id="barfill"></div></div>
+  </div>
+
+  <div id="wizard"></div>
+
+  <p class="startover"><button type="button" class="linkbtn" id="startover">Start over</button></p>
+
+  <details class="tech">
+    <summary>Technical details (you can ignore this)</summary>
+
+    <h4>Environment</h4>
+    <div class="env" id="env"></div>
+
+    <h4>Options</h4>
+    <label class="row"><input id="scale" type="checkbox" checked> Shrink photos first (max 2000 px long edge, JPEG 85%)</label>
+
+    <h4>Chosen photos</h4>
+    <div class="thumbs" id="thumbs"></div>
+
+    <h4>Sample message</h4>
+    <p><strong>Subject:</strong> <span id="subj"></span></p>
+    <pre class="log" id="bodyview"></pre>
+
+    <h4>Link lengths (encoded mailto: URL)</h4>
+    <p class="len" id="len1"></p>
+    <p class="len" id="len2"></p>
+    <p class="len" id="len3"></p>
+
+    <h4>Log</h4>
+    <pre class="log" id="log"></pre>
+    <button id="clearlog" type="button" class="secondary small">Clear log</button>
+  </details>
+</main>
+
+<input id="pick" type="file" accept="image/*" multiple hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

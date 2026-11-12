@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Phone test - reading number plates</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Plate-page additions; the shared look comes from style.css (same file as share/ and mail/). */
+  .shot { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); background: var(--card); margin: 8px 0; }
+  .crop { display: block; width: 100%; max-height: 160px; object-fit: contain; border-radius: 8px; border: 2px solid var(--line); background: #000; margin: 6px 0; }
+  .plate-read { font: 700 2rem/1.2 ui-monospace, "SF Mono", Consolas, monospace; letter-spacing: 0.06em; margin: 4px 0 8px; overflow-wrap: anywhere; }
+  .cand { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px 2px; margin: 12px 0; }
+  .cand button { margin-top: 6px; }
+  .answer-btn[aria-pressed="true"] { color: var(--accent-fg); background: var(--accent); }
+  .answer-btn { color: var(--accent); background: transparent; }
+  input.plate-input { text-transform: uppercase; font-size: 1.4rem; font-weight: 700; letter-spacing: 0.05em; }
+  .thumbs img { width: 72px; height: 72px; }
+  .thumbs figure { width: 72px; }
+  .busy { position: relative; overflow: hidden; }
+  .busy::after { content: ""; position: absolute; inset: 0; width: 35%; background: var(--accent); animation: slide 1.4s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+  @media (prefers-reduced-motion: reduce) { .busy::after { animation: none; width: 100%; opacity: 0.5; } }
+  table.tech { border-collapse: collapse; width: 100%; font-size: 0.8rem; }
+  table.tech th, table.tech td { text-align: left; padding: 3px 5px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .scroll { overflow-x: auto; }
+  input.num { width: 6em; min-height: 48px; padding: 6px 8px; font: inherit; color: var(--fg); background: var(--bg); border: 2px solid var(--line); border-radius: 10px; }
+  .big { font-size: 1.3rem; font-weight: 700; margin: 14px 0 6px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="progress">
+    <span id="progtext">Step 1</span>
+    <div class="bar"><div id="barfill"></div></div>
+  </div>
+
+  <div id="wizard"></div>
+
+  <details class="tech" id="tech">
+    <summary>Technical details (you can ignore this)</summary>
+
+    <h4>Environment</h4>
+    <div class="env" id="env"></div>
+
+    <h4>Download</h4>
+    <div class="scroll" id="models">Not loaded yet.</div>
+
+    <h4>Fill-in threshold</h4>
+    <label class="row">Lowest character confidence for the app to fill in the plate
+      <input class="num" id="thr" type="number" min="0" max="1" step="0.01" value="0.90"></label>
+    <div id="thrstats"></div>
+
+    <h4>Photos</h4>
+    <div class="scroll" id="phototable">No photos yet.</div>
+    <button id="rerun" type="button" class="secondary small" disabled>Re-run all</button>
+  </details>
+</main>
+
+<input id="pick" type="file" accept="image/*" multiple hidden>
+<input id="cam" type="file" accept="image/*" capture="environment" hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
