@@ -414,14 +414,14 @@ export function MapView({
         </div>
       )}
 
-      {showHint && !loadError && (
+      {showHint && !loadError && !locating && (
         <div className="ps-hint" role="status">
           {phone ? hu.map.tapHint : hu.map.clickHint}
         </div>
       )}
 
       {locating && (
-        <div className="ps-hint ps-hint--status" role="status">
+        <div className="ps-hint" role="status">
           {hu.map.locating}
         </div>
       )}

@@ -293,22 +293,28 @@
   position: absolute;
   z-index: 1;
   left: 50%;
-  /* Centre of the VISIBLE map: on the phone the map runs under the bottom sheet
-     (--ps-inset), and centring on the full height put the hint over the legend. */
-  top: calc((100% - var(--ps-inset, 0px)) / 2);
-  transform: translate(-50%, -50%);
-  max-width: calc(100% - 64px);
-  padding: 10px 16px;
+  /* A small chip just under the search bar, so it never covers the part of the map the
+     user is about to tap (owner's phone test). The sheet or panel repeats the same text. */
+  top: calc(var(--ps-gap) + 58px);
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--ps-gap));
+  padding: 6px 12px;
   border-radius: var(--radius-m, 10px);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 18px;
   text-align: center;
-  background: var(--c-hint-bg, #101828);
-  color: var(--c-hint-fg, #fff);
-  box-shadow: var(--shadow-2, 0 4px 16px rgba(16, 24, 40, 0.24));
+  background: var(--c-surface, #fff);
+  color: var(--c-text-muted, #4a5567);
+  border: 1px solid var(--c-border, #d9dee7);
+  box-shadow: var(--shadow-1, 0 2px 8px rgba(16, 24, 40, 0.08));
   pointer-events: none;
 }
-.ps-hint--status {
-  top: calc((100% - var(--ps-inset, 0px)) * 0.38);
+.ps-map--pc .ps-hint {
+  /* PC: beside the 340 px search box instead of under it. */
+  top: calc(var(--ps-gap) + 12px);
+  left: calc(var(--ps-gap) + 356px);
+  transform: none;
+  max-width: calc(100% - 356px - 2 * var(--ps-gap) - 60px);
 }
 
 /* Error cards */
