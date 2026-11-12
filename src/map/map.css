@@ -24,8 +24,27 @@
   font-family: var(--font-body, system-ui, sans-serif);
 }
 .ps-map .maplibregl-ctrl-attrib-button {
+  position: relative;
   width: 28px;
   height: 28px;
+}
+/* Touch target of 44 px around the 28 px (i) button. */
+.ps-map .maplibregl-ctrl-attrib-button::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+/* MapLibre's attribution is light by default; follow the dark theme. */
+:root[data-theme='dark'] .ps-map .maplibregl-ctrl-attrib {
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+:root[data-theme='dark'] .ps-map .maplibregl-ctrl-attrib a {
+  color: var(--c-text);
+}
+:root[data-theme='dark'] .ps-map .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
 }
 
 .ps-sr-only {
@@ -95,6 +114,12 @@
 }
 .ps-search__input::placeholder {
   color: var(--c-text-muted, #4a5567);
+  opacity: 1;
+}
+.ps-search__input:disabled,
+.ps-search__submit:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 .ps-search__submit {
   flex: none;
@@ -114,6 +139,25 @@
   border: 1px solid var(--c-border, #d9dee7);
   border-radius: var(--radius-m, 12px);
   box-shadow: var(--shadow-1, 0 2px 8px rgba(16, 24, 40, 0.08));
+}
+.ps-search__note--off {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ps-search__note--off svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--c-icon, #34312d);
+}
+.ps-search__note--off p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ps-search__note--off span {
+  color: var(--c-text-muted, #4a5567);
 }
 .ps-search__results {
   list-style: none;
@@ -249,11 +293,13 @@
   position: absolute;
   z-index: 1;
   left: 50%;
-  top: 50%;
+  /* Centre of the VISIBLE map: on the phone the map runs under the bottom sheet
+     (--ps-inset), and centring on the full height put the hint over the legend. */
+  top: calc((100% - var(--ps-inset, 0px)) / 2);
   transform: translate(-50%, -50%);
   max-width: calc(100% - 64px);
   padding: 10px 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-m, 10px);
   font-size: 14px;
   text-align: center;
   background: var(--c-hint-bg, #101828);
@@ -262,7 +308,7 @@
   pointer-events: none;
 }
 .ps-hint--status {
-  top: 38%;
+  top: calc((100% - var(--ps-inset, 0px)) * 0.38);
 }
 
 /* Error cards */
@@ -280,10 +326,6 @@
   border-radius: var(--radius-l, 14px);
   box-shadow: var(--shadow-2, 0 4px 16px rgba(16, 24, 40, 0.24));
 }
-.ps-card--load {
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
 .ps-card p {
   margin: 6px 0 0;
   font-size: 14px;
@@ -300,6 +342,91 @@
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* Empty state when the map does not load (offline, no WebGL). Fills the map area; on the
+   phone it stays clear of the bottom sheet. */
+.ps-empty {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  padding: var(--ps-gap) var(--ps-gap) calc(var(--ps-inset, 0px) + var(--ps-gap));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-map-bg, #e9edf2);
+}
+.ps-empty__card {
+  width: min(380px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 20px 20px;
+  text-align: center;
+  background: var(--c-surface, #fff);
+  border: 1px solid var(--c-card-border, transparent);
+  border-radius: var(--radius-l, 14px);
+  box-shadow: var(--shadow-1);
+}
+.ps-empty__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-info-bg, #fff4c2);
+  color: var(--c-info-fg, #3d3300);
+}
+.ps-empty__title {
+  margin: 4px 0 0;
+  font-family: var(--font-head, inherit);
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+}
+.ps-empty__body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--c-text-muted, #4a5567);
+}
+.ps-empty__actions {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+.ps-empty__btn {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-m, 12px);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ps-empty__btn--primary {
+  background: var(--c-yellow, #ffd100);
+  color: var(--c-on-yellow, #1c1c1c);
+}
+.ps-empty__btn--primary:hover {
+  background: var(--c-yellow-hover, #f2c400);
+}
+.ps-empty__btn--secondary {
+  background: var(--c-surface, #fff);
+  border-color: var(--c-outline-btn, #b9c7e6);
+  color: var(--c-primary, #1849a9);
+}
+.ps-empty__btn--secondary:hover {
+  border-color: var(--c-primary, #1849a9);
+}
+.ps-empty button:focus-visible {
+  outline: 3px solid var(--c-primary, #1849a9);
+  outline-offset: 2px;
 }
 
 /* Focus */

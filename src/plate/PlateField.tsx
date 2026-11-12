@@ -48,6 +48,8 @@ export interface PlateFieldProps {
   /** Validation error lines, already rendered. */
   errorText: ReactNode
   invalid: boolean
+  /** Ids of the visible error lines, for aria-describedby. */
+  describedBy?: string
   /** Text typed or edited by the user (its own value from now on). */
   onType: (value: string) => void
   /** Formatting on blur; keeps the source. */
@@ -59,7 +61,7 @@ export interface PlateFieldProps {
 }
 
 export function PlateField(props: PlateFieldProps) {
-  const { inputId, value, source, errorText, invalid, onType, onFormat, onConfirm, onPick, photos, reader } = props
+  const { inputId, value, source, errorText, invalid, describedBy, onType, onFormat, onConfirm, onPick, photos, reader } = props
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldRef = useRef<HTMLDivElement>(null)
   // Local to this visit of the form: the picker the user closed, the unclear crop they chose,
@@ -186,7 +188,7 @@ export function PlateField(props: PlateFieldProps) {
           <span className="plate-input-wrap">
             {view === 'working' && <span className="plate-skeleton" aria-hidden="true" />}
             <input ref={inputRef} id={inputId} type="text" value={value} autoComplete="off" autoCapitalize="characters" spellCheck={false}
-              aria-invalid={invalid || undefined}
+              aria-invalid={invalid || undefined} aria-describedby={describedBy}
               onChange={(e) => onType(plateWhileTyping(e.target.value))}
               onBlur={() => { const v = normalizePlate(value).value; if (v !== value) onFormat(v) }} />
           </span>
@@ -227,7 +229,12 @@ export function PlateField(props: PlateFieldProps) {
       {view === 'unavailable' && <p className="muted small">{hu.plate.unavailable}</p>}
 
       {zoomShown ? (
-        <ZoomPanel photos={zoomPhotos} startId={shown[0]?.photoId} onClose={() => setZoomOpen(false)} />
+        <ZoomPanel photos={zoomPhotos} startId={shown[0]?.photoId}
+          onClose={() => {
+            setZoomOpen(false)
+            // The close button is about to disappear: keep keyboard focus on the field.
+            requestAnimationFrame(() => (fieldRef.current?.querySelector<HTMLElement>('.plate-zoom-open') ?? inputRef.current)?.focus())
+          }} />
       ) : photos.length > 0 && view !== 'pick' && (
         <button type="button" className="btn btn-secondary btn-small plate-zoom-open" onClick={() => setZoomOpen(true)}>
           {hu.plate.zoomOpen}

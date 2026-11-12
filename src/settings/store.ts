@@ -1,7 +1,7 @@
 // Settings store (SPEC 4.6, 4.9 F-PLATE-6). localStorage only, this device only. Never throws.
 import { useCallback, useSyncExternalStore } from 'react'
 import type { Reporter } from '../mail/types'
-import type { PlateReaderChoice, Profile, Settings } from './types'
+import type { PlateReaderChoice, Profile, Settings, ThemeChoice } from './types'
 
 export const APP_VERSION = '0.3'
 export const SETTINGS_KEY = 'parkstop.settings.v1'
@@ -11,11 +11,16 @@ export function defaultSettings(): Settings {
     profile: { name: '', address: '', email: '', phone: '' },
     addressLookup: true,
     plateReader: 'ask',
+    theme: 'auto',
   }
 }
 
 function isChoice(v: unknown): v is PlateReaderChoice {
   return v === 'ask' || v === 'on' || v === 'off'
+}
+
+export function isThemeChoice(v: unknown): v is ThemeChoice {
+  return v === 'auto' || v === 'light' || v === 'dark'
 }
 
 function parse(raw: string | null): Settings {
@@ -34,6 +39,7 @@ function parse(raw: string | null): Settings {
     }
     if (typeof o.addressLookup === 'boolean') d.addressLookup = o.addressLookup
     if (isChoice(o.plateReader)) d.plateReader = o.plateReader
+    if (isThemeChoice(o.theme)) d.theme = o.theme
   } catch {
     return defaultSettings()
   }
@@ -94,7 +100,7 @@ function getSnapshot(): Settings {
 const SERVER_SNAPSHOT = defaultSettings()
 const getServerSnapshot = (): Settings => SERVER_SNAPSHOT
 
-function subscribe(cb: () => void): () => void {
+export function subscribeSettings(cb: () => void): () => void {
   listeners.add(cb)
   const onStorage = (e: StorageEvent) => {
     if (e.key === null || e.key === SETTINGS_KEY) emit()
@@ -111,7 +117,7 @@ function subscribe(cb: () => void): () => void {
  * replaces the whole profile, so callers pass `{ ...settings.profile, name }`.
  */
 export function useSettings(): [Settings, (patch: Partial<Settings>) => void] {
-  const settings = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const settings = useSyncExternalStore(subscribeSettings, getSnapshot, getServerSnapshot)
   const update = useCallback((patch: Partial<Settings>) => {
     saveSettings({ ...getSnapshot(), ...patch })
   }, [])

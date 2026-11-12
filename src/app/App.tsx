@@ -14,21 +14,24 @@ import { saveFiles } from '../mail'
 import { emptyForm, ReportForm, violations, type FormState } from '../report/ReportForm'
 import { clearPlateCache, reconcileField, usePlateReader, type PlateOption, type UiPlate } from '../plate'
 import { ERROR_FIELD, parseLocalDateTime, toLocalDateTime, validateReport, type ReportError } from '../report/validate'
+import { OfflineBanner, UpdatePrompt } from '../pwa'
+import { HelpPage, PrivacyPage } from '../help'
 import { AddressField } from './AddressField'
 import { AuthorityCard, ConfidenceChip, recipients } from './AuthorityCard'
 import { DoneStep } from './DoneStep'
 import { MailStep } from './MailStep'
 import { StartPanel } from './StartPanel'
-import { IconBack, IconCheck, IconHistory, IconPin, IconSettings, LogoPin } from './icons'
+import { IconBack, IconCheck, IconHelp, IconHistory, IconPin, IconSettings, LogoMark } from './icons'
 import { SheetHandle } from './SheetHandle'
 import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
 import './app.css'
 
-type Step = 'map' | 'report' | 'mail' | 'done' | 'history' | 'settings'
+type Step = 'map' | 'report' | 'mail' | 'done' | SideStep
+type SideStep = 'history' | 'settings' | 'help' | 'privacy'
 type Resolve = (ll: LatLon, opts: ResolveOptions) => Resolution
-const STEP_NO: Record<Step, number> = { map: 1, report: 2, mail: 3, done: 3, history: 0, settings: 0 }
-const isSide = (s: Step) => s === 'history' || s === 'settings'
+const STEP_NO: Record<Step, number> = { map: 1, report: 2, mail: 3, done: 3, history: 0, settings: 0, help: 0, privacy: 0 }
+const isSide = (s: Step): s is SideStep => s === 'history' || s === 'settings' || s === 'help' || s === 'privacy'
 const same = (a: LatLon | null, b: LatLon | null) => !!a && !!b && a.lat === b.lat && a.lon === b.lon
 
 export function App() {
@@ -177,7 +180,7 @@ export function App() {
           `[data-field="${ERROR_FIELD[errors[0]]}"] :is(input:not([type=hidden]):not([hidden]), select, textarea, button)`,
         )
         el?.focus()
-        el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        el?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
       })
       return
     }
@@ -267,7 +270,7 @@ export function App() {
     history.replaceState({ step: 'map' }, '')
     setStep('map')
   }
-  const openSide = (s: 'history' | 'settings') => {
+  const openSide = (s: SideStep) => {
     saveNow()
     if (step === s) return
     if (isSide(step)) { history.replaceState({ step: s }, ''); setStep(s) } else go(s)
@@ -295,7 +298,7 @@ export function App() {
       await saveFiles([{ blob, name: exportFileName(new Date()) }])
       setSettingsStatus(hu.history.exported)
     } catch {
-      setSettingsStatus(hu.history.loadError)
+      setSettingsStatus(hu.history.exportError)
     }
   }
   const deleteEverything = async () => {
@@ -380,38 +383,61 @@ export function App() {
     body = (
       <HistoryPage onOpen={(id) => void openReport(id)} onCountChange={setHistoryCount} exportExtra={() => ({ settings: loadSettings() })}
         onDeleted={(id) => { if (id === null || id === current?.id) clearReport() }}
-        onDuplicated={(r) => void openReport(r.id, hu.history.duplicated)} />
+        onDuplicated={(r) => void openReport(r.id, hu.history.duplicated)} onStart={() => go('map')} />
     )
+  } else if (view === 'help') {
+    // Privacy opens on top of help (pushState), so Back returns to help.
+    body = <HelpPage onPrivacy={() => go('privacy')} />
+  } else if (view === 'privacy') {
+    body = <PrivacyPage />
   } else {
     body = (
       <SettingsPage status={settingsStatus} onExportAll={() => void exportEverything()}
-        onDeleteEverything={() => void deleteEverything()} onPrivacy={() => showToast(hu.nav.comingSoon)} />
+        onDeleteEverything={() => void deleteEverything()} onPrivacy={() => go('privacy')} />
     )
   }
 
   const map = (
     <MapView pin={pin} onPinChange={onPinChange} onAddressPicked={onAddressPicked} layout={layout}
       bottomInset={layout === 'phone' ? sheetH : 0} showHint={!pin && view === 'map'} lookupEnabled={settings.addressLookup}
-      locateRequest={locateRequest} />
+      locateRequest={locateRequest} onOpenHistory={() => openSide('history')} />
   )
-  const toastEl = toast && <div className="toast" role="status">{toast}</div>
-  const sideTitle = view === 'history' ? hu.history.title : hu.settings.title
+  // The live region stays mounted so screen readers announce each message when it appears.
+  const toastEl = <div className="toast-region" role="status">{toast && <div className="toast">{toast}</div>}</div>
+  const sideTitle = view === 'history' ? hu.history.title : view === 'help' ? hu.help.title : view === 'privacy' ? hu.privacy.title : hu.settings.title
   const sideMeta = view === 'history' && historyCount !== null ? hu.history.count(historyCount) : null
-  const navTo = (s: 'history' | 'settings') => () => { setSettingsStatus(null); openSide(s) }
+  const navTo = (s: SideStep) => () => { setSettingsStatus(null); openSide(s) }
+
+  // After a step or page change the pressed button is gone: move focus to the new heading so
+  // keyboard and screen-reader users start at the top of the new content.
+  const lastView = useRef(view)
+  useEffect(() => {
+    if (lastView.current === view) return
+    lastView.current = view
+    const id = requestAnimationFrame(() => {
+      const h = document.querySelector<HTMLElement>('.page-header h1, .side-header h1, main h1, .panel h1, .sheet h1')
+      if (!h) return
+      h.tabIndex = -1
+      h.focus({ preventScroll: true })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [view])
 
   if (layout === 'pc') {
     const n = STEP_NO[view]
     const stepNames = [hu.steps.where, hu.steps.details, hu.steps.mail]
     return (
       <div className="app app-pc">
-        <aside className="panel">
+        <main className="panel">
           <header className="panel-header">
             <Brand />
             <nav className="nav-text">
+              <button type="button" className="btn-link" aria-current={view === 'help' ? 'page' : undefined} onClick={navTo('help')}>{hu.help.open}</button>
               <button type="button" className="btn-link" aria-current={view === 'history' ? 'page' : undefined} onClick={navTo('history')}>{hu.nav.history}</button>
               <button type="button" className="btn-link" aria-current={view === 'settings' ? 'page' : undefined} onClick={navTo('settings')}>{hu.nav.settings}</button>
             </nav>
           </header>
+          <OfflineBanner />
           {isSide(view) ? (
             <div className="side-header">
               <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>
@@ -434,11 +460,13 @@ export function App() {
             })}
           </ol>
           )}
+          {!isSide(view) && (view === 'report' || view === 'mail') && <h1 className="sr-only">{view === 'report' ? hu.report.title : hu.mail.title}</h1>}
           <div className="panel-body" key={view}>{body}</div>
           {footer && <div className="panel-footer">{footer}</div>}
-        </aside>
-        <main className="map-area">{map}</main>
+        </main>
+        <div className="map-area">{map}</div>
         {toastEl}
+        <UpdatePrompt />
       </div>
     )
   }
@@ -452,13 +480,22 @@ export function App() {
       <header className="topbar" inert={view !== 'map'}>
         <Brand />
         <nav className="nav-icons">
+          <button type="button" className="icon-btn" aria-label={hu.help.open} onClick={navTo('help')}><IconHelp /></button>
           <button type="button" className="icon-btn" aria-label={hu.nav.history} onClick={navTo('history')}><IconHistory /></button>
           <button type="button" className="icon-btn" aria-label={hu.nav.settings} onClick={navTo('settings')}><IconSettings /></button>
         </nav>
       </header>
-      <main className="map-area" inert={view !== 'map'}>{map}</main>
+      <OfflineBanner />
+      {/* A div with the main role while the map is the view, so a page's own <main> is the only one otherwise. */}
+      <div className="map-area" role={view === 'map' ? 'main' : undefined} inert={view !== 'map'}>{map}</div>
       {view === 'map' ? (
-        <section className="sheet" ref={sheetRef} aria-label={hu.steps.where}>
+        <section className="sheet" ref={sheetRef} aria-label={hu.steps.where} onKeyDown={(e) => {
+          // Escape folds the sheet (not while typing in a field: there it belongs to the field).
+          if (e.key !== 'Escape' || !sheetOpen || e.defaultPrevented) return
+          if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select')) return
+          setSheetOpen(false)
+          requestAnimationFrame(() => document.querySelector<HTMLElement>('.sheet-peek')?.focus())
+        }}>
           <SheetHandle open={sheetOpen} onChange={setSheetOpen} />
           {/* Both parts stay mounted and slide (grid rows 1fr ↔ 0fr) so folding is smooth. */}
           <div className={`sheet-fold${sheetOpen ? ' is-open' : ''}`} inert={!sheetOpen}>
@@ -479,7 +516,7 @@ export function App() {
         <div className="page" key={view}>
           <header className="page-header">
             {view !== 'done' && <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>}
-            <span className="page-title">{title}</span>
+            {view === 'done' ? <span className="page-title">{title}</span> : <h1 className="page-title">{title}</h1>}
             {stepped && <span className="muted small">{hu.steps.progress(STEP_NO[view], 3)}</span>}
             {sideMeta && <span className="muted small">{sideMeta}</span>}
           </header>
@@ -493,6 +530,7 @@ export function App() {
         </div>
       )}
       {toastEl}
+      <UpdatePrompt />
     </div>
   )
 }
@@ -500,7 +538,7 @@ export function App() {
 function Brand() {
   return (
     <div className="brand">
-      <LogoPin />
+      <LogoMark />
       <span className="brand-name">{hu.appName}</span>
     </div>
   )

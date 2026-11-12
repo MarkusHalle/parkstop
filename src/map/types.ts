@@ -20,6 +20,8 @@ export interface MapViewProps {
   lookupEnabled: boolean
   /** Increment to ask the map to request geolocation (the start sheet's "Saját helyzetem"). */
   locateRequest?: number
+  /** The "Előzmények" button of the map-failed empty state. */
+  onOpenHistory?: () => void
 }
 
 export interface AddressState {

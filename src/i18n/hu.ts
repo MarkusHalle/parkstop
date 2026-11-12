@@ -14,7 +14,6 @@ export const hu = {
     history: 'Előzmények',
     settings: 'Beállítások',
     back: 'Vissza',
-    comingSoon: 'Ez a rész a következő verzióban érkezik.',
   },
 
   sheet: {
@@ -55,7 +54,8 @@ export const hu = {
     searchSubmit: 'Keresés',
     searching: 'Keresés…',
     noResults: 'Nincs találat Budapesten.',
-    searchError: 'A címkeresés most nem érhető el. Jelöld a helyet a térképen.',
+    searchUnavailableTitle: 'A címkeresés nem érhető el',
+    searchUnavailableBody: 'Tedd le a jelölőt a térképen, és írd be a címet kézzel.',
     resultsLabel: 'Találatok',
     locate: 'Saját helyzetem',
     locating: 'Helymeghatározás…',
@@ -70,8 +70,10 @@ export const hu = {
     attribution: '© OpenStreetMap közreműködők',
     attributionToggle: 'Térképadatok forrása',
     pinLabel: 'Jelölő — húzd a pontos helyre',
-    loadErrorTitle: 'Nincs internetkapcsolat',
-    loadErrorBody: 'A térkép és a címkeresés most nem érhető el. A bejelentést így is elkészítheted, a címet kézzel írd be.',
+    loadErrorTitle: 'A térkép most nem tölt be',
+    loadErrorBody: 'Internet nélkül nem lehet helyet jelölni. A korábbi bejelentéseidet így is megnyithatod.',
+    loadErrorHistory: 'Előzmények',
+    loadErrorRetry: 'Újra',
   },
 
   address: {
@@ -88,7 +90,8 @@ export const hu = {
   authority: {
     heading: 'Illetékes hatóság',
     loading: 'Illetékes hatóság keresése…',
-    loadError: 'A hatósági adatokat nem sikerült betölteni. Frissítsd az oldalt.',
+    loadError: 'A hatósági adatokat nem sikerült betölteni. Töltsd újra az oldalt.',
+    reload: 'Oldal újratöltése',
     confidence: {
       biztos: 'biztos',
       'valószínű': 'valószínű',
@@ -235,7 +238,7 @@ export const hu = {
     photosPreparing: 'Fotók kicsinyítése…',
     photosReadyPhone: 'Kicsinyítve, mentésre készen',
     photosReadyPc: 'A levélhez te adod hozzá őket',
-    photosFailed: 'A fotókat nem sikerült előkészíteni.',
+    photosFailed: 'A fotókat nem sikerült kicsinyíteni. A levélhez csatold az eredeti fotókat.',
     photosSomeFailed: (names: string) => `Ezeket a fotókat nem sikerült kicsinyíteni, csatold az eredetit: ${names}`,
     savePhotos: 'Fotók mentése',
     downloadPhotos: 'Fotók letöltése',
@@ -264,7 +267,8 @@ export const hu = {
     monthsShort: ['Jan.', 'Febr.', 'Márc.', 'Ápr.', 'Máj.', 'Jún.', 'Júl.', 'Aug.', 'Szept.', 'Okt.', 'Nov.', 'Dec.'],
     noPlate: 'rendszám nélkül',
     noAddress: 'cím nélkül',
-    empty: 'Még nincs mentett bejelentés. Amit itt elkezdesz, automatikusan ide kerül.',
+    emptyTitle: 'Még nincs mentett bejelentés',
+    empty: 'A megkezdett és átadott bejelentéseid automatikusan ide kerülnek.',
     note: 'A bejelentéseket csak ez a készülék tárolja. Az „átadva” azt jelenti, hogy megnyitottad a levelezőben — azt nem látjuk, hogy el is küldted-e.',
     export: 'Exportálás',
     deleteAll: 'Összes törlése',
@@ -279,12 +283,21 @@ export const hu = {
     duplicated: 'Másolat kész — a fotókat és az időpontot add meg újra.',
     exported: 'Az export elindult — a Letöltések mappában találod.',
     loadError: 'Az előzményeket nem sikerült betölteni. Lehet, hogy a böngésző privát módban nem engedi a tárolást.',
+    retry: 'Újra',
+    startReport: 'Új bejelentés',
+    exportError: 'Az exportálás nem sikerült. Próbáld újra.',
     saveError: 'A bejelentést nem sikerült menteni erre a készülékre.',
   },
 
   // Roadmap 3.4, mockup "07 Beállítások" (SPEC 4.6, 4.9 F-PLATE-6).
   settings: {
     title: 'Beállítások',
+    appearanceTitle: 'Megjelenés',
+    appearanceLabel: 'Megjelenés',
+    themeLight: 'Világos',
+    themeDark: 'Sötét',
+    themeAuto: 'Automatikus',
+    appearanceHint: 'Automatikus: a készülék beállítását követi. A térkép is vált.',
     profileTitle: 'Bejelentő adatai',
     profileIntro: 'Az e-mail aláírásába kerülnek. Csak ez a készülék tárolja őket. A hatóságok többnyire csak névvel ellátott bejelentéssel foglalkoznak.',
     name: 'Név',
@@ -337,6 +350,103 @@ export const hu = {
     months: MONTHS,
   },
 
+  // Roadmap 4.2: help screen (SPEC 4.2, 4.5 known limits, 4.9, 7 reminders, 4.8).
+  help: {
+    title: 'Súgó',
+    open: 'Súgó',
+    lead: 'A ParkStop segít bejelenteni egy szabálytalanul parkoló autót Budapesten: megmondja, ki az illetékes, és megírja helyetted az e-mailt. A levelet te küldöd el a saját leveleződből.',
+    sections: [
+      {
+        title: 'Hogyan működik?',
+        paras: [],
+        steps: [
+          'Jelöld meg a helyet a térképen: koppints rá, keress rá a címre, vagy használd a „Saját helyzetem” gombot.',
+          'A ParkStop megmutatja, melyik hatóság az illetékes, és miért. Ha mást választanál, a kártya alján másik címzettet is kijelölhetsz.',
+          'Add hozzá a fotókat (1–5), a rendszámot, a szabálysértés típusát és az időpontot.',
+          'A kész e-mailt megnyitod a leveleződben, csatolod a fotókat, és elküldöd.',
+        ],
+      },
+      {
+        title: 'Miért nekem kell csatolni a fotókat?',
+        paras: [
+          'Egy weboldal nem tud fájlt csatolni a leveleződben megnyitott levélhez. Ezért a ParkStop kicsinyítve elmenti (telefonon) vagy letölti (számítógépen) a fotókat, és a levelezőben a gemkapocs ikonnal csatolod őket.',
+          'Számítógépen egy fotót a vágólapra is másolhatsz, és beillesztheted a levélbe (Ctrl+V). Ha valami nem jut át a levelezőbe, a címzett, a tárgy és a szöveg mellett is ott a „Másolás” gomb.',
+        ],
+      },
+      {
+        title: 'Lesz-e bírság a bejelentésből?',
+        paras: [
+          'Ezt nem lehet megígérni. Bírságot a közterület-felügyelő vagy a rendőr csak arra szabhat ki, amit maga észlel; egy bejelentő fotója önmagában ehhez nem elég.',
+          'A felügyeletnek küldött levél bejelentés: arra kéri a hatóságot, hogy ellenőrizze a helyet és intézkedjen. Ha a rendőrséget választod címzettnek, a levél szabálysértési feljelentés ismeretlen elkövető ellen. A rendőrség hivatalos elektronikus csatornája az IN-100100 űrlap az ugyintezes.police.hu oldalon; hogy e-mailben is befogadják-e, nem tudjuk biztosan.',
+        ],
+      },
+      {
+        title: 'Ha az autó még ott áll',
+        paras: [
+          'Telefonálj: a hatóság telefonszáma a kártyáján van. A járőr csak addig tud intézkedni, amíg az autó a helyszínen van.',
+          'Jelentsd minél hamarabb: a szabálysértés hat hónap után elévül.',
+          'Tanúként kérheted, hogy a személyes adataidat zártan kezeljék (Szabs. tv. 63. § (1)).',
+        ],
+      },
+      {
+        title: 'Ki az illetékes, és mennyire biztos?',
+        paras: [
+          'Kerületi utcán a kerület közterület-felügyelete intézkedik, a fővárosi kezelésű utakon (a térképen sárga vonal) a FÖRI. A rendőrkapitányság mindig választható másik címzettként.',
+          '„Biztos”: egyértelműen kerületi utca. „Valószínű”: fővárosi út közvetlen közelében, kerülethatáron vagy a Margitszigeten. „Bizonytalan”: 8–15 méterre egy fővárosi úttól, tereken, olyan útszakaszon, amelynek a vége a térképen nem pontos, vagy ha az adat régebbi egy évnél. Ilyenkor nézd meg a kártyán az indoklást, és ha kell, válassz másik címzettet.',
+        ],
+      },
+      {
+        title: 'Rendszám-felismerés',
+        paras: [
+          'Ha bekapcsolod, a ParkStop a fotóról felismeri a rendszámot, a készülékeden, a fotó feltöltése nélkül. Ehhez egyszer kb. 26 MB-ot tölt le a ParkStop saját címéről; utána internet nélkül is működik.',
+          'A felismert rendszám csak javaslat: neked kell jóváhagynod („Jó”) vagy kijavítanod. A Beállításokban bármikor ki- és bekapcsolhatod.',
+        ],
+      },
+      {
+        title: 'Telepítés a kezdőképernyőre',
+        paras: ['Telepítve a ParkStop külön alkalmazásként nyílik meg, böngészősáv nélkül.'],
+        items: [
+          'Android (Chrome, Brave, Edge): a böngésző menüjében (⋮) „Alkalmazás telepítése” vagy „Hozzáadás a kezdőképernyőhöz”.',
+          'iPhone (Safari): a Megosztás gomb, majd „Főképernyőhöz adás”.',
+          'Számítógépen (Chrome, Edge): a címsor jobb szélén a telepítés ikon.',
+        ],
+        after: 'Internet nélkül is megnyílik: az előzmények, a piszkozatok és az űrlap működnek, de a térképhez és a címkereséshez internet kell. Ha új verzió érhető el, a ParkStop szól, és a „Frissítés” gombbal töltheted be.',
+      },
+    ],
+    version: (v: string) => `ParkStop ${v}`,
+    dataChecked: (date: string) => `A hatósági adatok ellenőrzése: ${date}`,
+  },
+
+  // Roadmap 4.2: "Adatkezelés" (SPEC 1 C6, SPEC 10). Hosts must match SPEC 10.
+  privacy: {
+    title: 'Adatkezelés',
+    lead: 'A ParkStop nem gyűjt rólad adatot. Nincs fiók és nincs szerver, amely a bejelentéseidet tárolná.',
+    deviceTitle: 'A készülékeden marad',
+    deviceItems: [
+      'a fotók és a bejelentések (az előzmények),',
+      'a Beállításokban megadott neved és elérhetőséged,',
+      'a beállítások,',
+      'a rendszám-felismerő, ha bekapcsoltad.',
+    ],
+    deviceNote: 'Ezeket a böngésző tárolja ezen a készüléken; más nem látja őket. Törölheted őket az Előzményekben vagy a Beállításokban („Minden adat törlése”). Ha a böngésző adatait törlöd, ezek is elvesznek.',
+    hostsTitle: 'Ezekhez a szerverekhez fordul az app',
+    hostsIntro: 'Mint minden weboldalnál, ezek a szerverek látják az IP-címedet.',
+    ownHostFallback: 'a ParkStop saját címe',
+    ownHost: 'A ParkStop saját címe: innen töltődik le maga az app, a hatósági adatok és, ha bekapcsoltad, a rendszám-felismerő.',
+    tiles: 'Térkép (OpenFreeMap). Megkapja, hogy a térkép melyik részét nézed.',
+    nominatim: 'Címkeresés (OpenStreetMap). Megkapja a jelölő koordinátáit vagy a beírt címet. Csak akkor, ha a Beállításokban a „Cím automatikus keresése” be van kapcsolva.',
+    location: 'A „Saját helyzetem” gomb a böngésző helymeghatározását használja, és csak akkor, ha megnyomod. Ehhez a böngésző vagy a telefon a saját helymeghatározó szolgáltatását veheti igénybe.',
+    mailTitle: 'Az e-mail, amit te küldesz el',
+    mail: 'A levelet a saját leveleződ küldi el, nem a ParkStop. A címzett hatóság megkapja a szöveget, a csatolt fotókat és az aláírásodban szereplő adatokat.',
+    othersPhotos: 'A fotókon más emberek és autók is látszhatnak. Csak az illetékes hatóságnak küldd el őket, ne tedd közzé.',
+    noneTitle: 'Amit a ParkStop nem használ',
+    noneItems: [
+      'fiók, regisztráció,',
+      'süti, látogatottságmérés, hirdetés,',
+      'felhőben futó mesterséges intelligencia: a fotót és a rendszámot a készüléked elemzi.',
+    ],
+  },
+
   done: {
     title: 'Átadva a levelezőnek',
     intro: 'A bejelentést te küldöd el a saját leveleződből. Mielőtt elküldöd, nézd át ezt a három dolgot.',
@@ -349,6 +459,12 @@ export const hu = {
     disclaimer: 'A ParkStop nem látja, hogy a levél elment-e.',
     newReport: 'Új bejelentés',
     backToMail: 'Vissza az e-mailhez',
+  },
+  pwa: {
+    updateAvailable: 'Új verzió érhető el',
+    update: 'Frissítés',
+    later: 'Később',
+    offline: 'Nincs internet. A címkeresés nem működik, és a térképnek csak a korábban megnézett részei látszanak; az előzmények és a piszkozatok igen.',
   },
 } as const
 

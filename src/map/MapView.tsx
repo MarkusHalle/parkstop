@@ -7,17 +7,30 @@ import './map.css'
 // untouched worker file is served at <base>maplibre-gl-worker.mjs (vite.config.ts).
 maplibregl.setWorkerUrl(new URL(`${import.meta.env.BASE_URL}maplibre-gl-worker.mjs`, window.location.href).href)
 import { hu } from '../i18n/hu'
+import { currentTheme, useResolvedTheme, type ResolvedTheme } from '../settings/theme'
 import type { LatLon } from '../authority/types'
+import { IconMapOff, IconSearchOff } from '../app/icons'
 import { formatAddress, searchAddress, type AddressHit } from './nominatim'
 import type { MapViewProps } from './types'
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
+// Same host for both (SPEC 10). Light: liberty; dark: dark (owner's choice over fiord).
+const STYLE_URLS: Record<ResolvedTheme, string> = {
+  light: 'https://tiles.openfreemap.org/styles/liberty',
+  dark: 'https://tiles.openfreemap.org/styles/dark',
+}
 const BUDAPEST: [number, number] = [19.0402, 47.4979]
 const MAX_BOUNDS: [[number, number], [number, number]] = [
   [18.7, 47.25],
   [19.5, 47.75],
 ]
 const CAPITAL_COLOR = '#F0B33A' // keep in step with --c-capital-road
+// Capital roads sit on the base style's own roads. On the light style 70 % keeps the labels
+// readable; on OpenFreeMap's dark style the dim line vanished, so it is opaque and a little
+// brighter and wider there (contrast about 10:1 against the dark land).
+const CAPITAL_PAINT: Record<ResolvedTheme, { color: string; opacity: number; width: number }> = {
+  light: { color: CAPITAL_COLOR, opacity: 0.7, width: 1 },
+  dark: { color: '#FFC233', opacity: 1, width: 1.25 },
+}
 /** Phone: map padding under the floating search box, so the pin is centred below it. */
 const PHONE_TOP_PAD = 72
 const PIN_SVG =
@@ -51,6 +64,7 @@ export function MapView({
   showHint,
   lookupEnabled,
   locateRequest,
+  onOpenHistory,
 }: MapViewProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -61,8 +75,13 @@ export function MapView({
   const initialPhone = useRef(layout === "phone")
   const searchCtl = useRef<AbortController | null>(null)
   const lastLocate = useRef(locateRequest ?? 0)
+  const theme = useResolvedTheme()
+  // The style the map currently shows (or is loading), so a theme change only swaps once.
+  const styleTheme = useRef<ResolvedTheme>(currentTheme())
 
   const [loadError, setLoadError] = useState(false)
+  // Bumped by "Újra" (and when the browser comes back online): creates the map again.
+  const [attempt, setAttempt] = useState(0)
   const [geoError, setGeoError] = useState<GeoError>(null)
   const [locating, setLocating] = useState(false)
   const [query, setQuery] = useState('')
@@ -84,7 +103,7 @@ export function MapView({
     try {
       map = new maplibregl.Map({
         container,
-        style: STYLE_URL,
+        style: STYLE_URLS[styleTheme.current],
         center: BUDAPEST,
         zoom: 12,
         maxBounds: MAX_BOUNDS,
@@ -98,7 +117,7 @@ export function MapView({
         },
       })
     } catch {
-      // WebGL unavailable: show the error card instead of crashing.
+      // WebGL unavailable: show the empty state instead of crashing.
       queueMicrotask(() => {
         if (!cancelled) setLoadError(true)
       })
@@ -134,7 +153,14 @@ export function MapView({
     let loaded = false
     map.on('load', () => {
       loaded = true
-      void addCapitalRoads(map, () => cancelled)
+      // An early tile or sprite error is not final if the map then loads.
+      if (!cancelled) setLoadError(false)
+    })
+    // A style swap (theme change) drops every source and layer we added, so the capital
+    // roads are re-added after each 'style.load', the first one included. The pin is a DOM
+    // marker and is not part of the style.
+    map.on('style.load', () => {
+      void addCapitalRoads(map, styleTheme.current, () => cancelled)
     })
     map.on('error', () => {
       // Tile errors after the first load are not fatal; only a failed style is.
@@ -148,7 +174,34 @@ export function MapView({
       mapRef.current = null
       markerRef.current = null
     }
-  }, [])
+  }, [attempt])
+
+  // Offline when the page opened: try again by itself once the network is back.
+  useEffect(() => {
+    if (!loadError) return
+    const retry = () => {
+      setLoadError(false)
+      setAttempt((n) => n + 1)
+    }
+    window.addEventListener('online', retry)
+    return () => window.removeEventListener('online', retry)
+  }, [loadError])
+
+  // Theme drives the base style.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || styleTheme.current === theme) return
+    const apply = () => {
+      styleTheme.current = theme
+      // diff: false so MapLibre rebuilds the style and fires 'style.load' reliably.
+      map.setStyle(STYLE_URLS[theme], { diff: false })
+    }
+    // Offline the new style cannot load and the working one would be dropped: keep the
+    // current map and switch once the network is back.
+    if (navigator.onLine) { apply(); return }
+    window.addEventListener('online', apply, { once: true })
+    return () => window.removeEventListener('online', apply)
+  }, [theme])
 
   // Pin prop drives the marker.
   const pinLat = pin?.lat
@@ -163,7 +216,8 @@ export function MapView({
       // A pin set from outside (a report reopened from the history) may be off-screen.
       if (!map.getBounds().contains([pinLon, pinLat])) map.jumpTo({ center: [pinLon, pinLat], zoom: Math.max(map.getZoom(), 16) })
     }
-  }, [pinLat, pinLon])
+    // `attempt`: a rebuilt map ("Újra", back online) gets a new marker that must be placed too.
+  }, [pinLat, pinLon, attempt])
 
   // Keep the pin clear of the phone bottom sheet.
   useEffect(() => {
@@ -180,7 +234,8 @@ export function MapView({
   }, [bottomInset, phone])
 
   const flyTo = useCallback((ll: LatLon) => {
-    mapRef.current?.flyTo({ center: [ll.lon, ll.lat], zoom: 17, essential: true })
+    // Not "essential": MapLibre then jumps instead of flying when the user prefers reduced motion.
+    mapRef.current?.flyTo({ center: [ll.lon, ll.lat], zoom: 17 })
   }, [])
 
 
@@ -249,6 +304,11 @@ export function MapView({
     }
   }
 
+  const retryMap = () => {
+    setLoadError(false)
+    setAttempt((n) => n + 1)
+  }
+
   const geoMessage =
     geoError === 'unsupported' ? hu.map.geoUnsupported : geoError === 'denied' ? hu.map.geoErrorBody : null
 
@@ -259,7 +319,7 @@ export function MapView({
     >
       <div ref={canvasRef} className="ps-map__canvas" role="application" aria-label={hu.map.label} />
 
-      {lookupEnabled && (
+      {!loadError && (
         <div className="ps-search" onKeyDown={onSearchKey}>
           <form className="ps-search__form" onSubmit={runSearch} role="search">
             <label className="ps-sr-only" htmlFor="ps-search-input">
@@ -272,10 +332,11 @@ export function MapView({
               placeholder={hu.map.searchPlaceholder}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              disabled={!lookupEnabled}
               autoComplete="off"
               enterKeyHint="search"
             />
-            <button type="submit" className="ps-search__submit" aria-label={hu.map.searchSubmit}>
+            <button type="submit" className="ps-search__submit" aria-label={hu.map.searchSubmit} disabled={!lookupEnabled}>
               <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                 <path
                   d="M10.5 3a7.5 7.5 0 1 0 4.6 13.4l4.8 4.8 1.4-1.4-4.8-4.8A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"
@@ -285,13 +346,21 @@ export function MapView({
             </button>
           </form>
           <div aria-live="polite">
-            {search.status === 'loading' && <p className="ps-search__note">{hu.map.searching}</p>}
-            {search.status === 'error' && <p className="ps-search__note">{hu.map.searchError}</p>}
-            {search.status === 'done' && search.hits.length === 0 && (
+            {lookupEnabled && search.status === 'loading' && <p className="ps-search__note">{hu.map.searching}</p>}
+            {lookupEnabled && search.status === 'done' && search.hits.length === 0 && (
               <p className="ps-search__note">{hu.map.noResults}</p>
             )}
+            {(!lookupEnabled || search.status === 'error') && (
+              <div className="ps-search__note ps-search__note--off">
+                <IconSearchOff />
+                <p>
+                  <strong>{hu.map.searchUnavailableTitle}</strong>
+                  <span>{hu.map.searchUnavailableBody}</span>
+                </p>
+              </div>
+            )}
           </div>
-          {search.status === 'done' && search.hits.length > 0 && (
+          {lookupEnabled && search.status === 'done' && search.hits.length > 0 && (
             <ul className="ps-search__results" aria-label={hu.map.resultsLabel}>
               {search.hits.map((hit, i) => (
                 <li key={`${hit.ll.lat},${hit.ll.lon},${i}`}>
@@ -308,7 +377,7 @@ export function MapView({
         </div>
       )}
 
-      {!phone && (
+      {!phone && !loadError && (
         <div className="ps-zoom">
           <button type="button" aria-label={hu.map.zoomIn} onClick={() => mapRef.current?.zoomIn()}>
             +
@@ -319,6 +388,7 @@ export function MapView({
         </div>
       )}
 
+      {!loadError && (
       <button
         type="button"
         className={phone ? 'ps-locate ps-locate--round' : 'ps-locate ps-locate--pc'}
@@ -335,11 +405,14 @@ export function MapView({
         </svg>
         {!phone && <span>{locating ? hu.map.locating : hu.map.locate}</span>}
       </button>
+      )}
 
-      <div className="ps-legend">
-        <span className="ps-legend__bar" aria-hidden="true" />
-        {hu.map.legendCapital}
-      </div>
+      {!loadError && (
+        <div className="ps-legend">
+          <span className="ps-legend__bar" aria-hidden="true" />
+          {hu.map.legendCapital}
+        </div>
+      )}
 
       {showHint && !loadError && (
         <div className="ps-hint" role="status">
@@ -364,21 +437,37 @@ export function MapView({
       )}
 
       {loadError && (
-        <div className="ps-card ps-card--load" role="alert">
-          <strong>{hu.map.loadErrorTitle}</strong>
-          <p>{hu.map.loadErrorBody}</p>
+        <div className="ps-empty" role="alert">
+          <div className="ps-empty__card">
+            <span className="ps-empty__icon">
+              <IconMapOff />
+            </span>
+            <p className="ps-empty__title">{hu.map.loadErrorTitle}</p>
+            <p className="ps-empty__body">{hu.map.loadErrorBody}</p>
+            <div className="ps-empty__actions">
+              {onOpenHistory && (
+                <button type="button" className="ps-empty__btn ps-empty__btn--secondary" onClick={onOpenHistory}>
+                  {hu.map.loadErrorHistory}
+                </button>
+              )}
+              <button type="button" className="ps-empty__btn ps-empty__btn--primary" onClick={retryMap}>
+                {hu.map.loadErrorRetry}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-async function addCapitalRoads(map: maplibregl.Map, isCancelled: () => boolean) {
+async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCancelled: () => boolean) {
   try {
     const raw = (await import('../data/capital-roads.geojson?raw')).default
     if (isCancelled()) return
     const data = JSON.parse(raw) as GeoJSON.FeatureCollection
     if (map.getSource('capital-roads')) return
+    const paint = CAPITAL_PAINT[theme]
     const firstSymbol = map.getStyle().layers.find((l) => l.type === 'symbol')?.id
     map.addSource('capital-roads', { type: 'geojson', data })
     map.addLayer(
@@ -389,9 +478,9 @@ async function addCapitalRoads(map: maplibregl.Map, isCancelled: () => boolean) 
         minzoom: 12,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': CAPITAL_COLOR,
-          'line-opacity': 0.7,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 2, 15, 4, 18, 8],
+          'line-color': paint.color,
+          'line-opacity': paint.opacity,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 2 * paint.width, 15, 4 * paint.width, 18, 8 * paint.width],
         },
       },
       firstSymbol,

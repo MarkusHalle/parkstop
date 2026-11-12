@@ -9,10 +9,10 @@
 }
 .plate-optin {
   display: flex; flex-direction: column; gap: 8px;
-  padding: 14px 16px 16px; border: 1.5px solid var(--c-outline-btn); border-radius: var(--radius-l);
-  background: var(--c-surface);
+  padding: 14px 16px 16px; border: 1px solid var(--c-card-border); border-radius: var(--radius-l);
+  background: var(--c-surface); box-shadow: var(--shadow-1);
 }
-.plate-optin-title { font-family: var(--font-head); font-size: 18px; line-height: 24px; font-weight: 600; }
+.plate-optin-title { font-family: var(--font-head); font-size: 19px; line-height: 24px; font-weight: 700; }
 .plate-optin .lead { font-size: 14px; line-height: 20px; }
 .plate-optin .btn-row { margin-top: 6px; }
 
@@ -48,9 +48,9 @@
 
 .btn-ok { background: var(--c-ok-solid); color: #fff; }
 .btn-ok:hover { filter: brightness(1.08); }
-@media (prefers-color-scheme: dark) {
+:root[data-theme='dark'] .btn-ok {
   /* The dark theme's --c-ok-solid is too light for white text (WCAG AA). */
-  .btn-ok { background: #237a49; }
+  background: #237a49;
 }
 
 /* ---- Picker (F-PLATE-2) ----------------------------------------------------------------- */

@@ -1,9 +1,9 @@
 .settings-page { padding: 16px 20px 32px; display: flex; flex-direction: column; gap: 24px; }
 .settings-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.settings-h2 { font-family: var(--font-head); font-size: 17px; font-weight: 600; margin: 0; }
+.settings-h2 { font-family: var(--font-head); font-size: 18px; font-weight: 700; margin: 0; }
 .settings-saved { font-size: 13px; color: var(--c-text-muted); }
 .settings-card {
-  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-l);
+  background: var(--c-surface); border: 1px solid var(--c-card-border); border-radius: var(--radius-l); box-shadow: var(--shadow-1);
   overflow: hidden;
 }
 .settings-row {
@@ -19,3 +19,17 @@
 .settings-row-danger { color: var(--c-error-fg); font-size: 15px; font-weight: 600; }
 .settings-chevron { color: var(--c-text-muted); flex-shrink: 0; }
 .settings-footer { margin: 0; font-size: 13px; line-height: 18px; color: var(--c-text-muted); }
+
+/* ---- Appearance: segmented radio group ------------------------------------------------- */
+.theme-seg { display: flex; gap: 4px; margin: 0; padding: 4px; min-width: 0; border: 1px solid var(--c-border);
+  border-radius: var(--radius-l); background: var(--c-surface); }
+.theme-seg__opt { flex: 1; min-width: 0; position: relative; display: flex; }
+.theme-seg__opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.theme-seg__face { flex: 1; min-height: var(--tap); padding: 6px 4px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px; border-radius: var(--radius-m); font-size: 14px;
+  font-weight: 600; color: var(--c-text); text-align: center; overflow-wrap: anywhere; pointer-events: none; }
+.theme-seg__opt:hover .theme-seg__face { background: var(--c-info-bg); }
+.theme-seg__opt input:checked + .theme-seg__face { background: var(--c-primary); color: var(--c-on-primary); }
+.theme-seg__opt input:focus-visible + .theme-seg__face { outline: 3px solid var(--c-primary); outline-offset: 2px; }
+.theme-seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.theme-seg { position: relative; }

@@ -11,9 +11,13 @@ export interface Profile {
 /** 'ask' until the user answers the one-time offer on the first photo (D17, F-PLATE-6). */
 export type PlateReaderChoice = 'ask' | 'on' | 'off'
 
+/** Appearance: 'auto' follows the device (and so does the map). */
+export type ThemeChoice = 'auto' | 'light' | 'dark'
+
 export interface Settings {
   profile: Profile
   /** Reverse lookup and address search through Nominatim (F-MAP-4). Default on. */
   addressLookup: boolean
   plateReader: PlateReaderChoice
+  theme: ThemeChoice
 }

@@ -89,6 +89,7 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
           ))}
           {photos.length < MAX_PHOTOS && (
             <button type="button" className={`thumb-add${has('photos') ? ' input-invalid' : ''}`} aria-label={hu.report.addPhoto}
+              aria-describedby={has('photos') ? `${ids.plate}-photos` : undefined}
               onClick={() => fileRef.current?.click()}>
               <IconPlus />
             </button>
@@ -96,13 +97,14 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
           <input ref={fileRef} type="file" accept="image/*" multiple hidden
             onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
         </div>
-        {photoMessages.map((m) => <p key={m} className="field-error">{m}</p>)}
+        {photoMessages.map((m) => <p key={m} className="field-error" role="alert">{m}</p>)}
         {err('photos', hu.report.errors.photos)}
         <p className="muted small">{hu.report.photosHint}</p>
       </section>
 
       <PlateOptIn photoCount={photos.length} />
-      <PlateField inputId={ids.plate} value={form.plate} source={form.plateSource ?? 'user'}
+      <PlateField inputId={ids.plate} value={form.plate}
+        describedBy={[has('plate') && `${ids.plate}-plate`, has('plateUnconfirmed') && `${ids.plate}-plateUnconfirmed`].filter(Boolean).join(' ') || undefined} source={form.plateSource ?? 'user'}
         invalid={has('plate') || has('plateUnconfirmed')}
         errorText={<>{err('plate', hu.report.errors.plate)}{err('plateUnconfirmed', hu.report.errors.plateUnconfirmed)}</>}
         onType={(plate) => onChange({ plate, plateSource: 'user', plateVia: undefined, plateTyped: true })}
@@ -113,7 +115,7 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
       <div className="field" data-field="violation">
         <label htmlFor={ids.violation} className="field-label">{hu.report.violation}</label>
         <select id={ids.violation} className={`input${has('violation') ? ' input-invalid' : ''}`} value={form.violationId}
-          aria-invalid={has('violation') || undefined} onChange={(e) => onChange({ violationId: e.target.value })}>
+          aria-invalid={has('violation') || undefined} aria-describedby={has('violation') ? `${ids.plate}-violation` : undefined} onChange={(e) => onChange({ violationId: e.target.value })}>
           <option value="" disabled>{hu.report.violationChoose}</option>
           {violations.map((v) => <option key={v.id} value={v.id}>{v.label}</option>)}
         </select>
@@ -125,7 +127,7 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
           <label htmlFor={ids.custom} className="field-label">{hu.report.customViolation}</label>
           <textarea id={ids.custom} className={`input textarea${has('custom') ? ' input-invalid' : ''}`} rows={2} maxLength={300}
             placeholder={hu.report.customViolationPlaceholder} value={form.customText}
-            aria-invalid={has('custom') || undefined} onChange={(e) => onChange({ customText: e.target.value })} />
+            aria-invalid={has('custom') || undefined} aria-describedby={has('custom') ? `${ids.plate}-custom` : undefined} onChange={(e) => onChange({ customText: e.target.value })} />
           {err('custom', hu.report.errors.custom)}
         </div>
       )}
@@ -137,6 +139,7 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
         </div>
         <input id={ids.time} type="datetime-local" className={`input${has('time') || has('timeFuture') ? ' input-invalid' : ''}`}
           value={form.time} max={maxTime} aria-invalid={has('time') || has('timeFuture') || undefined}
+          aria-describedby={[has('time') && `${ids.plate}-time`, has('timeFuture') && `${ids.plate}-timeFuture`].filter(Boolean).join(' ') || undefined}
           onChange={(e) => onChange({ time: e.target.value })} />
         {err('time', hu.report.errors.time)}
         {err('timeFuture', hu.report.errors.timeFuture)}

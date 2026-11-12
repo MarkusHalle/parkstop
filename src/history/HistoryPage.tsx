@@ -9,6 +9,8 @@ import './history.css'
 interface Props {
   onOpen: (id: string) => void
   onDuplicated: (r: StoredReport) => void
+  /** The empty state's "Új bejelentés" button: back to the map. */
+  onStart?: () => void
   onCountChange?: (n: number) => void
   refreshKey?: number
   /** After a delete: the report's id, or null when all were deleted. */
@@ -20,7 +22,7 @@ interface Props {
 const labelFor = (s: ReportSummary) =>
   (s.violationId === 'egyeb' && s.customText.trim()) || (violations.find((v) => v.id === s.violationId)?.label ?? '')
 
-export function HistoryPage({ onOpen, onDuplicated, onCountChange, refreshKey, onDeleted, exportExtra }: Props) {
+export function HistoryPage({ onOpen, onDuplicated, onStart, onCountChange, refreshKey, onDeleted, exportExtra }: Props) {
   const [items, setItems] = useState<ReportSummary[] | null>(null)
   const [error, setError] = useState(false)
   const [status, setStatus] = useState('')
@@ -96,7 +98,7 @@ export function HistoryPage({ onOpen, onDuplicated, onCountChange, refreshKey, o
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       setStatus(hu.history.exported)
     } catch {
-      setStatus(hu.history.loadError)
+      setStatus(hu.history.exportError)
     }
   }
 
@@ -105,8 +107,19 @@ export function HistoryPage({ onOpen, onDuplicated, onCountChange, refreshKey, o
 
   return (
     <div className="history">
-      {error && <p className="notice notice-error history-message">{hu.history.loadError}</p>}
-      {!error && items && list.length === 0 && <p className="muted history-empty">{hu.history.empty}</p>}
+      {error && (
+        <div className="notice notice-error notice-action history-message" role="alert">
+          <p>{hu.history.loadError}</p>
+          <button type="button" className="btn btn-secondary btn-small" onClick={() => void load()}>{hu.history.retry}</button>
+        </div>
+      )}
+      {!error && items && list.length === 0 && (
+        <div className="history-empty">
+          <p className="history-empty-title">{hu.history.emptyTitle}</p>
+          <p className="muted">{hu.history.empty}</p>
+          {onStart && <button type="button" className="btn btn-primary btn-small" onClick={onStart}>{hu.history.startReport}</button>}
+        </div>
+      )}
       {list.length > 0 && (
         <ul className="history-list">
           {list.map((s) => {

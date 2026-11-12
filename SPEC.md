@@ -1,6 +1,6 @@
 # ParkStop — Product Specification
 
-Version 0.9 · 2026-11-12 · M3: plate read at several crop widths, offered only when two agree; zoomed second search; empty detections ignored (4.9 F-PLATE-9, D38, D39); earlier: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed (7, D31), photo position not used (3, 4.4, 11; D34)
+Version 0.10 · 2026-11-12 · M4: update prompt and offline banner (4.8), appearance setting with a dark map (9), help and privacy screens (10); earlier, M3: plate read at several crop widths, offered only when two agree; zoomed second search; empty detections ignored (4.9 F-PLATE-9, D38, D39); earlier: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed (7, D31), photo position not used (3, 4.4, 11; D34)
 
 ParkStop helps a person in Budapest report an illegally parked car: mark the spot on a map,
 see which authority is responsible, add photos, and get a ready-to-send Hungarian e-mail.
@@ -133,7 +133,7 @@ List of reports on this device: date, address, plate, authority, status (`piszko
 
 ### 4.8 Installable app (F-PWA)
 
-Web app manifest, icons, service worker that caches the app shell and the bundled data. The map and address lookup need a connection; everything else (form, resolver, history, draft) works offline. An "Új verzió érhető el — Frissítés" prompt replaces silent updates.
+Web app manifest, icons, service worker that caches the app shell and the bundled data. The map and address lookup need a connection; everything else (form, resolver, history, draft) works offline. An "Új verzió érhető el — Frissítés" prompt replaces silent updates. Without a connection a banner says that address lookup does not work and the map shows only areas viewed before (the browser's own tile cache), while history and drafts work. The service worker never downloads the plate-reader files; they are cached by the reader itself only after the user opts in (4.9, D42).
 
 ### 4.9 Number-plate reader (F-PLATE)
 
@@ -315,7 +315,8 @@ Rules: `authority/` and `mail/` contain no UI imports and no network calls (pure
 
 - **Phone:** full-screen map; a bottom sheet carries the current step (authority → form → e-mail). Large touch targets (min 44 px).
 - **PC (≥ 900 px):** left panel 380 px with the steps, map fills the rest.
-- Light and dark theme follow the system. WCAG AA contrast, full keyboard use, visible focus.
+- Light and dark theme: "Megjelenés" at the top of Settings — Világos, Sötét or Automatikus (follows the system; default). The map switches with it (OpenFreeMap `liberty` / `dark`, D43). WCAG AA contrast, full keyboard use, visible focus.
+- A ? icon in the header ("Súgó" link on the PC) opens the help; "Adatkezelés" opens from the help and from Settings (D44).
 
 ## 10. Privacy and third parties
 
@@ -325,7 +326,7 @@ Rules: `authority/` and `mail/` contain no UI imports and no network calls (pure
 | Address lookup | nominatim.openstreetmap.org | IP address, the pin's coordinates or the typed address |
 
 Nothing else leaves the device. The plate reader's model files come from the app's own
-address and the photo is analysed locally. An "Adatkezelés" screen states this in Hungarian. Photos may show other people and plates: the app reminds the user to send them only to the authority.
+address and the photo is analysed locally. An "Adatkezelés" screen states this in Hungarian, naming the app's own host as well (it serves the app, the data and the plate-reader files). Photos may show other people and plates: the app reminds the user to send them only to the authority.
 
 ## 11. Acceptance criteria (v1)
 

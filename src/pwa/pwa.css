@@ -1,0 +1,25 @@
+/* Update toast and offline bar (roadmap 4.1). Tokens from app/theme.css. */
+.offline-banner {
+  flex-shrink: 0; display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; font-size: 13px; line-height: 18px; font-weight: 600;
+  background: var(--c-warn-bg); color: var(--c-warn-fg); border-bottom: 1px solid var(--c-warn-border);
+}
+.offline-banner svg { flex-shrink: 0; }
+
+.update-toast {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 60;
+  width: max-content; max-width: calc(100% - 32px);
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px 8px 16px; border-radius: var(--radius-m);
+  background: var(--c-surface); color: var(--c-text);
+  border: 1px solid var(--c-border); box-shadow: var(--shadow-2);
+  font-size: 14px; font-weight: 600;
+}
+.update-toast .update-text { min-width: 0; }
+.update-toast .btn { flex-shrink: 0; padding: 0 16px; }
+.update-close { font-size: 24px; line-height: 1; color: var(--c-icon); }
+
+/* PC: bottom right over the map, clear of the 380 px panel and its footer buttons. */
+@media (min-width: 900px) {
+  .update-toast { left: auto; right: 16px; transform: none; bottom: 16px !important; }
+}

@@ -56,8 +56,15 @@ interface Props {
 }
 
 export function AuthorityCard(p: Props) {
-  if (p.loadError) return <p className="notice notice-error" role="alert">{hu.authority.loadError}</p>
-  if (!p.resolution) return <p className="muted" aria-live="polite">{hu.authority.loading}</p>
+  if (p.loadError) {
+    return (
+      <div className="notice notice-error notice-action" role="alert">
+        <p>{hu.authority.loadError}</p>
+        <button type="button" className="btn btn-secondary btn-small" onClick={() => window.location.reload()}>{hu.authority.reload}</button>
+      </div>
+    )
+  }
+  if (!p.resolution) return <p className="muted" role="status">{hu.authority.loading}</p>
 
   if (p.resolution.kind === 'outside') {
     return (
@@ -135,7 +142,7 @@ function Contact({ authority: a }: { authority: Authority }) {
         </p>
       )}
       <p className="muted small">
-        {hu.authority.verified(shortDate(a.verifiedOn))} · <a href={a.sourceUrl} target="_blank" rel="noopener noreferrer">{hu.authority.source}</a>
+        {hu.authority.verified(shortDate(a.verifiedOn))} · <a className="source-link" href={a.sourceUrl} target="_blank" rel="noopener noreferrer">{hu.authority.source}</a>
       </p>
     </div>
   )

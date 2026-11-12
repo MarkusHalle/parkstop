@@ -1,8 +1,9 @@
 // Settings page (SPEC 4.6, 4.9 F-PLATE-6). The page header is drawn by the app shell.
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { hu } from '../i18n/hu'
 import { APP_VERSION, useSettings } from './store'
-import type { Profile, Settings } from './types'
+import type { Profile, Settings, ThemeChoice } from './types'
+import { IconDevice, IconMoon, IconSun } from '../app/icons'
 import './settings.css'
 
 export interface SettingsPageProps {
@@ -48,10 +49,30 @@ export function SettingsPage({ onExportAll, onDeleteEverything, onPrivacy, statu
   ]
 
   const plateOn = settings.plateReader === 'on'
+  const themes: Array<{ value: ThemeChoice; label: string; icon: ReactNode }> = [
+    { value: 'light', label: t.themeLight, icon: <IconSun /> },
+    { value: 'dark', label: t.themeDark, icon: <IconMoon /> },
+    { value: 'auto', label: t.themeAuto, icon: <IconDevice /> },
+  ]
 
   return (
     <div className="settings-page">
       {status ? <div className="notice notice-info" role="status">{status}</div> : null}
+
+      <section className="stack" aria-labelledby={`${uid}-look`}>
+        <h2 className="settings-h2" id={`${uid}-look`}>{t.appearanceTitle}</h2>
+        <fieldset className="theme-seg" aria-describedby={`${uid}-look-hint`}>
+          <legend>{t.appearanceLabel}</legend>
+          {themes.map((o) => (
+            <label className="theme-seg__opt" key={o.value}>
+              <input type="radio" name={`${uid}-theme`} value={o.value} checked={settings.theme === o.value}
+                onChange={() => change({ theme: o.value })} />
+              <span className="theme-seg__face">{o.icon}<span>{o.label}</span></span>
+            </label>
+          ))}
+        </fieldset>
+        <p className="muted small" id={`${uid}-look-hint`} style={{ margin: 0 }}>{t.appearanceHint}</p>
+      </section>
 
       <section className="stack" aria-labelledby={`${uid}-profile`}>
         <div className="settings-head">

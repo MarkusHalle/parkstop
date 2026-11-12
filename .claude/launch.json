@@ -41,6 +41,58 @@
         "--strictPort"
       ],
       "port": 5177
+    },
+    {
+      "name": "parkstop-m4",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5178",
+        "--strictPort"
+      ],
+      "port": 5178
+    },
+    {
+      "name": "parkstop-m4-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--port",
+        "5179",
+        "--strictPort"
+      ],
+      "port": 5179
+    },
+    {
+      "name": "parkstop-m4-lan",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--mode",
+        "lan",
+        "--port",
+        "5444",
+        "--strictPort"
+      ],
+      "port": 5444,
+      "url": "https://localhost:5444"
+    },
+    {
+      "name": "parkstop-m4-http",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "5445",
+        "--strictPort"
+      ],
+      "port": 5445
     }
   ]
 }

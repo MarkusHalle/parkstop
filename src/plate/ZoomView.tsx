@@ -199,7 +199,7 @@ export function ZoomPanel({ photos, startId, onClose }: { photos: ZoomPhoto[]; s
   const photo = photos[index]
   if (!photo) return null
   return (
-    <div className="zoom-panel">
+    <div className="zoom-panel" onKeyDown={(e) => { if (e.key === 'Escape' && onClose) { e.stopPropagation(); onClose() } }}>
       {(photos.length > 1 || onClose) && (
         <div className="zoom-head">
           {photos.length > 1 && (

@@ -26,7 +26,7 @@ beforeEach(() => {
 describe('settings store', () => {
   it('returns defaults when nothing is stored', () => {
     expect(loadSettings()).toEqual({
-      profile: { name: '', address: '', email: '', phone: '' }, addressLookup: true, plateReader: 'ask',
+      profile: { name: '', address: '', email: '', phone: '' }, addressLookup: true, plateReader: 'ask', theme: 'auto',
     })
   })
 
@@ -41,6 +41,13 @@ describe('settings store', () => {
   it('ignores invalid values', () => {
     data[SETTINGS_KEY] = JSON.stringify({ plateReader: 'maybe', addressLookup: 'x', profile: { name: 5 } })
     expect(loadSettings()).toEqual(defaultSettings())
+  })
+
+  it('parses the theme and rejects unknown values', () => {
+    data[SETTINGS_KEY] = JSON.stringify({ theme: 'dark' })
+    expect(loadSettings().theme).toBe('dark')
+    data[SETTINGS_KEY] = JSON.stringify({ theme: 'sepia' })
+    expect(loadSettings().theme).toBe('auto')
   })
 
   it('tolerates corrupt JSON', () => {

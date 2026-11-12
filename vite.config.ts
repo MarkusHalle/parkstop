@@ -1,8 +1,10 @@
 import { defineConfig, type Plugin } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
+import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { hu } from './src/i18n/hu.ts'
 
 // MapLibre GL v6 runs its tiles in a module worker loaded from a separate file. Vite's dev
 // server rewrites that file (it injects its client), which breaks it inside a worker, and
@@ -25,6 +27,44 @@ function maplibreWorker(): Plugin {
   }
 }
 
+// Installable app (SPEC 4.8). Precache = the app shell only. The plate models and the ONNX
+// runtime (public/models, public/vendor) are not precached: the plate worker keeps them in
+// its own Cache Storage entry after the user opts in (D37), and no route here touches them.
+// Tiles and Nominatim have no route either, so they always go to the network.
+// start_url and scope are relative, so the app also works under a GitHub Pages sub-path.
+function pwa(): Plugin[] {
+  return VitePWA({
+    registerType: 'prompt',
+    injectRegister: false,
+    manifest: {
+      name: 'ParkStop',
+      short_name: 'ParkStop',
+      lang: 'hu',
+      description: hu.tagline,
+      display: 'standalone',
+      start_url: '.',
+      scope: './',
+      theme_color: '#1c1c1c',
+      background_color: '#efeee9',
+      icons: [
+        { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+    },
+    workbox: {
+      globPatterns: ['**/*.{html,js,mjs,css,woff2,png,svg,json,geojson,webmanifest}'],
+      globIgnores: ['models/**', 'vendor/**', 'spikes/**'],
+      // The main bundle is ~1.6 MB; Workbox's 2 MiB default would silently drop it from the
+      // precache (offline start breaks) if it grew a little. 4 MiB leaves room.
+      maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+      cleanupOutdatedCaches: true,
+      navigateFallback: 'index.html',
+      navigateFallbackDenylist: [/\/models\//, /\/vendor\//, /\/spikes\//],
+    },
+  })
+}
+
 // `npm run dev:lan` runs with --mode lan: reachable on the local network over
 // self-signed HTTPS. HTTPS is required there because phones only expose the
 // share sheet, geolocation and service workers on secure origins.
@@ -33,8 +73,9 @@ export default defineConfig(({ mode }) => {
   const https = lan
   return {
     base: process.env.BASE_PATH ?? '/',
-    plugins: [react(), maplibreWorker(), ...(https ? [basicSsl()] : [])],
+    plugins: [react(), maplibreWorker(), pwa(), ...(https ? [basicSsl()] : [])],
     server: lan ? { host: '0.0.0.0' } : {},
+    preview: lan ? { host: '0.0.0.0' } : {},
     test: {
       environment: 'node',
       include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'tests/**/*.test.ts'],
