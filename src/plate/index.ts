@@ -1,0 +1,9 @@
+// On-device plate reader (SPEC 4.9) and the zoomable photo (roadmap 3.5, 3.6).
+export { PlateField, PlateOptIn } from './PlateField'
+export type { PlateFieldProps } from './PlateField'
+export { ZoomPanel, ZoomView } from './ZoomView'
+export { usePlateReader } from './usePlateReader'
+export { clearPlateCache } from './client'
+export type { PlateReaderState, UiPlate, FocusBox } from './usePlateReader'
+export { decide, reconcileField, judgePlate, FILL_THRESHOLD } from './decide'
+export type { Outcome, PlateOption, FieldAction } from './decide'

@@ -1,15 +1,25 @@
-// Roadmap 2.5: report form and validation (SPEC 4.3). Plate typed by hand in M2; the
-// on-device reader (SPEC 4.9) arrives in M3 and will suggest a value here.
+// Roadmap 2.5: report form and validation (SPEC 4.3). The plate field with the on-device
+// reader's suggestion and the zoomable photo lives in src/plate (roadmap 3.5, 3.6).
 import { useId, useRef } from 'react'
 import { hu } from '../i18n/hu'
 import violationsData from '../data/violations.json'
-import { IconClose, IconPlus } from '../app/icons'
-import { normalizePlate, plateWhileTyping } from './plate'
+import { IconChevron, IconClose, IconPlus } from '../app/icons'
+import { PlateField, PlateOptIn, type PlateOption, type PlateReaderState, type UiPlate } from '../plate'
+import type { PlateSource, PlateVia } from './plate'
 import { MAX_PHOTOS, type PhotoItem } from './photos'
 import type { ReportError } from './validate'
 
 export interface FormState {
   plate: string
+  /**
+   * Where the plate came from (F-PLATE-3). Optional because reports saved before M3 lack
+   * it; missing means 'user'.
+   */
+  plateSource?: PlateSource
+  /** For a reader value: filled in automatically or picked by the user (F-PLATE-2). */
+  plateVia?: PlateVia
+  /** The user has typed in the plate field of this report: the reader never fills it again. */
+  plateTyped?: boolean
   violationId: string
   customText: string
   time: string
@@ -21,7 +31,7 @@ export const NOTE_MAX = 500
 export const violations = violationsData.violations
 
 export function emptyForm(): FormState {
-  return { plate: '', violationId: '', customText: '', time: '', vehicle: '', note: '' }
+  return { plate: '', plateSource: 'user', violationId: '', customText: '', time: '', vehicle: '', note: '' }
 }
 
 interface Props {
@@ -30,18 +40,22 @@ interface Props {
   photos: PhotoItem[]
   onAddFiles: (files: File[]) => void
   onRemovePhoto: (id: string) => void
+  /** Move a photo one place left (-1) or right (+1); the order is the e-mail's order. */
+  onMovePhoto: (id: string, dir: -1 | 1) => void
   photoMessages: string[]
   errors: ReportError[]
   maxTime: string
   /** The time was filled from a photo (shown as "a fotóból", mockup Report). */
   timeFromPhoto?: boolean
+  plateReader: PlateReaderState
+  /** The user picked one of several read plates (F-PLATE-2). */
+  onPickPlate: (option: PlateOption<UiPlate>) => void
 }
 
-export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, photoMessages, errors, maxTime, timeFromPhoto }: Props) {
+export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, onMovePhoto, photoMessages, errors, maxTime, timeFromPhoto, plateReader, onPickPlate }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const ids = { plate: useId(), violation: useId(), custom: useId(), time: useId(), vehicle: useId(), note: useId(), photos: useId() }
   const has = (e: ReportError) => errors.includes(e)
-  const plateFormat = normalizePlate(form.plate).format
   const err = (e: ReportError, text: string) => has(e) && <p className="field-error" id={`${ids.plate}-${e}`}>{text}</p>
 
   return (
@@ -53,11 +67,24 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
         </div>
         <div className="thumbs">
           {photos.map((p, i) => (
-            <div className="thumb" key={p.id}>
-              <img src={p.url} alt={hu.report.photoAlt(i + 1)} />
-              <button type="button" className="thumb-remove" aria-label={hu.report.removePhoto(i + 1)} onClick={() => onRemovePhoto(p.id)}>
-                <IconClose size={16} />
-              </button>
+            <div className="thumb-cell" key={p.id}>
+              <div className="thumb">
+                <img src={p.url} alt={hu.report.photoAlt(i + 1)} />
+                {photos.length > 1 && <span className="thumb-num" aria-hidden="true">{i + 1}</span>}
+                <button type="button" className="thumb-remove" aria-label={hu.report.removePhoto(i + 1)} onClick={() => onRemovePhoto(p.id)}>
+                  <IconClose size={16} />
+                </button>
+              </div>
+              {photos.length > 1 && (
+                <div className="thumb-move">
+                  <button type="button" aria-label={hu.report.movePhotoLeft(i + 1)} disabled={i === 0} onClick={() => onMovePhoto(p.id, -1)}>
+                    <IconChevron dir="left" />
+                  </button>
+                  <button type="button" aria-label={hu.report.movePhotoRight(i + 1)} disabled={i === photos.length - 1} onClick={() => onMovePhoto(p.id, 1)}>
+                    <IconChevron dir="right" />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           {photos.length < MAX_PHOTOS && (
@@ -74,20 +101,14 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
         <p className="muted small">{hu.report.photosHint}</p>
       </section>
 
-      <div className="field" data-field="plate">
-        <div className="row-between">
-          <label htmlFor={ids.plate} className="field-label">{hu.report.plate}</label>
-          {plateFormat === 'unusual' && <span className="chip chip-warn">{hu.report.plateUnusual}</span>}
-        </div>
-        <div className={`plate${has('plate') ? ' input-invalid' : ''}`}>
-          <span className="plate-country" aria-hidden="true">{hu.report.plateCountry}</span>
-          <input id={ids.plate} type="text" value={form.plate} autoComplete="off" autoCapitalize="characters" spellCheck={false}
-            aria-invalid={has('plate') || undefined}
-            onChange={(e) => onChange({ plate: plateWhileTyping(e.target.value) })}
-            onBlur={() => onChange({ plate: normalizePlate(form.plate).value })} />
-        </div>
-        {err('plate', hu.report.errors.plate)}
-      </div>
+      <PlateOptIn photoCount={photos.length} />
+      <PlateField inputId={ids.plate} value={form.plate} source={form.plateSource ?? 'user'}
+        invalid={has('plate') || has('plateUnconfirmed')}
+        errorText={<>{err('plate', hu.report.errors.plate)}{err('plateUnconfirmed', hu.report.errors.plateUnconfirmed)}</>}
+        onType={(plate) => onChange({ plate, plateSource: 'user', plateVia: undefined, plateTyped: true })}
+        onFormat={(plate) => onChange({ plate })}
+        onConfirm={() => onChange({ plateSource: 'confirmed' })}
+        onPick={onPickPlate} photos={photos} reader={plateReader} />
 
       <div className="field" data-field="violation">
         <label htmlFor={ids.violation} className="field-label">{hu.report.violation}</label>

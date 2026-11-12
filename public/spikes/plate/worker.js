@@ -1,14 +1,18 @@
 // ParkStop spike S3: inference worker (module worker).
-// Loads ONNX Runtime Web from ./vendor/ort/ (no third-party requests) and the models from
-// ./models/, then runs pipeline.js on RGBA buffers sent by the page.
+// Loads ONNX Runtime Web from ../../vendor/ort/ (no third-party requests) and the models from
+// ../../models/ (the app's own copies, public/vendor/ort and public/models, shared with
+// src/plate/ so the ~26 MB exist once), then runs pipeline.js on RGBA buffers sent by the page.
 //
 // Runtime: onnxruntime-web 1.31.1 (MIT, Microsoft), CPU/WASM build only:
 //   ort.wasm.min.mjs + ort-wasm-simd-threaded.mjs + ort-wasm-simd-threaded.wasm
 //
 // Protocol
 //   page -> {type:'load'}                                   worker -> {type:'loaded', info}
-//   page -> {type:'read', id, width, height, buffer, confThresh}
-//                                                           worker -> {type:'result', id, plates, timings}
+//   page -> {type:'read', id, width, height, buffer, confThresh, wideMargin?}
+//                                                           worker -> {type:'result', id, plates, timings,
+//                                                                      platesWide?, wideMs?}
+//   With wideMargin ({x, y}) the same image is read a second time with the wider crop
+//   (F-PLATE-9) so both can be compared on the same photos; `timings` cover the first read only.
 //   any failure                                             worker -> {type:'error', id?, message}
 
 import { readPlates } from './pipeline.js';
@@ -18,7 +22,7 @@ const OCR = { file: 'cct_xs_v2_global.onnx' };
 const OCR_CONFIG = 'cct_v2_global_plate_config.json';
 const BUNDLE = 'ort.wasm.min.mjs';
 
-const base = new URL('./', import.meta.url);
+const base = new URL('../../', import.meta.url); // the site root that holds models/ and vendor/
 let ort = null;
 let sessions = null;
 
@@ -110,7 +114,14 @@ self.onmessage = async (ev) => {
       const image = { data: new Uint8ClampedArray(msg.buffer), width: msg.width, height: msg.height };
       const timings = {};
       const plates = await readPlates(image, sessions, { confThresh: msg.confThresh, timings });
-      self.postMessage({ type: 'result', id: msg.id, plates, timings });
+      let platesWide = null;
+      let wideMs = 0;
+      if (msg.wideMargin) {
+        const t = performance.now();
+        platesWide = await readPlates(image, sessions, { confThresh: msg.confThresh, cropMargin: msg.wideMargin });
+        wideMs = performance.now() - t;
+      }
+      self.postMessage({ type: 'result', id: msg.id, plates, timings, platesWide, wideMs });
     }
   } catch (e) {
     self.postMessage({ type: 'error', id: msg.id, message: e && e.message ? e.message : String(e) });

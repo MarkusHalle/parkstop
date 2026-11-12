@@ -2,7 +2,7 @@
 // reduced photo copy and the mailto hand-off (SPEC 4.5, D13, D15). Same flow on phone and PC.
 import { useMemo, useState } from 'react'
 import { hu } from '../i18n/hu'
-import { buildMail, buildMailto, copyImage, copyText, downscaleToPng, openMailto, saveFiles, type MailInput } from '../mail'
+import { buildMail, buildMailto, copyImage, copyText, downscaleToPng, formatBytes, openMailto, saveFiles, type MailInput } from '../mail'
 import type { PhotoItem } from '../report/photos'
 import { IconCopy, IconDownload, IconImage, IconMail } from './icons'
 import type { ReducedPhotos } from './useReducedPhotos'
@@ -87,14 +87,16 @@ export function MailStep({ input, photos, reduced, layout, onHandedOff }: Props)
         <pre className="mail-text">{draft.body}</pre>
       </section>
       {flashFor('body')}
-      <p className="muted small">{hu.mail.signatureHint}</p>
+      <p className="muted small">{input.reporter ? hu.settings.signatureFromSettings : hu.mail.signatureHint}</p>
 
       <section className="mail-part">
         <div className="mini-thumbs">
           {photos.map((p, i) => <img key={p.id} src={p.url} alt={hu.report.photoAlt(i + 1)} />)}
         </div>
         <div className="mail-part-text">
-          <span className="strong">{hu.mail.photosCount(photos.length)}</span>
+          <span className="strong">
+            {reduced.status === 'ready' ? hu.mail.photosCountSize(reduced.files.length, formatBytes(reduced.totalBytes)) : hu.mail.photosCount(photos.length)}
+          </span>
           <span className="muted small" aria-live="polite">{photosLabel}</span>
         </div>
       </section>

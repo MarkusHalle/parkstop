@@ -1,0 +1,524 @@
+// Number-plate reading pipeline (SPEC 4.9, F-PLATE-2, F-PLATE-9). TypeScript port of the
+// spike's public/spikes/plate/pipeline.js, kept behaviour-identical (pipeline.test.ts runs
+// both on the same inputs). The only addition is the optional crop margin (F-PLATE-9).
+//
+// Pure module: no DOM, no fetch, no ONNX Runtime import. Image decoding happens in the
+// caller; the ONNX Runtime `Tensor` class and the two sessions are injected.
+//
+// It mirrors the Python reference as published by ankandrew:
+//   open-image-models 0.6.0  detection/core/yolo_v9/{preprocess,postprocess,inference}.py
+//   fast-plate-ocr 1.1.0     core/process.py, inference/plate_recognizer.py
+//   fast-alpr 0.4.0          alpr.py, default_ocr.py (crop clamping, BGR->RGB for the OCR)
+// The Python code works on BGR images from OpenCV; we work on RGBA and produce the same
+// channel order the models receive (RGB).
+
+export interface RgbaImage {
+  data: Uint8ClampedArray | Uint8Array
+  width: number
+  height: number
+}
+
+export interface Rect {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export interface Box {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
+
+export interface Letterbox {
+  r: number
+  newW: number
+  newH: number
+  dw: number
+  dh: number
+  top: number
+  left: number
+  size: number
+}
+
+export interface Detection {
+  box: Box
+  detScore: number
+  classId: number
+}
+
+/** Subset of fast-plate-ocr's plate config (public/models/cct_v2_global_plate_config.json). */
+export interface OcrConfig {
+  max_plate_slots: number
+  alphabet: string
+  pad_char: string
+  img_height: number
+  img_width: number
+  keep_aspect_ratio: boolean
+  image_color_mode?: string
+  padding_color?: number | number[]
+  plate_regions?: string[]
+}
+
+export interface OcrResult {
+  text: string
+  charConfidences: number[]
+  meanConf: number
+  minConf: number
+  region: string | null
+  regionConf: number | null
+}
+
+export interface PlateResult extends OcrResult {
+  /** Detector box mapped back to the image (before the margin). */
+  box: Box
+  /** The rectangle the reader saw: margin added, clamped to the image. */
+  crop: Rect
+  detScore: number
+}
+
+/**
+ * F-PLATE-9: the default crop width, as fractions of the box's own width (each side) and
+ * height (top and bottom). The app reads every plate at all CROP_MARGINS below; this one is
+ * the crop shown when no width wins, and the single margin the spike page compares.
+ */
+export const CROP_MARGIN = { x: 0.06, y: 0.1 } as const
+export type Margin = { x: number; y: number }
+
+/**
+ * F-PLATE-9, as measured on the owner's 38 photos (46 detected plates, D38): each plate is
+ * read at these crop widths and src/plate/consensus.ts keeps a read only when two widths
+ * agree. Index 2 is CROP_MARGIN, the crop shown to the user when no width wins.
+ */
+export const CROP_MARGINS: readonly Margin[] = [
+  { x: 0, y: 0 }, { x: 0.03, y: 0.05 }, CROP_MARGIN, { x: 0.1, y: 0.16 }, { x: 0.15, y: 0.25 },
+]
+export const DEFAULT_MARGIN_INDEX = 2
+
+/** fast-alpr's detector default. */
+export const DETECTOR_CONF = 0.4
+
+/** Python 3 round(): ties go to the even integer. */
+export function pyRound(x: number): number {
+  const r = Math.round(x)
+  if (Math.abs(x - Math.trunc(x)) === 0.5 && r % 2 !== 0) return r - 1
+  return r
+}
+
+/**
+ * Bilinear resize of a rectangle of an RGBA image into a packed RGB (3 bytes/pixel) buffer,
+ * using OpenCV's INTER_LINEAR sampling: half-pixel centres, edge clamping inside the
+ * rectangle, no anti-aliasing when shrinking. Output is rounded to uint8 like cv2.resize on
+ * a uint8 image (OpenCV uses fixed-point maths, so a pixel may differ by 1).
+ */
+export function resizeRectToRGB(img: RgbaImage, rect: Rect, dw: number, dh: number): Uint8Array {
+  const { data, width } = img
+  const { x: rx, y: ry, w: sw, h: sh } = rect
+  const out = new Uint8Array(dw * dh * 3)
+  const sx = sw / dw
+  const sy = sh / dh
+  const x0 = new Int32Array(dw)
+  const x1 = new Int32Array(dw)
+  const ax = new Float32Array(dw)
+  for (let dx = 0; dx < dw; dx++) {
+    let fx = (dx + 0.5) * sx - 0.5
+    let ix = Math.floor(fx)
+    fx -= ix
+    if (ix < 0) { ix = 0; fx = 0 }
+    if (ix >= sw - 1) { ix = sw - 1; fx = 0 }
+    x0[dx] = (rx + ix) * 4
+    x1[dx] = (rx + Math.min(ix + 1, sw - 1)) * 4
+    ax[dx] = fx
+  }
+  let o = 0
+  for (let dy = 0; dy < dh; dy++) {
+    let fy = (dy + 0.5) * sy - 0.5
+    let iy = Math.floor(fy)
+    fy -= iy
+    if (iy < 0) { iy = 0; fy = 0 }
+    if (iy >= sh - 1) { iy = sh - 1; fy = 0 }
+    const row0 = (ry + iy) * width * 4
+    const row1 = (ry + Math.min(iy + 1, sh - 1)) * width * 4
+    const by = fy
+    for (let dx = 0; dx < dw; dx++) {
+      const a = ax[dx]
+      const p00 = row0 + x0[dx], p01 = row0 + x1[dx]
+      const p10 = row1 + x0[dx], p11 = row1 + x1[dx]
+      for (let c = 0; c < 3; c++) {
+        const top = data[p00 + c] + (data[p01 + c] - data[p00 + c]) * a
+        const bot = data[p10 + c] + (data[p11 + c] - data[p10 + c]) * a
+        const v = top + (bot - top) * by
+        out[o++] = v < 0 ? 0 : v > 255 ? 255 : Math.round(v)
+      }
+    }
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------------------
+// Detector (open-image-models yolo-v9-*-license-plate-end2end)
+
+/** Letterbox geometry exactly as open_image_models yolo_v9/preprocess.py letterbox(). */
+export function letterboxParams(srcW: number, srcH: number, size: number): Letterbox {
+  const r = Math.min(size / srcH, size / srcW)
+  const newW = pyRound(srcW * r)
+  const newH = pyRound(srcH * r)
+  const dw = (size - newW) / 2
+  const dh = (size - newH) / 2
+  const top = pyRound(dh - 0.1)
+  const left = pyRound(dw - 0.1)
+  return { r, newW, newH, dw, dh, top, left, size }
+}
+
+/** Detector input: letterbox to size x size (pad value 114), RGB, /255, float32 NCHW. */
+export function detectorPreprocess(img: RgbaImage, size: number): { data: Float32Array; dims: number[]; lb: Letterbox } {
+  const lb = letterboxParams(img.width, img.height, size)
+  const rgb = resizeRectToRGB(img, { x: 0, y: 0, w: img.width, h: img.height }, lb.newW, lb.newH)
+  const plane = size * size
+  const data = new Float32Array(3 * plane).fill(114 / 255)
+  for (let y = 0; y < lb.newH; y++) {
+    for (let x = 0; x < lb.newW; x++) {
+      const s = (y * lb.newW + x) * 3
+      const d = (y + lb.top) * size + (x + lb.left)
+      data[d] = rgb[s] / 255
+      data[plane + d] = rgb[s + 1] / 255
+      data[2 * plane + d] = rgb[s + 2] / 255
+    }
+  }
+  return { data, dims: [1, 3, size, size], lb }
+}
+
+/**
+ * Detector output "output0" has shape [N, 7]: [batch_index, x1, y1, x2, y2, class_id, score]
+ * in letterboxed input pixels (NMS is inside the model, hence "end2end"). Boxes are mapped
+ * back with (v - pad) / ratio and truncated to int, as yolo_v9/postprocess.py does.
+ */
+export function detectorPostprocess(
+  output: ArrayLike<number>, dims: readonly number[], lb: Letterbox, confThresh: number,
+): Detection[] {
+  const n = dims[0]
+  const stride = dims[1]
+  const f = Math.fround
+  const res: Detection[] = []
+  for (let i = 0; i < n; i++) {
+    const o = i * stride
+    const score = output[o + 6]
+    if (score < confThresh) continue
+    // Python writes the mapped values back into the float32 array before int().
+    const x1 = Math.trunc(f((output[o + 1] - lb.dw) / lb.r))
+    const y1 = Math.trunc(f((output[o + 2] - lb.dh) / lb.r))
+    const x2 = Math.trunc(f((output[o + 3] - lb.dw) / lb.r))
+    const y2 = Math.trunc(f((output[o + 4] - lb.dh) / lb.r))
+    res.push({ box: { x1, y1, x2, y2 }, detScore: score, classId: Math.trunc(output[o + 5]) })
+  }
+  return res
+}
+
+/** Crop rectangle as fast_alpr/alpr.py: clamp to the image, then img[y1:y2, x1:x2]. */
+export function cropRect(box: Box, width: number, height: number): Rect | null {
+  const x1 = Math.max(box.x1, 0)
+  const y1 = Math.max(box.y1, 0)
+  const x2 = Math.min(box.x2, width)
+  const y2 = Math.min(box.y2, height)
+  if (x2 <= x1 || y2 <= y1) return null
+  return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 }
+}
+
+/**
+ * F-PLATE-9: widen a detector box by `margin` (fractions of the box's own width and
+ * height, added on each side), rounded outwards to whole pixels. Clamping to the image is
+ * left to cropRect. A zero margin returns the box unchanged.
+ */
+export function widenBox(box: Box, margin: Margin): Box {
+  if (margin.x === 0 && margin.y === 0) return box
+  const mx = (box.x2 - box.x1) * margin.x
+  const my = (box.y2 - box.y1) * margin.y
+  return {
+    x1: Math.floor(box.x1 - mx),
+    y1: Math.floor(box.y1 - my),
+    x2: Math.ceil(box.x2 + mx),
+    y2: Math.ceil(box.y2 + my),
+  }
+}
+
+// ---------------------------------------------------------------------------------------
+// OCR (fast-plate-ocr cct-*-v2-global-model)
+
+/**
+ * OCR input as fast_plate_ocr/core/process.py resize_image() + preprocess_image():
+ * resize the crop to img_width x img_height (linear; letterbox with padding_color only if
+ * keep_aspect_ratio), RGB or grayscale per config, uint8 NHWC [1, H, W, C].
+ * No normalisation: the model rescales internally.
+ */
+export function ocrPreprocess(img: RgbaImage, rect: Rect, cfg: OcrConfig): { data: Uint8Array; dims: number[] } {
+  const H = cfg.img_height
+  const W = cfg.img_width
+  const gray = cfg.image_color_mode === 'grayscale'
+  let rgb: Uint8Array
+  if (!cfg.keep_aspect_ratio) {
+    rgb = resizeRectToRGB(img, rect, W, H)
+  } else {
+    const r = Math.min(H / rect.h, W / rect.w)
+    const nw = pyRound(rect.w * r)
+    const nh = pyRound(rect.h * r)
+    const inner = resizeRectToRGB(img, rect, nw, nh)
+    const top = pyRound((H - nh) / 2 - 0.1)
+    const left = pyRound((W - nw) / 2 - 0.1)
+    const pc = cfg.padding_color ?? [114, 114, 114]
+    const pad = Array.isArray(pc) ? pc : [pc, pc, pc]
+    rgb = new Uint8Array(W * H * 3)
+    for (let i = 0; i < W * H; i++) rgb.set(pad, i * 3)
+    for (let y = 0; y < nh; y++) {
+      rgb.set(inner.subarray(y * nw * 3, (y + 1) * nw * 3), ((y + top) * W + left) * 3)
+    }
+  }
+  if (!gray) return { data: rgb, dims: [1, H, W, 3] }
+  // cv2.COLOR_BGR2GRAY on the crop: 0.299 R + 0.587 G + 0.114 B, rounded.
+  const g = new Uint8Array(W * H)
+  for (let i = 0; i < W * H; i++) {
+    g[i] = Math.round(0.299 * rgb[i * 3] + 0.587 * rgb[i * 3 + 1] + 0.114 * rgb[i * 3 + 2])
+  }
+  return { data: g, dims: [1, H, W, 1] }
+}
+
+/**
+ * Decode the "plate" output [1, max_plate_slots, alphabet_len] (already softmaxed by the
+ * model): argmax per slot, strip trailing pad chars. Per-slot confidence = max probability,
+ * reported for all slots (pad slots included), as fast-plate-ocr does.
+ */
+export function ocrDecode(plateOut: ArrayLike<number>, cfg: OcrConfig, regionOut?: ArrayLike<number> | null): OcrResult {
+  const slots = cfg.max_plate_slots
+  const alphabet = cfg.alphabet
+  const V = alphabet.length
+  let text = ''
+  const charConfidences: number[] = []
+  for (let s = 0; s < slots; s++) {
+    let best = 0
+    let bestP = -Infinity
+    for (let k = 0; k < V; k++) {
+      const p = plateOut[s * V + k]
+      if (p > bestP) { bestP = p; best = k }
+    }
+    text += alphabet[best]
+    charConfidences.push(bestP)
+  }
+  let end = text.length
+  while (end > 0 && text[end - 1] === cfg.pad_char) end--
+  text = text.slice(0, end)
+  const meanConf = charConfidences.reduce((a, b) => a + b, 0) / charConfidences.length
+  const minConf = Math.min(...charConfidences)
+  let region: string | null = null
+  let regionConf: number | null = null
+  if (regionOut && cfg.plate_regions && cfg.plate_regions.length) {
+    let bi = 0
+    for (let k = 1; k < regionOut.length; k++) if (regionOut[k] > regionOut[bi]) bi = k
+    region = cfg.plate_regions[bi]
+    regionConf = regionOut[bi]
+  }
+  return { text, charConfidences, meanConf, minConf, region, regionConf }
+}
+
+// ---------------------------------------------------------------------------------------
+// Orchestrator. The ONNX Runtime types are described structurally so this file has no
+// dependency on the runtime (it is vendored under public/vendor/ort, D10).
+
+export interface OrtTensorLike {
+  data: ArrayLike<number>
+  dims: readonly number[]
+  dispose?: () => void
+}
+export interface OrtSessionLike {
+  inputNames: readonly string[]
+  outputNames: readonly string[]
+  run(feeds: Record<string, unknown>): Promise<Record<string, OrtTensorLike>>
+}
+export type OrtTensorCtor = new (type: 'float32' | 'uint8', data: Float32Array | Uint8Array, dims: readonly number[]) => unknown
+
+export interface Sessions {
+  detector: OrtSessionLike
+  ocr: OrtSessionLike
+  Tensor: OrtTensorCtor
+  detSize: number
+  ocrConfig: OcrConfig
+}
+
+export interface Timings {
+  detPre?: number
+  detRun?: number
+  detect?: number
+  ocr?: number
+  total?: number
+}
+
+const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+
+/**
+ * Detect plates, crop (with `margin`, F-PLATE-9), read each one. Without a margin the
+ * result is identical to the spike's readPlates().
+ */
+export async function readPlates(
+  image: RgbaImage, sessions: Sessions,
+  opts: { confThresh?: number; margin?: Margin; timings?: Timings } = {},
+): Promise<PlateResult[]> {
+  const { detector, ocr, Tensor, detSize, ocrConfig } = sessions
+  const confThresh = opts.confThresh ?? DETECTOR_CONF
+  const margin = opts.margin ?? { x: 0, y: 0 }
+  const t = opts.timings ?? {}
+  if (!(image.width > 0 && image.height > 0) || image.data.length < image.width * image.height * 4) {
+    throw new Error('readPlates: empty or truncated RGBA image')
+  }
+  const t0 = nowMs()
+
+  const pre = detectorPreprocess(image, detSize)
+  const t1 = nowMs()
+  const detIn = detector.inputNames[0]
+  const detOutName = detector.outputNames[0]
+  const detOut = await detector.run({ [detIn]: new Tensor('float32', pre.data, pre.dims) })
+  const out0 = detOut[detOutName]
+  const t2 = nowMs()
+  const dets = out0.dims[0] > 0 ? detectorPostprocess(out0.data, out0.dims, pre.lb, confThresh) : []
+  disposeAll(detOut)
+
+  const results: PlateResult[] = []
+  let ocrMs = 0
+  for (const d of dets) {
+    const rect = cropRect(widenBox(d.box, margin), image.width, image.height)
+    if (!rect) continue
+    const s = nowMs()
+    const inp = ocrPreprocess(image, rect, ocrConfig)
+    const outs = await ocr.run({ [ocr.inputNames[0]]: new Tensor('uint8', inp.data, inp.dims) })
+    const plateOut = (outs.plate ?? outs[ocr.outputNames[0]]).data
+    const regionOut = outs.region ? outs.region.data : null
+    const dec = ocrDecode(plateOut, ocrConfig, regionOut)
+    disposeAll(outs)
+    ocrMs += nowMs() - s
+    results.push({ box: d.box, crop: rect, detScore: d.detScore, ...dec })
+  }
+  const t3 = nowMs()
+  t.detPre = t1 - t0
+  t.detRun = t2 - t1
+  t.detect = t2 - t0
+  t.ocr = ocrMs
+  t.total = t3 - t0
+  return results
+}
+
+export interface MultiRead {
+  box: Box
+  detScore: number
+  /** One read per margin, in the order given; a margin whose crop is empty gives null. */
+  reads: ((OcrResult & { crop: Rect }) | null)[]
+  /** Found only by the zoomed second search (TILE_*); its read must be Hungarian (D39). */
+  zoomed: boolean
+}
+
+/**
+ * Zoomed second search (D39): when the whole photo gives no plate with any character, the
+ * detector looks again at four overlapping quarters, each TILE_FRACTION of the photo's width
+ * and height, so a plate that is small in a wide shot is no longer shrunk to a few pixels.
+ * A box within TILE_EDGE_PX of a quarter's inner edge may be a cut-off plate and is dropped.
+ */
+export const TILE_FRACTION = 0.6
+export const TILE_EDGE_PX = 4
+
+/** Every margin's crop read nothing: not a plate (a railing, a window), so it is left out. */
+export function noText(m: Pick<MultiRead, 'reads'>): boolean {
+  return m.reads.every((r) => !r || r.text.trim() === '')
+}
+
+/** Copy of a rectangle of an RGBA image. */
+export function subImage(img: RgbaImage, x0: number, y0: number, w: number, h: number): RgbaImage {
+  const data = new Uint8ClampedArray(w * h * 4)
+  for (let y = 0; y < h; y++) {
+    const from = ((y0 + y) * img.width + x0) * 4
+    data.set(img.data.subarray(from, from + w * 4), y * w * 4)
+  }
+  return { data, width: w, height: h }
+}
+
+/** Intersection over union of two boxes. */
+export function iou(a: Box, b: Box): number {
+  const ix = Math.max(0, Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1))
+  const iy = Math.max(0, Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1))
+  const inter = ix * iy
+  const union = (a.x2 - a.x1) * (a.y2 - a.y1) + (b.x2 - b.x1) * (b.y2 - b.y1) - inter
+  return union > 0 ? inter / union : 0
+}
+
+async function detectAndReadAll(
+  image: RgbaImage, sessions: Sessions, confThresh: number, margins: readonly Margin[], zoomed: boolean,
+): Promise<MultiRead[]> {
+  const { detector, ocr, Tensor, detSize, ocrConfig } = sessions
+  const pre = detectorPreprocess(image, detSize)
+  const detOut = await detector.run({ [detector.inputNames[0]]: new Tensor('float32', pre.data, pre.dims) })
+  const out0 = detOut[detector.outputNames[0]]
+  const dets = out0.dims[0] > 0 ? detectorPostprocess(out0.data, out0.dims, pre.lb, confThresh) : []
+  disposeAll(detOut)
+  const results: MultiRead[] = []
+  for (const d of dets) {
+    const reads: MultiRead['reads'] = []
+    for (const m of margins) {
+      const rect = cropRect(widenBox(d.box, m), image.width, image.height)
+      if (!rect) { reads.push(null); continue }
+      const inp = ocrPreprocess(image, rect, ocrConfig)
+      const outs = await ocr.run({ [ocr.inputNames[0]]: new Tensor('uint8', inp.data, inp.dims) })
+      const dec = ocrDecode((outs.plate ?? outs[ocr.outputNames[0]]).data, ocrConfig, outs.region ? outs.region.data : null)
+      disposeAll(outs)
+      reads.push({ ...dec, crop: rect })
+    }
+    results.push({ box: d.box, detScore: d.detScore, reads, zoomed })
+  }
+  return results
+}
+
+const shiftRect = (r: Rect, dx: number, dy: number): Rect => ({ x: r.x + dx, y: r.y + dy, w: r.w, h: r.h })
+
+/**
+ * Detect, then read every plate at each of `margins` (see CROP_MARGINS). Detections whose
+ * crops read nothing at all are left out; if none is left, the zoomed second search runs.
+ * Boxes and crops are in the whole photo's pixels.
+ */
+export async function readPlatesMulti(
+  image: RgbaImage, sessions: Sessions,
+  opts: { confThresh?: number; margins: readonly Margin[]; timings?: Timings; tiles?: boolean },
+): Promise<MultiRead[]> {
+  const t = opts.timings ?? {}
+  if (!(image.width > 0 && image.height > 0) || image.data.length < image.width * image.height * 4) {
+    throw new Error('readPlatesMulti: empty or truncated RGBA image')
+  }
+  const conf = opts.confThresh ?? DETECTOR_CONF
+  const t0 = nowMs()
+  let results = (await detectAndReadAll(image, sessions, conf, opts.margins, false)).filter((m) => !noText(m))
+  if (results.length === 0 && opts.tiles !== false) {
+    const tw = Math.round(image.width * TILE_FRACTION)
+    const th = Math.round(image.height * TILE_FRACTION)
+    const found: MultiRead[] = []
+    for (const [fx, fy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+      const x0 = fx ? image.width - tw : 0
+      const y0 = fy ? image.height - th : 0
+      for (const m of await detectAndReadAll(subImage(image, x0, y0, tw, th), sessions, conf, opts.margins, true)) {
+        const b = m.box
+        const cut = (x0 > 0 && b.x1 <= TILE_EDGE_PX) || (y0 > 0 && b.y1 <= TILE_EDGE_PX)
+          || (x0 + tw < image.width && b.x2 >= tw - TILE_EDGE_PX) || (y0 + th < image.height && b.y2 >= th - TILE_EDGE_PX)
+        if (cut || noText(m)) continue
+        found.push({
+          ...m,
+          box: { x1: b.x1 + x0, y1: b.y1 + y0, x2: b.x2 + x0, y2: b.y2 + y0 },
+          reads: m.reads.map((r) => (r ? { ...r, crop: shiftRect(r.crop, x0, y0) } : null)),
+        })
+      }
+    }
+    // The quarters overlap: keep one box per plate (the detector's most certain).
+    found.sort((a, b) => b.detScore - a.detScore)
+    results = []
+    for (const m of found) if (!results.some((k) => iou(k.box, m.box) > 0.3)) results.push(m)
+  }
+  t.total = nowMs() - t0
+  return results
+}
+
+function disposeAll(outs: Record<string, OrtTensorLike | undefined>) {
+  for (const k of Object.keys(outs)) outs[k]?.dispose?.()
+}

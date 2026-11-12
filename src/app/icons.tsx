@@ -25,7 +25,10 @@ export const IconPin = ({ size = 22 }: { size?: number }) => <Svg size={size}><p
 export const IconCheck = ({ size = 14 }: { size?: number }) => <Svg size={size} strokeWidth={2.6}><path d="M5 12.5l4.5 4.5L19 7.5" /></Svg>
 export const IconInfo = ({ size = 16 }: { size?: number }) => <Svg size={size} strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></Svg>
 export const IconWarn = ({ size = 16 }: { size?: number }) => <Svg size={size} strokeWidth={2}><path d="M12 4l9 16H3z" /><path d="M12 10v4M12 17h.01" /></Svg>
-export const IconPlus = () => <Svg size={26}><path d="M12 5v14M5 12h14" /></Svg>
+export const IconChevron = ({ dir = 'right', size = 20 }: { dir?: 'left' | 'right'; size?: number }) => (
+  <Svg size={size} strokeWidth={2}><path d={dir === 'left' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'} /></Svg>
+)
+export const IconPlus =() => <Svg size={26}><path d="M12 5v14M5 12h14" /></Svg>
 export const IconClose = ({ size = 18 }: { size?: number }) => <Svg size={size} strokeWidth={2.2}><path d="M6 6l12 12M18 6L6 18" /></Svg>
 export const IconCopy = () => <Svg><rect x="8" y="8" width="11" height="11" rx="2" /><path d="M5 15V6a1 1 0 0 1 1-1h9" /></Svg>
 export const IconDownload = () => <Svg><path d="M12 4v11M8 11l4 4 4-4M5 19h14" /></Svg>

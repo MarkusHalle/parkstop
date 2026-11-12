@@ -144,6 +144,23 @@ export function cropRect(box, width, height) {
   return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
 }
 
+/**
+ * F-PLATE-9: widen a detector box by `margin` ({x, y}: fractions of the box's own width and
+ * height, added on each side), rounded outwards to whole pixels. Clamping is left to
+ * cropRect. Same as widenBox() in the app's src/plate/pipeline.ts.
+ */
+export function widenBox(box, margin) {
+  if (!margin || (margin.x === 0 && margin.y === 0)) return box;
+  const mx = (box.x2 - box.x1) * margin.x;
+  const my = (box.y2 - box.y1) * margin.y;
+  return {
+    x1: Math.floor(box.x1 - mx),
+    y1: Math.floor(box.y1 - my),
+    x2: Math.ceil(box.x2 + mx),
+    y2: Math.ceil(box.y2 + my),
+  };
+}
+
 // ---------------------------------------------------------------------------------------
 // OCR (fast-plate-ocr cct-*-v2-global-model)
 
@@ -232,8 +249,10 @@ const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Da
  * @param {{data: Uint8ClampedArray|Uint8Array, width: number, height: number}} image RGBA
  * @param {{detector: object, ocr: object, Tensor: Function, detSize: number, ocrConfig: object}} sessions
  *   detector/ocr are ONNX Runtime InferenceSession objects (web or node), Tensor is ort.Tensor.
- * @param {{confThresh?: number, timings?: object}} [opts] confThresh defaults to 0.4
- *   (fast-alpr's detector default). If `timings` is given it is filled with ms values.
+ * @param {{confThresh?: number, cropMargin?: {x: number, y: number}, timings?: object}} [opts]
+ *   confThresh defaults to 0.4 (fast-alpr's detector default). cropMargin widens each box
+ *   before reading (F-PLATE-9); without it the crop is the detector box, as measured in S3.
+ *   If `timings` is given it is filled with ms values.
  * @returns {Promise<Array<{box, detScore, text, charConfidences, meanConf, minConf, region, regionConf}>>}
  */
 export async function readPlates(image, sessions, opts = {}) {
@@ -258,7 +277,7 @@ export async function readPlates(image, sessions, opts = {}) {
   const results = [];
   let ocrMs = 0;
   for (const d of dets) {
-    const rect = cropRect(d.box, image.width, image.height);
+    const rect = cropRect(widenBox(d.box, opts.cropMargin), image.width, image.height);
     if (!rect) continue;
     const s = nowMs();
     const inp = ocrPreprocess(image, rect, ocrConfig);

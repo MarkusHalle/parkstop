@@ -1,6 +1,6 @@
 # ParkStop — Product Specification
 
-Version 0.7 · 2026-11-12 · M2: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed from both templates (7, D31), photo position not used (3, 4.4, 11; D34)
+Version 0.9 · 2026-11-12 · M3: plate read at several crop widths, offered only when two agree; zoomed second search; empty detections ignored (4.9 F-PLATE-9, D38, D39); earlier: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed (7, D31), photo position not used (3, 4.4, 11; D34)
 
 ParkStop helps a person in Budapest report an illegally parked car: mark the spot on a map,
 see which authority is responsible, add photos, and get a ready-to-send Hungarian e-mail.
@@ -168,9 +168,15 @@ from `fast-plate-ocr`), run in the browser with ONNX Runtime Web.
   pre-filled, however high its confidence. The crop is shown with "Nem teljes a rendszám?"
   and the user types it. Reason: in the owner's test a cut-off read ("DRVA02" for
   DR VA-023) had 0.9998 confidence. Foreign plates pass through unchanged.
-- F-PLATE-9 Before reading, the detected plate box is widened by a small margin so the
-  edge characters are not cut off. The margin is kept only if it does not lower accuracy
-  on the owner's test photos and the Wikimedia samples.
+- F-PLATE-9 Each detected plate is read at several crop widths (from the detector's box
+  to a box widened by a quarter of its height), so edge characters are not cut off. A read
+  is offered only when at least two widths agree on the same characters, each confident
+  (F-PLATE-4) and plausible (F-PLATE-8); otherwise nothing is filled. A detection whose
+  crops read no character at all is not a plate and is ignored. When the whole photo gives
+  no plate, the reader searches four zoomed quarters of it; a plate found only there is
+  offered only if it has a Hungarian format, and one cut by a quarter's edge is dropped.
+  On the owner's 38 test photos this reads 42 plates right and none wrong; the Wikimedia
+  samples stay 12 of 12 (DECISIONS D38, D39).
 
 > **Gate (spike S3 in milestone M0):** the reader ships only if, on about 20 of the owner's
 > own photos of Hungarian plates (old ABC-123 and new AA BB-123 formats), it reads at least

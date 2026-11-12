@@ -1,4 +1,8 @@
-# Plate reader model files (spike S3)
+# Plate reader model files
+
+Used by the app's plate reader (`src/plate/worker.ts`, SPEC 4.9) and by the spike page
+(`public/spikes/plate/`). Moved here from `public/spikes/plate/models/` in roadmap task 3.5.
+The ONNX Runtime Web build they run on is in `public/vendor/ort/` (1.31.1, CPU/WASM, MIT).
 
 Downloaded 2026-11-11 from the URLs the projects' own model-hub code uses
 (`open_image_models/detection/core/hub.py`, `fast_plate_ocr/inference/hub.py`). Not modified,

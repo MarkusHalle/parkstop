@@ -1,8 +1,11 @@
 // Report form validation (SPEC 4.3). Returns error codes; the UI shows hu.report.errors.
+import type { PlateSource } from './plate'
 
 export interface ReportFields {
   photoCount: number
   plate: string
+  /** Missing = typed by the user. A reader suggestion must be confirmed (F-PLATE-3). */
+  plateSource?: PlateSource
   violationId: string
   customText: string
   /** `<input type="datetime-local">` value, "YYYY-MM-DDTHH:mm" in local time. */
@@ -10,13 +13,14 @@ export interface ReportFields {
   address: string
 }
 
-export type ReportError = 'photos' | 'plate' | 'violation' | 'custom' | 'time' | 'timeFuture' | 'address'
+export type ReportError = 'photos' | 'plate' | 'plateUnconfirmed' | 'violation' | 'custom' | 'time' | 'timeFuture' | 'address'
 
 /** Field each error belongs to, in form order (for focusing the first one). */
 export const ERROR_FIELD: Record<ReportError, string> = {
   address: 'address',
   photos: 'photos',
   plate: 'plate',
+  plateUnconfirmed: 'plate',
   violation: 'violation',
   custom: 'custom',
   time: 'time',
@@ -30,6 +34,7 @@ export function validateReport(f: ReportFields, now: Date): ReportError[] {
   if (f.address.trim() === '') errors.push('address')
   if (f.photoCount < 1) errors.push('photos')
   if (f.plate.trim() === '') errors.push('plate')
+  else if (f.plateSource === 'reader') errors.push('plateUnconfirmed')
   if (f.violationId === '') errors.push('violation')
   else if (f.violationId === 'egyeb' && f.customText.trim() === '') errors.push('custom')
   const t = parseLocalDateTime(f.time)

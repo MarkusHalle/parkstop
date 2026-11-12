@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normalizePlate, plateWhileTyping } from './plate'
+import { compactPlate, HU_PLATE_FORMATS, hungarianFormat, normalizePlate, plateWhileTyping } from './plate'
 import { parseLocalDateTime, toLocalDateTime, validateReport, type ReportFields } from './validate'
 
 describe('normalizePlate', () => {
@@ -17,6 +17,22 @@ describe('normalizePlate', () => {
     ['   ', '', 'empty'],
   ])('%s → %s (%s)', (raw, value, format) => {
     expect(normalizePlate(raw)).toEqual({ value, format })
+  })
+
+  it('has one test per Hungarian format in the table (F-PLATE-8)', () => {
+    expect(HU_PLATE_FORMATS.map((f) => f.id)).toEqual(['old', 'new', 'oldtimer'])
+    expect(hungarianFormat('ABC123')?.id).toBe('old')
+    expect(hungarianFormat('AIFD684')?.id).toBe('new')
+    expect(hungarianFormat('OT6440')?.id).toBe('oldtimer')
+    expect(normalizePlate('ot6440').value).toBe('OT 64-40')
+    expect(hungarianFormat('OT644')).toBeNull()
+    expect(hungarianFormat('DRVA02')).toBeNull()
+    expect(hungarianFormat('ABC1234')).toBeNull()
+  })
+
+  it('compacts plates for comparison', () => {
+    expect(compactPlate('aa bb-123')).toBe('AABB123')
+    expect(compactPlate('B.MW 1234')).toBe('BMW1234')
   })
 
   it('only upper-cases while typing', () => {
@@ -55,6 +71,12 @@ describe('validateReport', () => {
     expect(validateReport({ ...ok, photoCount: 0, plate: ' ', violationId: '', time: '', address: '' }, now)).toEqual([
       'address', 'photos', 'plate', 'violation', 'time',
     ])
+  })
+  it('needs a reader suggestion to be confirmed or edited (F-PLATE-3)', () => {
+    expect(validateReport({ ...ok, plateSource: 'reader' }, now)).toEqual(['plateUnconfirmed'])
+    expect(validateReport({ ...ok, plateSource: 'confirmed' }, now)).toEqual([])
+    expect(validateReport({ ...ok, plateSource: 'user' }, now)).toEqual([])
+    expect(validateReport({ ...ok, plate: '', plateSource: 'reader' }, now)).toEqual(['plate'])
   })
   it('needs a description for "Egyéb"', () => {
     expect(validateReport({ ...ok, violationId: 'egyeb' }, now)).toEqual(['custom'])

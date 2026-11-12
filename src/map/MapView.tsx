@@ -158,7 +158,11 @@ export function MapView({
     const marker = markerRef.current
     if (!map || !marker) return
     if (pinLat === undefined || pinLon === undefined) marker.remove()
-    else marker.setLngLat([pinLon, pinLat]).addTo(map)
+    else {
+      marker.setLngLat([pinLon, pinLat]).addTo(map)
+      // A pin set from outside (a report reopened from the history) may be off-screen.
+      if (!map.getBounds().contains([pinLon, pinLat])) map.jumpTo({ center: [pinLon, pinLat], zoom: Math.max(map.getZoom(), 16) })
+    }
   }, [pinLat, pinLon])
 
   // Keep the pin clear of the phone bottom sheet.

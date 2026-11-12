@@ -8,6 +8,9 @@ const MAX_SIDE = 4000; // longer photos are scaled down by the browser before re
 const SHOW_SIDE = 1280; // size of the copy shown on screen
 const CROP_HEIGHT = 160; // shown plate crops (CSS shows them at most 160 px high)
 const DET_CONF = 0.4; // fast-alpr's detector default
+// F-PLATE-9: every photo is also read with this wider crop, so the results compare both on
+// the same photos (same value as CROP_MARGIN in the app's src/plate/pipeline.ts).
+const WIDE_MARGIN = { x: 0.06, y: 0.1 };
 const LOAD_TIMEOUT_MS = 180000;
 
 const $ = (id) => document.getElementById(id);
@@ -303,6 +306,9 @@ function buildResults(root) {
   } else {
     lines.push(h('p', { class: 'big', text: `The app read ${s.correct} of ${s.scored} ${s.scored === 1 ? 'plate' : 'plates'} correctly.` }));
   }
+  if (s.margin.photos) {
+    lines.push(h('p', { class: 'lead', text: `Wider crop test: exact reads ${s.margin.plain.exact} of ${s.margin.photos} as cut by the detector, ${s.margin.wide.exact} of ${s.margin.photos} with the wider crop (6 % / 10 %).` }));
+  }
   if (Number.isFinite(s.medianTotal)) {
     lines.push(h('p', { class: 'lead', text: `Typical time per photo: ${(s.medianTotal / 1000).toFixed(1)} seconds.` }));
   }
@@ -488,10 +494,11 @@ async function processPhoto(p) {
     }
     const tRead = performance.now();
     const msg = await call(
-      { type: 'read', id: p.id, width: d.w, height: d.h, buffer: d.imageData.data.buffer, confThresh: DET_CONF },
+      { type: 'read', id: p.id, width: d.w, height: d.h, buffer: d.imageData.data.buffer, confThresh: DET_CONF, wideMargin: WIDE_MARGIN },
       [d.imageData.data.buffer],
     );
-    const wallMs = decodeMs + (performance.now() - tRead); // excludes making the on-screen copy
+    // Excludes making the on-screen copy and the second (wider-crop) read.
+    const wallMs = decodeMs + (performance.now() - tRead) - (msg.wideMs || 0);
     const cropUrls = [];
     for (const pl of msg.plates) {
       const { x, y, w, h: ch } = pl.crop;
@@ -499,7 +506,7 @@ async function processPhoto(p) {
       cropUrls.push(await regionToUrl(d.canvas, x, y, w, ch, (w / ch) * dh, dh));
     }
     p.result = {
-      w: d.w, h: d.h, w0: d.w0, h0: d.h0, scaled: d.scaled, plates: msg.plates,
+      w: d.w, h: d.h, w0: d.w0, h0: d.h0, scaled: d.scaled, plates: msg.plates, platesWide: msg.platesWide || [],
       timings: { decode: decodeMs, ...msg.timings, wall: wallMs }, stamp: performance.now(),
     };
     p.cropUrls = cropUrls;
@@ -570,7 +577,17 @@ function computeSummary() {
   const above = withRead.filter((x) => x.s.read.minConf >= thr);
   const done = S.photos.filter((p) => p.status === 'done');
   const totals = done.map((p) => p.result.timings.wall);
+  // F-PLATE-9 comparison on the photos with a known true plate: is it among the reads with
+  // the detector's crop, and with the wider crop? "filled" = that read is also above the threshold.
+  const withTruth = scored.filter((x) => x.s.truth && x.p.result);
+  const hit = (plates, truth) => plates.find((r) => normalizePlate(r.text) === normalizePlate(truth));
+  const cmp = (key) => {
+    const hits = withTruth.map((x) => hit(x.p.result[key], x.s.truth)).filter(Boolean);
+    return { exact: hits.length, filled: hits.filter((r) => r.minConf >= thr).length };
+  };
+  const margin = { photos: withTruth.length, plain: cmp('plates'), wide: cmp('platesWide') };
   return {
+    margin,
     thr, scored: scored.length, correct: scored.filter((x) => x.s.state === 'correct').length,
     wrong: scored.filter((x) => x.s.state === 'wrong').length,
     leftOut: left.length, reasons,
@@ -643,6 +660,7 @@ function buildReport() {
   L.push(`Fill-in threshold ${s.thr.toFixed(2)} (min char confidence of the suggested read): below threshold ${s.below}; above threshold ${s.above}, of which right ${s.aboveCorrect} (${pct(s.aboveCorrect, s.above)}) and WRONG ${s.aboveWrong}`);
   if (b) L.push(`Download: models ${b.models} B + runtime ${b.runtime} B = ${b.models + b.runtime} B (runtime on the wire ${b.runtimeWire} B; 0 = from cache)`);
   L.push(`Photos chosen: ${S.photos.length}; detector min score ${DET_CONF}`);
+  L.push(`Wider crop (F-PLATE-9, ${WIDE_MARGIN.x * 100} % / ${WIDE_MARGIN.y * 100} %) on ${s.margin.photos} photos with a known plate: exact ${s.margin.plain.exact} detector crop vs ${s.margin.wide.exact} wider crop; exact and above threshold ${s.margin.plain.filled} vs ${s.margin.wide.filled}`);
   L.push('');
   L.push('== Photos ==');
   S.photos.forEach((p, i) => {
@@ -657,6 +675,9 @@ function buildReport() {
         const tags = [k === p.chosen && p.verdict === 'right' ? 'chosen' : '', pl === topPlate(res.plates) && res.plates.length > 1 ? 'top' : ''].filter(Boolean).join(',');
         L.push(`  read: ${pl.text || '(empty)'} min ${pl.minConf.toFixed(4)} mean ${pl.meanConf.toFixed(4)} det ${pl.detScore.toFixed(3)} ${pl.region || ''} ${pl.regionConf != null ? pl.regionConf.toFixed(2) : ''}${tags ? ' [' + tags + ']' : ''}`);
       });
+      if (res.platesWide && res.platesWide.length) {
+        L.push(`  wider crop: ${res.platesWide.map((pl) => `${pl.text || '(empty)'} min ${pl.minConf.toFixed(4)}`).join('; ')}`);
+      }
       const t = res.timings;
       L.push(`  ms: decode ${Math.round(t.decode)} detect ${Math.round(t.detect)} read ${Math.round(t.ocr)} total ${Math.round(t.wall)}`);
     }

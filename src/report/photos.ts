@@ -69,6 +69,12 @@ export async function addPhotos(existingCount: number, files: Iterable<File>): P
   return result
 }
 
+/** A photo restored from the history (already checked when it was first added). */
+export function photoFromBlob(name: string, type: string, blob: Blob): PhotoItem {
+  const file = blob instanceof File ? blob : new File([blob], name, { type })
+  return { id: `p${++seq}`, file, url: URL.createObjectURL(file) }
+}
+
 export function releasePhoto(p: PhotoItem): void {
   URL.revokeObjectURL(p.url)
 }

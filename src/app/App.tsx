@@ -7,8 +7,12 @@ import type { LatLon, Resolution, ResolveOptions } from '../authority/types'
 import { MapView, useReverseAddress, type PinSource } from '../map'
 import type { MailInput } from '../mail'
 import { firstTakenAt, readPhotoTime } from '../report/exif'
-import { addPhotos, releasePhoto, type PhotoItem } from '../report/photos'
+import { addPhotos, photoFromBlob, releasePhoto, type PhotoItem } from '../report/photos'
+import { deleteAllReports, exportAll, exportFileName, getReport, HistoryPage, newReportId, saveReport, type StoredReport } from '../history'
+import { clearSettings, loadSettings, reporterFromProfile, SettingsPage, useSettings } from '../settings'
+import { saveFiles } from '../mail'
 import { emptyForm, ReportForm, violations, type FormState } from '../report/ReportForm'
+import { clearPlateCache, reconcileField, usePlateReader, type PlateOption, type UiPlate } from '../plate'
 import { ERROR_FIELD, parseLocalDateTime, toLocalDateTime, validateReport, type ReportError } from '../report/validate'
 import { AddressField } from './AddressField'
 import { AuthorityCard, ConfidenceChip, recipients } from './AuthorityCard'
@@ -21,9 +25,10 @@ import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
 import './app.css'
 
-type Step = 'map' | 'report' | 'mail' | 'done'
+type Step = 'map' | 'report' | 'mail' | 'done' | 'history' | 'settings'
 type Resolve = (ll: LatLon, opts: ResolveOptions) => Resolution
-const STEP_NO: Record<Step, number> = { map: 1, report: 2, mail: 3, done: 3 }
+const STEP_NO: Record<Step, number> = { map: 1, report: 2, mail: 3, done: 3, history: 0, settings: 0 }
+const isSide = (s: Step) => s === 'history' || s === 'settings'
 const same = (a: LatLon | null, b: LatLon | null) => !!a && !!b && a.lat === b.lat && a.lon === b.lon
 
 export function App() {
@@ -65,7 +70,8 @@ export function App() {
     if (lastSearchPin.current) setSearchHit({ pin: lastSearchPin.current, address })
   }, [])
   const searchKnown = searchHit && same(searchHit.pin, pin) ? searchHit : null
-  const reverse = useReverseAddress(pin, true, searchKnown?.pin ?? null)
+  const [settings] = useSettings()
+  const reverse = useReverseAddress(pin, settings.addressLookup, searchKnown?.pin ?? null)
   const address = manualAddress ?? searchKnown?.address ?? reverse.address ?? ''
   const addressStatus = manualAddress !== null || searchKnown ? 'done' : reverse.status
 
@@ -86,7 +92,6 @@ export function App() {
   const [photoMessages, setPhotoMessages] = useState<string[]>([])
   const [form, setForm] = useState<FormState>(emptyForm)
   const [showErrors, setShowErrors] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
   // Where the time came from: the user's own edit is never overwritten by a photo.
   const [timeSource, setTimeSource] = useState<'none' | 'now' | 'photo' | 'user'>('none')
   const onAddFiles = useCallback(async (files: File[]) => {
@@ -113,13 +118,51 @@ export function App() {
     })
     setPhotoMessages([])
   }
+  const onMovePhoto = (id: string, dir: -1 | 1) => {
+    setPhotos((ps) => {
+      const i = ps.findIndex((p) => p.id === id)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= ps.length) return ps
+      const next = [...ps]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      return next
+    })
+  }
+
+  // --- Plate reader (SPEC 4.9): suggests the plate, never overwrites the user's own value ----
+  const readerOn = settings.plateReader === 'on'
+  const plateReader = usePlateReader(photos, readerOn)
+  // How the value got there (plateSource / plateVia / plateTyped) is part of the form, so a
+  // reopened draft keeps a picked but unconfirmed plate (F-PLATE-2, -3).
+  useEffect(() => {
+    const action = reconcileField({
+      plate: form.plate, source: form.plateSource ?? 'user', via: form.plateVia, typed: form.plateTyped,
+      outcome: plateReader.outcome, readerOn, readerFailed: plateReader.status === 'failed',
+    })
+    if (action.type === 'fill') {
+      // Re-checked against the latest form: the user may have typed in the meantime.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reacts to the reader's result
+      setForm((f) => ((f.plateSource ?? 'user') === 'user' && !f.plateTyped && f.plate.trim() === ''
+        ? { ...f, plate: action.value, plateSource: 'reader', plateVia: 'auto' }
+        : f))
+    } else if (action.type === 'clear') {
+      // The app withdraws its own unconfirmed suggestion; a remaining single one may be offered again.
+      setForm((f) => (f.plateSource === 'reader' ? { ...f, plate: '', plateSource: 'user', plateVia: undefined } : f))
+    }
+  }, [form.plate, form.plateSource, form.plateVia, form.plateTyped, plateReader.outcome, plateReader.status, readerOn])
+  const onPickPlate = useCallback((o: PlateOption<UiPlate>) => {
+    const value = o.value
+    if (value === null) return
+    setForm((f) => (f.plateSource === 'confirmed' ? f : { ...f, plate: value, plateSource: 'reader', plateVia: 'pick' }))
+  }, [])
 
   const errors: ReportError[] = validateReport(
-    { photoCount: photos.length, plate: form.plate, violationId: form.violationId, customText: form.customText, time: form.time, address },
+    { photoCount: photos.length, plate: form.plate, plateSource: form.plateSource, violationId: form.violationId, customText: form.customText, time: form.time, address },
     new Date(),
   )
 
   const startReport = () => {
+    if (!current) setCurrent({ id: newReportId(), createdAt: new Date().getTime() })
     if (!form.time) {
       setForm((f) => ({ ...f, time: toLocalDateTime(new Date()) }))
       setTimeSource('now')
@@ -161,26 +204,111 @@ export function App() {
       vehicle: form.vehicle,
       note: form.note,
       photoCount: photos.length,
+      reporter: reporterFromProfile(settings.profile),
     }
     // observedAt is derived from form.time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolved, recipient, form, address, pin, photos.length])
+  }, [resolved, recipient, form, address, pin, photos.length, settings.profile])
 
   const reduced = useReducedPhotos(step === 'mail' || step === 'done', photos, form.plate, observedAt)
   const [handoff, setHandoff] = useState<{ at: Date; bodyCopied: boolean | null } | null>(null)
 
-  const reset = () => {
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+  const showToast = useCallback((text: string) => {
+    setToast(text)
+    window.clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 3000)
+  }, [])
+
+  // --- History (SPEC 4.7): the report in progress is saved on this device -----------------
+  // The report being edited: its history id and when it was first saved.
+  const [current, setCurrent] = useState<{ id: string; createdAt: number } | null>(null)
+  const snapshot = useRef<() => StoredReport | null>(() => null)
+  // Refreshed after every render, before the effects below run.
+  useLayoutEffect(() => {
+  snapshot.current = () => {
+    if (!current || !pin) return null
+    return {
+      id: current.id, createdAt: current.createdAt, updatedAt: Date.now(),
+      status: handoff ? 'handed' : 'draft', handedAt: handoff?.at.getTime() ?? null,
+      pin, address, addressEdited: manualAddress !== null,
+      recipientId: chosenId, recipientName: recipient?.name ?? '', districtRoman: resolved?.districtRoman ?? null,
+      form, timeSource,
+      photos: photos.map((p) => ({ name: p.file.name, type: p.file.type, blob: p.file })),
+    }
+  }
+  })
+  const saveNow = useCallback(() => {
+    const r = snapshot.current()
+    if (r) saveReport(r).catch(() => showToast(hu.history.saveError))
+  }, [showToast])
+  // Save on every step change, photo change and hand-off, and when the page is hidden (the
+  // phone switches to the mail app); typing alone does not rewrite the photos each time.
+  useEffect(() => {
+    if (step === 'report' || step === 'mail' || step === 'done') saveNow()
+  }, [step, photos, handoff, current, saveNow])
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') saveNow() }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', saveNow)
+    return () => { document.removeEventListener('visibilitychange', onHide); window.removeEventListener('pagehide', saveNow) }
+  }, [saveNow])
+
+  const clearReport = () => {
     photos.forEach(releasePhoto)
     setPhotos([]); setPhotoMessages([]); setForm(emptyForm()); setShowErrors(false)
     setPin(null); setManualAddress(null); setSearchHit(null); setChosenId(null); setHandoff(null)
-    setTimeSource('none'); setSheetOpen(true)
+    setTimeSource('none'); setSheetOpen(true); setCurrent(null)
+  }
+  const reset = () => {
+    saveNow()
+    clearReport()
     history.replaceState({ step: 'map' }, '')
     setStep('map')
+  }
+  const openSide = (s: 'history' | 'settings') => {
+    saveNow()
+    if (step === s) return
+    if (isSide(step)) { history.replaceState({ step: s }, ''); setStep(s) } else go(s)
+  }
+  const openReport = async (id: string, message?: string) => {
+    saveNow()
+    let r: StoredReport | undefined
+    try { r = await getReport(id) } catch { r = undefined }
+    if (!r || !r.pin) { showToast(hu.history.loadError); return }
+    photos.forEach(releasePhoto)
+    setPhotos(r.photos.map((p) => photoFromBlob(p.name, p.type, p.blob)))
+    setPhotoMessages([]); setShowErrors(false)
+    setForm({ ...emptyForm(), ...r.form }); setTimeSource(r.timeSource)
+    setPin(r.pin); setSearchHit(null); setManualAddress(r.address || null); setChosenId(r.recipientId)
+    setCurrent({ id: r.id, createdAt: r.createdAt })
+    setHandoff(r.handedAt ? { at: new Date(r.handedAt), bodyCopied: null } : null)
+    if (!r.form.time) { setForm((f) => ({ ...f, time: toLocalDateTime(new Date()) })); setTimeSource('now') }
+    go(r.status === 'handed' && r.photos.length > 0 ? 'mail' : 'report')
+    if (message) showToast(message)
+  }
+  const [settingsStatus, setSettingsStatus] = useState<string | null>(null)
+  const exportEverything = async () => {
+    try {
+      const blob = await exportAll({ settings: loadSettings() })
+      await saveFiles([{ blob, name: exportFileName(new Date()) }])
+      setSettingsStatus(hu.history.exported)
+    } catch {
+      setSettingsStatus(hu.history.loadError)
+    }
+  }
+  const deleteEverything = async () => {
+    try { await deleteAllReports() } catch { /* storage unavailable: nothing stored */ }
+    await clearPlateCache() // the downloaded plate-reader files (Cache Storage)
+    clearSettings()
+    clearReport()
+    setSettingsStatus(hu.settings.deletedEverything)
   }
 
   // Guard: steps that need earlier data fall back (e.g. browser back after "Új bejelentés").
   let view: Step = step
-  if (view !== 'map' && !resolved) view = 'map'
+  if (view !== 'map' && !isSide(view) && !resolved) view = 'map'
   if ((view === 'mail' || view === 'done') && (!mailInput || errors.length > 0)) view = resolved ? 'report' : 'map'
   if (view === 'done' && !handoff) view = 'mail'
 
@@ -195,7 +323,7 @@ export function App() {
     return () => ro.disconnect()
   }, [layout, view])
 
-  const comingSoon = () => { setToast(hu.nav.comingSoon); window.setTimeout(() => setToast(null), 2500) }
+  const [historyCount, setHistoryCount] = useState<number | null>(null)
 
   // --- Step content ----------------------------------------------------------------------
   const authorityCard = (
@@ -233,8 +361,8 @@ export function App() {
         <ReportForm form={form} timeFromPhoto={timeSource === 'photo'}
           onChange={(p) => { if (p.time !== undefined) setTimeSource('user'); setForm((f) => ({ ...f, ...p })) }}
           photos={photos} onAddFiles={onAddFiles}
-          onRemovePhoto={onRemovePhoto} photoMessages={photoMessages} errors={showErrors ? errors : []}
-          maxTime={toLocalDateTime(new Date())} />
+          onRemovePhoto={onRemovePhoto} onMovePhoto={onMovePhoto} photoMessages={photoMessages} errors={showErrors ? errors : []}
+          maxTime={toLocalDateTime(new Date())} plateReader={plateReader} onPickPlate={onPickPlate} />
         {showErrors && errors.length > 0 && <p className="notice notice-error" role="alert">{hu.report.fixErrors}</p>}
       </div>
     )
@@ -244,17 +372,32 @@ export function App() {
       <MailStep input={mailInput} photos={photos} reduced={reduced} layout={layout}
         onHandedOff={(bodyCopied) => { setHandoff({ at: new Date(), bodyCopied }); go('done') }} />
     )
-  } else {
+  } else if (view === 'done') {
     body = handoff && (
       <DoneStep layout={layout} handedAt={handoff.at} bodyCopied={handoff.bodyCopied} reduced={reduced} onNew={reset} onBack={back} />
+    )
+  } else if (view === 'history') {
+    body = (
+      <HistoryPage onOpen={(id) => void openReport(id)} onCountChange={setHistoryCount} exportExtra={() => ({ settings: loadSettings() })}
+        onDeleted={(id) => { if (id === null || id === current?.id) clearReport() }}
+        onDuplicated={(r) => void openReport(r.id, hu.history.duplicated)} />
+    )
+  } else {
+    body = (
+      <SettingsPage status={settingsStatus} onExportAll={() => void exportEverything()}
+        onDeleteEverything={() => void deleteEverything()} onPrivacy={() => showToast(hu.nav.comingSoon)} />
     )
   }
 
   const map = (
     <MapView pin={pin} onPinChange={onPinChange} onAddressPicked={onAddressPicked} layout={layout}
-      bottomInset={layout === 'phone' ? sheetH : 0} showHint={!pin && view === 'map'} lookupEnabled locateRequest={locateRequest} />
+      bottomInset={layout === 'phone' ? sheetH : 0} showHint={!pin && view === 'map'} lookupEnabled={settings.addressLookup}
+      locateRequest={locateRequest} />
   )
   const toastEl = toast && <div className="toast" role="status">{toast}</div>
+  const sideTitle = view === 'history' ? hu.history.title : hu.settings.title
+  const sideMeta = view === 'history' && historyCount !== null ? hu.history.count(historyCount) : null
+  const navTo = (s: 'history' | 'settings') => () => { setSettingsStatus(null); openSide(s) }
 
   if (layout === 'pc') {
     const n = STEP_NO[view]
@@ -265,10 +408,17 @@ export function App() {
           <header className="panel-header">
             <Brand />
             <nav className="nav-text">
-              <button type="button" className="btn-link" onClick={comingSoon}>{hu.nav.history}</button>
-              <button type="button" className="btn-link" onClick={comingSoon}>{hu.nav.settings}</button>
+              <button type="button" className="btn-link" aria-current={view === 'history' ? 'page' : undefined} onClick={navTo('history')}>{hu.nav.history}</button>
+              <button type="button" className="btn-link" aria-current={view === 'settings' ? 'page' : undefined} onClick={navTo('settings')}>{hu.nav.settings}</button>
             </nav>
           </header>
+          {isSide(view) ? (
+            <div className="side-header">
+              <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>
+              <h1 className="page-title">{sideTitle}</h1>
+              {sideMeta && <span className="muted small">{sideMeta}</span>}
+            </div>
+          ) : (
           <ol className="stepper">
             {stepNames.map((name, i) => {
               const target: Step = (['map', 'report', 'mail'] as const)[i]
@@ -283,6 +433,7 @@ export function App() {
               )
             })}
           </ol>
+          )}
           <div className="panel-body" key={view}>{body}</div>
           {footer && <div className="panel-footer">{footer}</div>}
         </aside>
@@ -294,14 +445,15 @@ export function App() {
 
   // Phone. The map stays mounted at the same place in the tree under the full pages, so
   // going back to step 1 does not reload it.
-  const title = view === 'report' ? hu.report.title : view === 'mail' ? hu.mail.title : hu.appName
+  const title = view === 'report' ? hu.report.title : view === 'mail' ? hu.mail.title : isSide(view) ? sideTitle : hu.appName
+  const stepped = view === 'report' || view === 'mail'
   return (
     <div className="app app-phone">
       <header className="topbar" inert={view !== 'map'}>
         <Brand />
         <nav className="nav-icons">
-          <button type="button" className="icon-btn" aria-label={hu.nav.history} onClick={comingSoon}><IconHistory /></button>
-          <button type="button" className="icon-btn" aria-label={hu.nav.settings} onClick={comingSoon}><IconSettings /></button>
+          <button type="button" className="icon-btn" aria-label={hu.nav.history} onClick={navTo('history')}><IconHistory /></button>
+          <button type="button" className="icon-btn" aria-label={hu.nav.settings} onClick={navTo('settings')}><IconSettings /></button>
         </nav>
       </header>
       <main className="map-area" inert={view !== 'map'}>{map}</main>
@@ -328,9 +480,10 @@ export function App() {
           <header className="page-header">
             {view !== 'done' && <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>}
             <span className="page-title">{title}</span>
-            {view !== 'done' && <span className="muted small">{hu.steps.progress(STEP_NO[view], 3)}</span>}
+            {stepped && <span className="muted small">{hu.steps.progress(STEP_NO[view], 3)}</span>}
+            {sideMeta && <span className="muted small">{sideMeta}</span>}
           </header>
-          {view !== 'done' && (
+          {stepped && (
             <div className="progress" aria-hidden="true">
               {[1, 2, 3].map((i) => <span key={i} className={i <= STEP_NO[view] ? 'on' : ''} />)}
             </div>

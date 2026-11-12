@@ -1,0 +1,102 @@
+/* "Rendszám" field states and the zoomable photo (roadmap 3.5, 3.6). Tokens in app/theme.css. */
+
+/* ---- Opt-in card (F-PLATE-6) -------------------------------------------------------- */
+/* The always-mounted live wrapper: no extra form gap while empty. */
+.form > .plate-optin-live:empty { margin-top: -18px; }
+.plate-sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.plate-optin {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 14px 16px 16px; border: 1.5px solid var(--c-outline-btn); border-radius: var(--radius-l);
+  background: var(--c-surface);
+}
+.plate-optin-title { font-family: var(--font-head); font-size: 18px; line-height: 24px; font-weight: 600; }
+.plate-optin .lead { font-size: 14px; line-height: 20px; }
+.plate-optin .btn-row { margin-top: 6px; }
+
+/* ---- Field ------------------------------------------------------------------------------ */
+.plate-chips { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-height: 26px; }
+.chip-neutral { background: var(--c-bg); color: var(--c-text-muted); border: 1px solid var(--c-border); }
+.plate-input-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+.plate-input-wrap input {
+  flex: 1; min-width: 0; border: 0; outline: 0; padding: 0 14px; background: transparent; position: relative;
+  font-family: var(--font-head); font-size: 28px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+}
+.plate.plate-suggested { border-color: var(--c-warn-border); }
+.plate.plate-manual, .plate.plate-incomplete { border-color: var(--c-primary); }
+.plate.plate-working { background: var(--c-bg); }
+.plate-skeleton {
+  position: absolute; left: 14px; top: 50%; width: min(60%, 180px); height: 22px; margin-top: -11px;
+  border-radius: 6px; background: var(--c-border);
+  animation: plate-pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes plate-pulse { from { opacity: 0.45; } to { opacity: 1; } }
+
+/* The crop from the photo: dark rounded box, the plate image inside. */
+.plate-crop {
+  display: inline-flex; align-items: center; justify-content: center; align-self: flex-start;
+  height: 60px; min-width: 120px; max-width: 100%; padding: 6px 8px;
+  background: #101828; border-radius: var(--radius-m); overflow: hidden;
+}
+.plate-crop img { height: 48px; width: auto; max-width: 100%; object-fit: contain; display: block; border-radius: 4px; }
+.plate-crop-btn { border: 0; cursor: zoom-in; min-height: var(--tap); }
+.plate-suggest { display: flex; flex-direction: column; gap: 10px; }
+.plate-note { display: flex; flex-direction: column; gap: 4px; }
+.plate-note .plate-crop { margin-bottom: 4px; }
+
+.btn-ok { background: var(--c-ok-solid); color: #fff; }
+.btn-ok:hover { filter: brightness(1.08); }
+@media (prefers-color-scheme: dark) {
+  /* The dark theme's --c-ok-solid is too light for white text (WCAG AA). */
+  .btn-ok { background: #237a49; }
+}
+
+/* ---- Picker (F-PLATE-2) ----------------------------------------------------------------- */
+.plate-pick { display: flex; flex-direction: column; gap: 10px; }
+.plate-pick-title { font-size: 15px; line-height: 21px; font-weight: 600; }
+.plate-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.plate-pick-btn {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-height: var(--tap);
+  padding: 8px; border: 1.5px solid var(--c-outline-btn); border-radius: var(--radius-l);
+  background: var(--c-surface); color: var(--c-text); cursor: pointer; text-align: center;
+}
+.plate-pick-btn:hover { border-color: var(--c-primary); }
+.plate-pick-btn .plate-crop { align-self: stretch; min-width: 0; }
+.plate-pick-text { font-family: var(--font-head); font-size: 20px; font-weight: 700; letter-spacing: 1.5px; }
+.plate-pick-text.muted { font-family: var(--font-body); font-size: 14px; font-weight: 600; letter-spacing: 0; }
+.plate-pick-none { align-self: stretch; width: 100%; }
+.plate-zoom-open { align-self: flex-start; }
+
+/* ---- Zoomable photo (roadmap 3.6) ------------------------------------------------------- */
+.zoom-panel { display: flex; flex-direction: column; gap: 6px; }
+.zoom-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.zoom-photos { display: flex; gap: 6px; flex-wrap: wrap; }
+.zoom-photo-btn {
+  min-width: var(--tap); height: var(--tap); padding: 0 10px;
+  border: 1.5px solid var(--c-outline-btn); border-radius: var(--radius-m);
+  background: var(--c-surface); color: var(--c-primary); font-weight: 600; cursor: pointer;
+}
+.zoom-photo-btn[aria-pressed='true'] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+.zoom-close { margin-left: auto; }
+.zoom { display: flex; flex-direction: column; gap: 4px; }
+.zoom-viewport {
+  position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  height: clamp(190px, 52vw, 280px); border-radius: var(--radius-m); background: #101828; cursor: grab;
+}
+.zoom-viewport:active { cursor: grabbing; }
+.zoom-viewport img {
+  position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; will-change: transform;
+  pointer-events: none; -webkit-user-drag: none;
+}
+.zoom-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.zoom-buttons { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.zoom-buttons .icon-btn:disabled, .zoom-buttons .btn-link:disabled { opacity: 0.4; cursor: default; }
+.zoom-buttons .icon-btn svg { width: 22px; height: 22px; }
+.zoom-minus { display: block; width: 14px; height: 2.4px; border-radius: 2px; background: currentColor; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plate-skeleton { animation: none; }
+}
+.plate-field:focus { outline: none; }
