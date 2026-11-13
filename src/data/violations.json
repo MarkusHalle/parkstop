@@ -6,7 +6,7 @@
     {
       "id": "jarda",
       "label": "Járdán szabálytalanul",
-      "sentence": "A jármű a járdán várakozott ott, ahol ezt jelzőtábla vagy útburkolati jel nem engedte meg, illetve úgy, hogy a gyalogosok számára nem maradt 1,5 méter szabad hely.",
+      "sentence": "A jármű a járdán várakozott ott, ahol ezt jelzőtábla vagy útburkolati jel nem engedte meg, illetve úgy, hogy a gyalogosok számára nem maradt 1,5\u00a0méter szabad hely.",
       "legalRef": "KRESZ 40. § (8)",
       "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
       "verifiedOn": "2026-11-12",
@@ -14,8 +14,8 @@
     },
     {
       "id": "gyalogatkelo",
-      "label": "Gyalogátkelőhelyen vagy előtte",
-      "sentence": "A jármű a kijelölt gyalogosátkelőhelyen, illetve az előtt 5 méteren belül várakozott.",
+      "label": "Gyalogos-átkelőhelyen vagy előtte",
+      "sentence": "A jármű a kijelölt gyalogos-átkelőhelyen, illetve az előtt 5\u00a0méteren belül várakozott.",
       "legalRef": "KRESZ 40. § (5) e)",
       "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
       "verifiedOn": "2026-11-12",
@@ -23,8 +23,8 @@
     },
     {
       "id": "keresztezodes",
-      "label": "Kereszteződésben vagy 5 méteren belül",
-      "sentence": "A jármű az útkereszteződésben, illetve az úttestek széleinek metszéspontjától számított 5 méteren belül várakozott.",
+      "label": "Kereszteződésben vagy 5\u00a0méteren belül",
+      "sentence": "A jármű az útkereszteződésben, illetve az úttestek széleinek metszéspontjától számított 5\u00a0méteren belül várakozott.",
       "legalRef": "KRESZ 40. § (5) d)",
       "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
       "verifiedOn": "2026-11-12",
@@ -51,7 +51,7 @@
     {
       "id": "megallo",
       "label": "Autóbusz-, villamos- vagy trolimegállóban",
-      "sentence": "A jármű az autóbusz-, villamos- vagy trolibusz-megállóhelyet jelző tábla előtt 15 méteren, illetve utána 5 méteren belül, vagy autóbuszöbölben várakozott.",
+      "sentence": "A jármű az autóbusz-, villamos- vagy trolibusz-megállóhelyet jelző tábla előtt 15\u00a0méteren, illetve utána 5\u00a0méteren belül, vagy autóbuszöbölben várakozott.",
       "legalRef": "KRESZ 40. § (5) h) és i)",
       "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
       "verifiedOn": "2026-11-12",
@@ -69,7 +69,7 @@
     {
       "id": "taxiallomas",
       "label": "Taxiállomáson",
-      "sentence": "A jármű a taxiállomást jelző tábla előtt 15 méteren, illetve utána 5 méteren belül várakozott.",
+      "sentence": "A jármű a taxiállomást jelző tábla előtt 15\u00a0méteren, illetve utána 5\u00a0méteren belül várakozott.",
       "legalRef": "KRESZ 40. § (5) h)",
       "legalSourceUrl": "https://njt.jog.gov.hu/jogszabaly/1975-1-20-24",
       "verifiedOn": "2026-11-12",

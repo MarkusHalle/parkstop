@@ -90,6 +90,12 @@ Exit: a full report can be made end to end on PC and phone with one photo.
 | 5.3 | GitHub repository, Pages deploy workflow, README | 8 | Sonnet · low | solo | Solo, ~25 min incl. the owner's steps: `deploy.yml`, README, `docs/DEPLOY.md`, history check (clean), D46. Live at https://justaguyulove.github.io/parkstop/ from 2026-11-13. First push failed at `npm ci` (lockfile lacked two optional @emnapi packages that local npm 11.6.2 tolerates); fixed by regenerating the lockfile with npm 11.6.4 and building on Node 24 (43d3ece); CI and deploy green | ☑ |
 | 5.4 | Device test on the owner's phone and PC; fix what it finds | 11 | Sonnet · medium | solo | Owner tested the live site on the Android phone (Brave) and the PC: full report with Gmail / webmail hand-off, install to the home screen, offline start, licence link, Blaha Lujza tér → FÖRI, locked PC map after step 1, update prompt after a new deploy. All passed, nothing to fix. ~10 min of the owner's time | ☑ |
 
+## Post-release
+
+| # | Task | SPEC | Model · effort | Agents | Est. | Actual | Status |
+|---|---|---|---|---|---|---|---|
+| 6.1 | Owner's review of the live site: Hungarian proofread (no Hunglish, AkH spelling and typography); GPS button in the map button column; Google-Maps-like rotate and tilt with a compass; restyled OSM (i) credits; capital-road band above the roads; more readable e-mail layout (D48) | 4.1, 4.5, 7, 9 | Opus · medium | 1 Opus proofreader (148k agent tokens) | 30–45 min · 8–12 % | Main session ~14 min + proofreader ~7 min in parallel, ~4 % of the 5-hour window. Owner chose option A for the yellow roads, kept "licenc", GPS top right on the phone | ☑ |
+
 ## Backlog
 
 - Hyphens for Dutch plates read by the plate reader (VS608S → VS-608-S); only separators, from the Dutch side-code patterns

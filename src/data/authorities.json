@@ -782,7 +782,7 @@
     }
   ],
   "policeNote": {
-    "hu": "A kapitányságok e-mail címe általános cím; hogy e-mailben tett szabálysértési feljelentést befogadnak-e, nem megerősített. A hivatalos elektronikus út az IN-100100 azonosítójú űrlap az ugyintezes.police.hu oldalon (ügyfélkapus belépéssel). A BRFK nem címezhető feljelentéssel; a helyszín szerinti kapitányság illetékes.",
+    "hu": "A kapitányságok e-mail-címe általános cím; nem biztos, hogy e-mailben is befogadják a szabálysértési feljelentést. A hivatalos elektronikus út az IN-100100 azonosítójú űrlap az ugyintezes.police.hu oldalon (ügyfélkapus belépéssel). A feljelentést nem a BRFK-nak, hanem a helyszín szerint illetékes kapitányságnak kell címezni.",
     "sourceUrl": "https://www.police.hu/hu/ugyintezes/beadvanytetel",
     "verifiedOn": "2026-11-12"
   },

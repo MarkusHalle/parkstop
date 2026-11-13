@@ -1,10 +1,10 @@
 # ParkStop
 
-> **Magyarul:** A ParkStop egy ingyenes, telepíthető webalkalmazás szabálytalanul parkoló autók
-> bejelentésére Budapesten. Jelöld meg a helyet a térképen, és az app megmutatja, melyik hatóság
-> illetékes (kerületi közterület-felügyelet, FÖRI vagy rendőrség), majd elkészíti a magyar nyelvű
-> e-mail-piszkozatot a fotóiddal. Az e-mailt te küldöd el a saját leveleződből; az app semmit nem
-> küld és semmit nem tölt fel. Nincs szerver, nincs regisztráció, nincs mesterséges intelligencia a
+> **Magyarul:** A ParkStop ingyenes, telepíthető webalkalmazás szabálytalanul parkoló autók
+> bejelentésére Budapesten. Jelöld meg a helyet a térképen, és az alkalmazás megmutatja, melyik
+> hatóság az illetékes (kerületi közterület-felügyelet, FÖRI vagy rendőrség), majd elkészíti a magyar
+> nyelvű e-mail-piszkozatot a fotóiddal. Az e-mailt te küldöd el a saját leveleződből; az alkalmazás
+> semmit nem küld és semmit nem tölt fel. Nincs szerver, nincs regisztráció, nincs mesterséges intelligencia a
 > felhőben.
 >
 > **Megnyitás:** <https://justaguyulove.github.io/parkstop/>

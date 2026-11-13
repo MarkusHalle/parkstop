@@ -60,8 +60,8 @@ describe('reduceAll (e-mail size budget, F-PHOTO-2)', () => {
 })
 
 describe('formatBytes', () => {
-  it('uses a decimal comma and MB / kB', () => {
-    expect(formatBytes(4_230_000)).toBe('4,2 MB')
-    expect(formatBytes(850_000)).toBe('850 kB')
+  it('uses a decimal comma, a no-break space and MB / kB', () => {
+    expect(formatBytes(4_230_000)).toBe('4,2\u00a0MB')
+    expect(formatBytes(850_000)).toBe('850\u00a0kB')
   })
 })

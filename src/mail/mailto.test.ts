@@ -100,7 +100,8 @@ describe('realistic href length (report to main session)', () => {
       reporter: { name: 'Kovács Erzsébet', address: '1137 Budapest, Szent István körút 18. 3. em. 2.', email: 'kovacs.erzsebet@example.com', phone: '+36 30 123 4567' },
     })
     const full = buildMailto(d, Infinity)
-    expect(full.href.length).toBeGreaterThan(1700) // close to the old 1 800 limit (D29)
+    // Close to the old 1 800 limit (D29); a little shorter since the label column padding went.
+    expect(full.href.length).toBeGreaterThan(1600)
     // A typical full report keeps its body in the link with the default limit.
     expect(buildMailto(d).bodyInLink).toBe(true)
   })

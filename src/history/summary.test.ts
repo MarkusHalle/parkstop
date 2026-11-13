@@ -16,8 +16,8 @@ describe('dateLabel', () => {
   it('today, yesterday, this year, other year', () => {
     expect(dateLabel(new Date(2026, 10, 12, 8, 42), now)).toBe('Ma 08:42')
     expect(dateLabel(new Date(2026, 10, 11, 17, 10), now)).toBe('Tegnap 17:10')
-    expect(dateLabel(new Date(2026, 10, 8, 12, 5), now)).toBe('Nov. 8. 12:05')
-    expect(dateLabel(new Date(2025, 10, 8, 12, 5), now)).toBe('2025. Nov. 8. 12:05')
+    expect(dateLabel(new Date(2026, 10, 8, 12, 5), now)).toBe('nov. 8. 12:05')
+    expect(dateLabel(new Date(2025, 10, 8, 12, 5), now)).toBe('2025. nov. 8. 12:05')
   })
 })
 

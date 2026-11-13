@@ -19,7 +19,7 @@ export interface StoredReport {
   createdAt: number
   updatedAt: number
   status: ReportStatus
-  /** When "Megnyitás levelezőben" was pressed (ms), else null. */
+  /** When "Megnyitás a levelezőben" was pressed (ms), else null. */
   handedAt: number | null
   pin: LatLon | null
   /** Address as shown in the e-mail. */

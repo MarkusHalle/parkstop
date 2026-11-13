@@ -144,10 +144,10 @@ export async function reduceAll(
   return { blobs, totalBytes: total(), step: Math.max(0, ...steps) }
 }
 
-/** "4,2 MB" / "850 kB" (Hungarian decimal comma). */
+/** "4,2 MB" / "850 kB" (Hungarian decimal comma, no-break space before the unit). */
 export function formatBytes(n: number): string {
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1).replace('.', ',')} MB`
-  return `${Math.max(1, Math.round(n / 1e3))} kB`
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1).replace('.', ',')}\u00a0MB`
+  return `${Math.max(1, Math.round(n / 1e3))}\u00a0kB`
 }
 
 /** Reduced PNG for the clipboard, long edge at most maxEdge px (F-MAIL-2). */

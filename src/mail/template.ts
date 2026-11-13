@@ -5,20 +5,20 @@ import { hu } from '../i18n/hu'
 import { formatCoord, formatHuDate, formatHuTime } from './format'
 import type { MailDraft, MailInput, MailViolation, Reporter } from './types'
 
-/** Width of the label column in the Helyszín … Megjegyzés block. */
-export const LABEL_WIDTH = 17
-
 const t = hu.mailTemplate
 
 function clean(s: string | null | undefined): string {
   return (s ?? '').replace(/\r\n?/g, '\n').trim()
 }
 
-/** "Label:" padded to the label column, then the value; continuation lines are indented. */
+/**
+ * "Label: value" with one space. No padded label column: mail apps use proportional fonts,
+ * where the padding looked like stray double spaces (owner, after the M5 release). Further
+ * lines of a multi-line value follow as they are.
+ */
 function blockLine(label: string, value: string): string {
-  const indent = ' '.repeat(LABEL_WIDTH)
   const lines = value.split('\n').map((l) => l.trimEnd())
-  return label.padEnd(LABEL_WIDTH, ' ') + lines.map((l, i) => (i === 0 || l === '' ? l : indent + l)).join('\n')
+  return `${label} ${lines.join('\n')}`
 }
 
 function violationText(v: MailViolation): string {
@@ -57,12 +57,13 @@ export function buildBody(input: MailInput): string {
 
   const closing = input.template === 'B' ? t.closingB(input.photoCount) : t.closingA(input.photoCount)
 
+  // A blank line between the fields as well, so the block reads easily on a phone.
   return [
     t.greeting(clean(input.recipient.name)),
     '',
     intro,
     '',
-    ...block,
+    ...block.flatMap((line, i) => (i === 0 ? [line] : ['', line])),
     '',
     closing,
     '',

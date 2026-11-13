@@ -31,7 +31,7 @@ export function parseLocalTime(s: string): Date | null {
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 
-/** "Ma 08:42", "Tegnap 17:10", "Nov. 8. 12:05", or "2025. Nov. 8. 12:05" for other years. */
+/** "Ma 08:42", "Tegnap 17:10", "nov. 8. 12:05", or "2025. nov. 8. 12:05" for other years. */
 export function dateLabel(d: Date, now: Date): string {
   const hm = `${p2(d.getHours())}:${p2(d.getMinutes())}`
   const days = Math.round((startOfDay(now) - startOfDay(d)) / 86400000)

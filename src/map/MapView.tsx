@@ -26,12 +26,11 @@ const MAX_BOUNDS: [[number, number], [number, number]] = [
   [19.5, 47.75],
 ]
 const CAPITAL_COLOR = '#F0B33A' // keep in step with --c-capital-road
-// Capital roads sit on the base style's own roads. On the light style 70 % keeps the labels
-// readable; on OpenFreeMap's dark style the dim line vanished, so it is opaque and a little
-// brighter and wider there (contrast about 10:1 against the dark land).
+// Capital roads: a see-through band drawn on top of the base style's roads (owner, option A),
+// so the road stays visible under it and the street names above it.
 const CAPITAL_PAINT: Record<ResolvedTheme, { color: string; opacity: number; width: number }> = {
-  light: { color: CAPITAL_COLOR, opacity: 0.7, width: 1 },
-  dark: { color: '#FFC233', opacity: 1, width: 1.25 },
+  light: { color: CAPITAL_COLOR, opacity: 0.55, width: 1 },
+  dark: { color: '#FFC233', opacity: 0.6, width: 1 },
 }
 /** Phone: map padding under the floating search box, so the pin is centred below it. */
 const PHONE_TOP_PAD = 72
@@ -91,6 +90,8 @@ export function MapView({
   const [attempt, setAttempt] = useState(0)
   const [geoError, setGeoError] = useState<GeoError>(null)
   const [locating, setLocating] = useState(false)
+  const [turned, setTurned] = useState(false)
+  const needleRef = useRef<HTMLSpanElement>(null)
   const [query, setQuery] = useState('')
   const [search, setSearch] = useState<SearchState>({ status: 'idle' })
 
@@ -115,8 +116,12 @@ export function MapView({
         zoom: 12,
         maxBounds: MAX_BOUNDS,
         attributionControl: false,
-        dragRotate: false,
-        pitchWithRotate: false,
+        // Rotate and tilt like Google Maps: two-finger twist rotates and a two-finger slide
+        // up or down tilts on the phone; right-drag or Ctrl+drag on the PC.
+        dragRotate: true,
+        pitchWithRotate: true,
+        touchPitch: true,
+        maxPitch: 60,
         transformStyle: (_prev, next) => withAttribution(next, hu.map.attribution),
         locale: {
           'Map.Title': hu.map.labelKeyboard,
@@ -133,7 +138,14 @@ export function MapView({
         cancelled = true
       }
     }
-    map.touchZoomRotate.disableRotation()
+    // The compass shows only while the map is rotated or tilted; its needle follows the bearing.
+    const syncCompass = () => {
+      const bearing = map.getBearing()
+      if (needleRef.current) needleRef.current.style.transform = `rotate(${-bearing}deg)`
+      setTurned(Math.abs(bearing) > 0.5 || map.getPitch() > 0.5)
+    }
+    map.on('rotate', syncCompass)
+    map.on('pitch', syncCompass)
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
     // The credits start open on every screen and fold to the (i) button on the first map drag
     // (MapLibre's compact default), as F-MAP-1 and the OSMF attribution guidelines ask (D47).
@@ -428,34 +440,42 @@ export function MapView({
         </div>
       )}
 
-      {!phone && !loadError && (
-        <div className="ps-zoom">
-          <button type="button" aria-label={hu.map.zoomIn} onClick={() => mapRef.current?.zoomIn()}>
-            +
-          </button>
-          <button type="button" aria-label={hu.map.zoomOut} onClick={() => mapRef.current?.zoomOut()}>
-            −
-          </button>
-        </div>
-      )}
-
       {controlsUsable && (
-      <button
-        type="button"
-        className={phone ? 'ps-locate ps-locate--round' : 'ps-locate ps-locate--pc'}
-        onClick={locate}
-        disabled={locating}
-        aria-label={hu.map.locate}
-        title={hu.map.locate}
-      >
-        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-          <path
-            d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm9 3h-2.07A7 7 0 0 0 13 5.07V3h-2v2.07A7 7 0 0 0 5.07 11H3v2h2.07A7 7 0 0 0 11 18.93V21h2v-2.07A7 7 0 0 0 18.93 13H21v-2zm-9 6a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
-            fill="currentColor"
-          />
-        </svg>
-        {!phone && <span>{locating ? hu.map.locating : hu.map.locate}</span>}
-      </button>
+        <div className="ps-ctrls">
+          {!phone && !loadError && (
+            <div className="ps-ctrl-group">
+              <button type="button" aria-label={hu.map.zoomIn} title={hu.map.zoomIn} onClick={() => mapRef.current?.zoomIn()}>
+                +
+              </button>
+              <button type="button" aria-label={hu.map.zoomOut} title={hu.map.zoomOut} onClick={() => mapRef.current?.zoomOut()}>
+                −
+              </button>
+            </div>
+          )}
+          {phone && turned && !loadError && (
+            <CompassButton needleRef={needleRef} onReset={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0 })} />
+          )}
+          <div className="ps-ctrl-group">
+            <button
+              type="button"
+              className="ps-locate"
+              onClick={locate}
+              disabled={locating}
+              aria-label={hu.map.locate}
+              title={hu.map.locate}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path
+                  d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm9 3h-2.07A7 7 0 0 0 13 5.07V3h-2v2.07A7 7 0 0 0 5.07 11H3v2h2.07A7 7 0 0 0 11 18.93V21h2v-2.07A7 7 0 0 0 18.93 13H21v-2zm-9 6a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
+          {!phone && turned && !loadError && (
+            <CompassButton needleRef={needleRef} onReset={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0 })} />
+          )}
+        </div>
       )}
 
       {!loadError && (
@@ -514,6 +534,21 @@ export function MapView({
   )
 }
 
+function CompassButton({ needleRef, onReset }: { needleRef: React.RefObject<HTMLSpanElement | null>; onReset: () => void }) {
+  return (
+    <div className="ps-ctrl-group">
+      <button type="button" className="ps-compass" onClick={onReset} aria-label={hu.map.resetNorth} title={hu.map.resetNorth}>
+        <span ref={needleRef} className="ps-compass__needle" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22">
+            <path d="M12 3l4 9h-8z" className="ps-compass__north" />
+            <path d="M12 21l-4-9h8z" className="ps-compass__south" />
+          </svg>
+        </span>
+      </button>
+    </div>
+  )
+}
+
 async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCancelled: () => boolean) {
   try {
     const raw = (await import('../data/capital-roads.geojson?raw')).default
@@ -521,7 +556,15 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
     const data = JSON.parse(raw) as GeoJSON.FeatureCollection
     if (map.getSource('capital-roads')) return
     const paint = CAPITAL_PAINT[theme]
-    const firstSymbol = map.getStyle().layers.find((l) => l.type === 'symbol')?.id
+    // Above every road and bridge line of the base style, below the labels that follow them.
+    // (Inserting before the first symbol put it under the roads: on OpenFreeMap's dark style
+    // the water names come before all roads, and on liberty bridges draw after the arrows.)
+    const layers = map.getStyle().layers
+    let lastRoad = -1
+    layers.forEach((l, i) => {
+      if (l.type === 'line' && 'source-layer' in l && l['source-layer'] === 'transportation') lastRoad = i
+    })
+    const before = layers.slice(lastRoad + 1).find((l) => l.type === 'symbol')?.id
     map.addSource('capital-roads', { type: 'geojson', data })
     map.addLayer(
       {
@@ -532,11 +575,12 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
           'line-color': paint.color,
-          'line-opacity': paint.opacity,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 2 * paint.width, 15, 4 * paint.width, 18, 8 * paint.width],
+          // Zoomed out, most visible roads are capital-managed: keep the band thin and faint there.
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 12, 0.3, 15, paint.opacity],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5 * paint.width, 15, 5 * paint.width, 18, 14 * paint.width],
         },
       },
-      firstSymbol,
+      before,
     )
   } catch {
     // The overlay is an aid only; the base map keeps working without it.

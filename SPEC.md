@@ -110,8 +110,8 @@ The message is built from a template (section 7) — recipient, subject, body, a
 
 | Platform | Primary hand-off | Fallbacks |
 |---|---|---|
-| Phone (Android, iPhone) | Two numbered steps on one screen: **1. "Fotók mentése"** saves the reduced photos to the phone; **2. "Megnyitás levelezőben"** — `mailto:` with recipient, subject and body. The user then attaches the saved photos in the mail app (paperclip). | The "Másolás" buttons for every part |
-| PC | **"Megnyitás levelezőben"** — `mailto:` with recipient, subject, body. Photos: **"Fotók letöltése"** (the downscaled JPEGs, to attach or drag into the draft) is the main way; "Fotó másolása" (one photo to the clipboard, to paste into the draft) is a shortcut. | The "Másolás" buttons for every part |
+| Phone (Android, iPhone) | Two numbered steps on one screen: **1. "Fotók mentése"** saves the reduced photos to the phone; **2. "Megnyitás a levelezőben"** — `mailto:` with recipient, subject and body. The user then attaches the saved photos in the mail app (paperclip). | The "Másolás" buttons for every part |
+| PC | **"Megnyitás a levelezőben"** — `mailto:` with recipient, subject, body. Photos: **"Fotók letöltése"** (the downscaled JPEGs, to attach or drag into the draft) is the main way; "Fotó másolása" (one photo to the clipboard, to paste into the draft) is a shortcut. | The "Másolás" buttons for every part |
 
 - F-MAIL-1 If the encoded `mailto:` link would exceed 4 000 characters (raised from 1 800, D29), only recipient and subject go into the link and the body is copied to the clipboard, with a notice.
 - F-MAIL-2 "Fotó másolása" copies a reduced image (long edge at most 1 280 px). Browsers can only put PNG on the clipboard, and a full-size PNG is several times larger than the JPEG (7.4 MB against 1 MB in the owner's test), which would hit webmail size limits.
@@ -150,7 +150,7 @@ from `fast-plate-ocr`), run in the browser with ONNX Runtime Web.
   the app never picks the highest-scoring plate on its own. In the owner's test 5 of 20
   photos showed several plates, and across two runs of the same photos the owner meant a
   different car in 3 of them — only the user knows which car is being reported.
-- F-PLATE-3 The result is a suggestion: it fills "Rendszám" marked "felismerve —
+- F-PLATE-3 The result is a suggestion: it fills "Rendszám" marked "felismerve –
   ellenőrizd", and the cropped plate image is shown next to the field. The user must press
   "Jó" or edit the value before continuing.
 - F-PLATE-4 Below the confidence threshold nothing is filled in; the app shows the crop
@@ -158,9 +158,9 @@ from `fast-plate-ocr`), run in the browser with ONNX Runtime Web.
 - F-PLATE-5 The reader only formats (upper case, hyphens for Hungarian formats). It never
   "corrects" characters by guessing.
 - F-PLATE-6 **Off by default, opt in.** The first time the user adds a photo, the app offers
-  it once: "Felismerjem a rendszámot a fotóról? Egyszeri, kb. 26 MB letöltés — Wi-Fi
+  it once: "Felismerjük a rendszámot a fotóról? Egyszeri, kb. 26 MB-os letöltés – wifi
   ajánlott." with "Igen, kérem" / "Nem, beírom". The answer is remembered and can be changed
-  in Settings ("Rendszám-felismerés"). Until the user says yes, no model is downloaded.
+  in Settings ("Rendszámfelismerés"). Until the user says yes, no model is downloaded.
 - F-PLATE-7 If the device cannot run it (no WebAssembly, out of memory, model fails to
   load), the app falls back to manual entry without an error screen.
 - F-PLATE-8 Format check (fixed rules, no AI): a read that the reader labels as Hungarian
@@ -205,7 +205,7 @@ Rules for this data: every e-mail address has an official `sourceUrl` and a `ver
 Fifteen items plus free text, in this order. Each has a Hungarian e-mail sentence and a verified
 legal reference in `src/data/violations.json`:
 
-Járdán szabálytalanul · Gyalogátkelőhelyen vagy előtte · Kereszteződésben vagy 5 méteren belül ·
+Járdán szabálytalanul · Gyalogos-átkelőhelyen vagy előtte · Kereszteződésben vagy 5 méteren belül ·
 „Megállni tilos” tábla hatálya alatt · „Várakozni tilos” tábla hatálya alatt ·
 Autóbusz-, villamos- vagy trolimegállóban · Buszsávban · Taxiállomáson ·
 Kerékpársávon, kerékpárúton · Mozgáskorlátozott-helyen jogosulatlanul · Kapubejárat előtt ·
@@ -217,6 +217,8 @@ which are petty offences under Szabs. tv. 224. §. "Zöldterületen" is a munici
 
 ## 7. E-mail templates (final in M1 — read and approved by the owner 2026-11-12, DECISIONS D20)
 
+Layout (D48): one space after each label, no padded label column, and a blank line between the fields, so the e-mail reads easily in a mail app's proportional font.
+
 **A — to an enforcement body (district body or FÖRI), the default:**
 
 ```
@@ -227,11 +229,15 @@ Tisztelt <authority name>!
 
 <dátum>-én/-án <idő>-kor az alábbi helyen szabálytalanul várakozó járművet észleltem:
 
-Helyszín:        <cím> (<kerület>. kerület), GPS: <lat>, <lon>
-Rendszám:        <RENDSZÁM>
-Jármű:           <leírás, ha van>
+Helyszín: <cím> (<kerület>. kerület), GPS: <lat>, <lon>
+
+Rendszám: <RENDSZÁM>
+
+Jármű: <leírás, ha van>
+
 Szabálytalanság: <típus mondata> (<jogszabályi hivatkozás>)
-Megjegyzés:      <szabad szöveg, ha van>
+
+Megjegyzés: <szabad szöveg, ha van>
 
 A helyszínen készített <n> fényképet mellékelem. Kérem az ügy kivizsgálását és a
 szükséges intézkedés megtételét, valamint tájékoztatást az eljárás menetéről.
@@ -333,7 +339,7 @@ address and the photo is analysed locally. An "Adatkezelés" screen states this 
 
 1. Dropping a pin on any of 30 checked test points (district streets, capital roads, borders, outside Budapest) gives the expected authority — test fixture reviewed by a human.
 2. All 23 districts plus FÖRI have a record with a verified source; no invented address ships.
-3. On the owner's phone (Gmail app): "Megnyitás levelezőben" opens a draft with recipient, subject and body filled in, and the photos saved by "Fotók mentése" can be picked from Gmail's attach dialog.
+3. On the owner's phone (Gmail app): "Megnyitás a levelezőben" opens a draft with recipient, subject and body filled in, and the photos saved by "Fotók mentése" can be picked from Gmail's attach dialog.
 4. On the PC: `mailto:` opens a filled draft with correct Hungarian letters in the owner's webmail (Proton Mail, Gmail); the downloaded photos can be attached and a copied photo can be pasted into the draft.
 5. A photo with a capture time fills "Időpont" (the position comes from the map, search or "Saját helyzetem", D34).
 6. With the network off, the app opens, the form works, history is readable.
