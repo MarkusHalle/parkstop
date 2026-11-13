@@ -41,8 +41,9 @@ export const IconPin = ({ size = 22 }: { size?: number }) => <Svg size={size}><p
 export const IconCheck = ({ size = 14 }: { size?: number }) => <Svg size={size} strokeWidth={2.8}><path d="M4.5 12.5l5 5L19.5 7" /></Svg>
 export const IconInfo = ({ size = 16 }: { size?: number }) => <Svg size={size} strokeWidth={2.2}><circle cx="12" cy="12" r="9" /><path d="M12 10.5v6.5" /><Dot x={12} y={7.6} s={2.4} /></Svg>
 export const IconWarn = ({ size = 16 }: { size?: number }) => <Svg size={size} strokeWidth={2.2}><path d="M12 3.5l9 16.5H3z" /><path d="M12 9.5v5" /><Dot x={12} y={17} s={2.4} /></Svg>
-export const IconChevron = ({ dir = 'right', size = 20 }: { dir?: 'left' | 'right'; size?: number }) => (
-  <Svg size={size} strokeWidth={2.2}><path d={dir === 'left' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'} /></Svg>
+const CHEVRON = { left: 'M15 5l-7 7 7 7', right: 'M9 5l7 7-7 7', up: 'M5 15l7-7 7 7' } as const
+export const IconChevron = ({ dir = 'right', size = 20 }: { dir?: keyof typeof CHEVRON; size?: number }) => (
+  <Svg size={size} strokeWidth={2.2}><path d={CHEVRON[dir]} /></Svg>
 )
 export const IconPlus = () => <Svg size={26}><path d="M12 4.5v15M4.5 12h15" /></Svg>
 export const IconClose = ({ size = 18 }: { size?: number }) => <Svg size={size} strokeWidth={2.4}><path d="M6 6l12 12M18 6L6 18" /></Svg>

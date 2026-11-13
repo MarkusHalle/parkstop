@@ -59,9 +59,28 @@
   justify-content: center;
   border-radius: 50%;
 }
-/* While the credits are open they span the width: lift the legend above them. */
-.ps-map:has(.maplibregl-compact-show) .ps-legend {
-  bottom: calc(var(--ps-inset, 0px) + 64px);
+/* Open credits never move the legend. PC: one line beside it. Phone: a narrow column, one
+   part per line ("OpenFreeMap / © OpenMapTiles / Adatok: / © OpenStreetMap közreműködők"),
+   the (i) at its top right, so it fits next to the legend (owner). */
+/* Phone: 8 px from the edge like the legend on the left, so the two fit side by side. */
+.ps-map--phone .maplibregl-ctrl-bottom-right .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  margin-right: 8px;
+}
+.ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show {
+  align-items: flex-start;
+  padding: 6px 2px 6px 8px;
+  font-size: 11px;
+  line-height: 15px;
+}
+.ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .ps-attr {
+  display: block;
+  white-space: nowrap;
+}
+.ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .ps-attr-sep {
+  display: none;
+}
+.ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
+  margin-top: -4px;
 }
 .ps-map .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner {
   display: none;
@@ -512,3 +531,13 @@
 .ps-search__input:focus-visible {
   outline: none;
 }
+
+/* ---- Motion (enter only; off with reduced motion, see app.css) -------------------- */
+@keyframes ps-card-in { from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.97); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes ps-card-in-center { from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%); } }
+.ps-card { animation: ps-card-in 200ms cubic-bezier(0.2, 0, 0, 1) both; }
+.ps-card--load { animation-name: ps-card-in-center; }
+.ps-search__results, .ps-search__note { animation: ps-fade 160ms ease both; }
+.ps-empty__card { animation: ps-rise 240ms cubic-bezier(0.2, 0, 0, 1) both; }
+.ps-hint { animation: ps-fade 200ms ease both; }
+.ps-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-inner { animation: ps-fade 200ms ease both; }

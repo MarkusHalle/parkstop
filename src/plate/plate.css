@@ -100,3 +100,6 @@
   .plate-skeleton { animation: none; }
 }
 .plate-field:focus { outline: none; }
+
+/* Enter animations (off with reduced motion). */
+.plate-optin, .plate-pick, .zoom-panel, .plate-suggest { animation: ps-rise 220ms cubic-bezier(0.2, 0, 0, 1) both; }

@@ -14,6 +14,7 @@ import { formatAddress, searchAddress, type AddressHit } from './nominatim'
 import type { MapViewProps } from './types'
 import { geoFailureFromCode } from './geolocation'
 import { nudgeOffset, withAttribution } from './pin'
+import { areaPolygons } from './capitalAreas'
 
 // Same host for both (SPEC 10). Light: liberty; dark: dark (owner's choice over fiord).
 const STYLE_URLS: Record<ResolvedTheme, string> = {
@@ -566,12 +567,32 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
       if (l.type === 'line' && 'source-layer' in l && l['source-layer'] === 'transportation') lastRoad = i
     })
     const before = layers.slice(lastRoad + 1).find((l) => l.type === 'symbol')?.id
+    // Squares and areas (Blaha Lujza tér): a light fill under the roads and paths of the base
+    // style plus a thin dashed edge, not a road band around every flower bed (owner).
+    const firstRoad = layers.find((l) => l.type === 'line' && 'source-layer' in l && l['source-layer'] === 'transportation')?.id
+    map.addSource('capital-areas', { type: 'geojson', data: areaPolygons(data) })
+    map.addLayer(
+      { id: 'capital-areas-fill', type: 'fill', source: 'capital-areas', minzoom: 12, paint: { 'fill-color': paint.color, 'fill-opacity': theme === 'dark' ? 0.22 : 0.28 } },
+      firstRoad,
+    )
+    map.addLayer(
+      {
+        id: 'capital-areas-edge',
+        type: 'line',
+        source: 'capital-areas',
+        minzoom: 12,
+        layout: { 'line-join': 'round' },
+        paint: { 'line-color': paint.color, 'line-width': 1.5, 'line-dasharray': [3, 2] },
+      },
+      before,
+    )
     map.addSource('capital-roads', { type: 'geojson', data })
     map.addLayer(
       {
         id: 'capital-roads-line',
         type: 'line',
         source: 'capital-roads',
+        filter: ['!=', ['get', 'area'], true],
         minzoom: 12,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {

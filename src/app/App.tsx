@@ -21,7 +21,7 @@ import { AuthorityCard, ConfidenceChip, recipients } from './AuthorityCard'
 import { DoneStep } from './DoneStep'
 import { MailStep } from './MailStep'
 import { StartPanel } from './StartPanel'
-import { IconBack, IconCheck, IconHelp, IconHistory, IconPin, IconSettings, LogoMark } from './icons'
+import { IconBack, IconCheck, IconChevron, IconHelp, IconHistory, IconPin, IconSettings, LogoMark } from './icons'
 import { SheetHandle } from './SheetHandle'
 import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
@@ -396,15 +396,31 @@ export function App() {
     setStep('map')
   }, [stale])
 
+  // The step before this one, for the step bar and screen animations (forward or back).
+  // React's "information from previous renders" pattern: compared and stored during render.
+  const stepNow = STEP_NO[view]
+  const [stepSeen, setStepSeen] = useState({ now: stepNow, from: stepNow })
+  if (stepSeen.now !== stepNow) setStepSeen({ now: stepNow, from: stepSeen.now })
+  const stepFrom = stepSeen.now !== stepNow ? stepSeen.now : stepSeen.from
+
   // --- Phone bottom sheet height → map padding -------------------------------------------
   const sheetRef = useRef<HTMLElement>(null)
   const [sheetH, setSheetH] = useState(0)
   useLayoutEffect(() => {
     const el = sheetRef.current
     if (!el) { setSheetH(0); return }
-    const ro = new ResizeObserver(() => setSheetH(el.getBoundingClientRect().height))
+    // While the sheet folds or opens its height changes every frame. Re-rendering the whole
+    // app per frame made the fold stutter, so the map's overlays follow through the CSS
+    // variable directly and React state (map padding) catches up once the height settles.
+    let settle = 0
+    const ro = new ResizeObserver(() => {
+      const h = el.getBoundingClientRect().height
+      document.querySelector<HTMLElement>('.ps-map')?.style.setProperty('--ps-inset', `${h}px`)
+      window.clearTimeout(settle)
+      settle = window.setTimeout(() => setSheetH(h), 120)
+    })
     ro.observe(el)
-    return () => ro.disconnect()
+    return () => { ro.disconnect(); window.clearTimeout(settle) }
   }, [layout, view])
 
   const [historyCount, setHistoryCount] = useState<number | null>(null)
@@ -591,15 +607,36 @@ export function App() {
           </div>
           <div className={`sheet-fold sheet-fold-peek${sheetOpen ? '' : ' is-open'}`} inert={sheetOpen}>
             <div className="sheet-fold-inner">
+              {/* Folded summary (owner's option A): label and confidence, the recipient, the place. */}
               <button type="button" className="sheet-peek" onClick={() => setSheetOpen(true)}>
-                {pin ? (resolved?.primary.name ?? (resolution?.kind === 'outside' ? hu.authority.outsideTitle : hu.authority.loading)) : hu.start.title}
+                <span className="sheet-peek-text">
+                  {pin && resolved && recipient ? (
+                    <>
+                      <span className="sheet-peek-top">
+                        <span className="eyebrow">{hu.authority.heading}</span>
+                        {recipient.id === resolved.primary.id && <ConfidenceChip value={resolved.confidence} />}
+                      </span>
+                      <span className="sheet-peek-name">{recipient.name}</span>
+                      {address.trim() !== '' && (
+                        <span className="sheet-peek-sub">
+                          {address.trim()}{resolved.districtRoman ? `, ${hu.mailTemplate.district(resolved.districtRoman)}` : ''}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="sheet-peek-name">
+                      {pin ? (resolution?.kind === 'outside' ? hu.authority.outsideTitle : hu.authority.loading) : hu.start.title}
+                    </span>
+                  )}
+                </span>
+                <span className="sheet-peek-chevron" aria-hidden="true"><IconChevron dir="up" size={22} /></span>
               </button>
             </div>
           </div>
           {footer && <div className="sheet-footer">{footer}</div>}
         </section>
       ) : (
-        <div className="page" key={view}>
+        <div className={`page ${isSide(view) || stepNow >= stepFrom ? 'page-in-fwd' : 'page-in-back'}`} key={view}>
           <header className="page-header">
             {view !== 'done' && <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>}
             {view === 'done' ? <span className="page-title">{title}</span> : <h1 className="page-title">{title}</h1>}
@@ -608,7 +645,11 @@ export function App() {
           </header>
           {stepped && (
             <div className="progress" aria-hidden="true">
-              {[1, 2, 3].map((i) => <span key={i} className={i <= STEP_NO[view] ? 'on' : ''} />)}
+              {[1, 2, 3].map((i) => (
+                <span key={i} className={
+                  i <= stepNow ? (i === stepNow && stepFrom < stepNow ? 'on grow' : 'on') : (i <= stepFrom ? 'shrink' : '')
+                } />
+              ))}
             </div>
           )}
           <main className="page-body">{body}</main>

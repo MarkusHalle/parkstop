@@ -70,12 +70,16 @@ export const hu = {
     zoomIn: 'Nagyítás',
     zoomOut: 'Kicsinyítés',
     resetNorth: 'Észak felfelé, térkép kiegyenesítése',
-    legendCapital: 'fővárosi kezelésű út',
+    legendCapital: 'fővárosi kezelés alatt',
     attribution:
-      // Middle dots between the three credits, so "Adatok:" does not run into the link before it.
-      '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · ' +
-      '<a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> · ' +
-      'Adatok: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap közreműködők</a>',
+      // One span per part: on the PC they run on one line with middle dots, on the phone each
+      // part is its own line in a narrow column (map.css).
+      '<span class="ps-attr"><a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a></span>' +
+      '<span class="ps-attr-sep"> · </span>' +
+      '<span class="ps-attr"><a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a></span>' +
+      '<span class="ps-attr-sep"> · </span>' +
+      '<span class="ps-attr">Adatok:</span><span class="ps-attr-sep"> </span>' +
+      '<span class="ps-attr"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap közreműködők</a></span>',
     attributionToggle: 'Térképadatok forrása',
     pinLabel: 'Jelölő – húzd a pontos helyre, vagy mozgasd a nyílbillentyűkkel',
     loadErrorTitle: 'A térkép most nem töltődik be',

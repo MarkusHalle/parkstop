@@ -106,7 +106,7 @@ export function SettingsPage({ onExportAll, onDeleteEverything, onPrivacy, statu
               <span className="settings-row-title">{t.plateReader}</span>
               <span className="muted small">{plateOn ? t.plateReaderOn : t.plateReaderOff}</span>
             </span>
-            <input type="checkbox" checked={plateOn}
+            <input type="checkbox" className="switch" role="switch" checked={plateOn}
               onChange={(e) => change({ plateReader: e.target.checked ? 'on' : 'off' })} />
           </label>
           <label className="settings-row">
@@ -114,7 +114,7 @@ export function SettingsPage({ onExportAll, onDeleteEverything, onPrivacy, statu
               <span className="settings-row-title">{t.addressLookup}</span>
               <span className="muted small">{settings.addressLookup ? t.addressLookupHint : t.addressLookupOffHint}</span>
             </span>
-            <input type="checkbox" checked={settings.addressLookup}
+            <input type="checkbox" className="switch" role="switch" checked={settings.addressLookup}
               onChange={(e) => change({ addressLookup: e.target.checked })} />
           </label>
         </div>

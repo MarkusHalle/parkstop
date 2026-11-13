@@ -23,3 +23,10 @@
 @media (min-width: 900px) {
   .update-toast { left: auto; right: 16px; transform: none; bottom: 16px !important; }
 }
+
+/* Enter animations (off with reduced motion). */
+.update-toast { animation: ps-toast-in 240ms cubic-bezier(0.2, 0, 0, 1) both; }
+.offline-banner { animation: ps-fade 200ms ease both; }
+@media (min-width: 768px) {
+  .update-toast { animation-name: ps-rise; }
+}
