@@ -1,9 +1,10 @@
 // Roadmap 2.5: report form and validation (SPEC 4.3). The plate field with the on-device
 // reader's suggestion and the zoomable photo lives in src/plate (roadmap 3.5, 3.6).
 import { useId, useRef } from 'react'
+import { useLayout } from '../app/useLayout'
 import { hu } from '../i18n/hu'
 import violationsData from '../data/violations.json'
-import { IconChevron, IconClose, IconPlus } from '../app/icons'
+import { IconCamera, IconChevron, IconClose, IconPlus } from '../app/icons'
 import { PlateField, PlateOptIn, type PlateOption, type PlateReaderState, type UiPlate } from '../plate'
 import type { PlateSource, PlateVia } from './plate'
 import { MAX_PHOTOS, type PhotoItem } from './photos'
@@ -54,6 +55,8 @@ interface Props {
 
 export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, onMovePhoto, photoMessages, errors, maxTime, timeFromPhoto, plateReader, onPickPlate }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const layout = useLayout()
   const ids = { plate: useId(), violation: useId(), custom: useId(), time: useId(), vehicle: useId(), note: useId(), photos: useId() }
   const has = (e: ReportError) => errors.includes(e)
   const err = (e: ReportError, text: string) => has(e) && <p className="field-error" id={`${ids.plate}-${e}`}>{text}</p>
@@ -87,6 +90,12 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
               )}
             </div>
           ))}
+          {photos.length < MAX_PHOTOS && layout === 'phone' && (
+            <button type="button" className={`thumb-add${has('photos') ? ' input-invalid' : ''}`} aria-label={hu.report.takePhoto}
+              title={hu.report.takePhoto} onClick={() => cameraRef.current?.click()}>
+              <IconCamera size={26} />
+            </button>
+          )}
           {photos.length < MAX_PHOTOS && (
             <button type="button" className={`thumb-add${has('photos') ? ' input-invalid' : ''}`} aria-label={hu.report.addPhoto}
               aria-describedby={has('photos') ? `${ids.plate}-photos` : undefined}
@@ -95,6 +104,9 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
             </button>
           )}
           <input ref={fileRef} type="file" accept="image/*" multiple hidden
+            onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
+          {/* Phone: the camera opens directly (the multi-photo picker has no camera option). */}
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden
             onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
         </div>
         {photoMessages.map((m) => <p key={m} className="field-error" role="alert">{m}</p>)}

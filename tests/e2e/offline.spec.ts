@@ -32,5 +32,6 @@ test('opens offline from the service worker, form and history work', async ({ pa
   await page.getByLabel(hu.report.note).fill('Offline kitöltve')
   await page.getByRole('button', { name: hu.report.continue }).click()
   await expect(page.getByRole('heading', { name: hu.mail.title })).toBeVisible()
-  await expect(page.getByText(DISTRICT_1.email, { exact: true })).toBeVisible()
+  // Scoped to the page: on the phone step 1's sheet stays mounted (hidden) under it.
+  await expect(page.getByRole('main').getByText(DISTRICT_1.email, { exact: true })).toBeVisible()
 })

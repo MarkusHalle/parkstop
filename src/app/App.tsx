@@ -1,6 +1,6 @@
 // Roadmap 2.1: app shell. Phone: full-screen map with a bottom sheet, full pages for the
 // form and e-mail; PC (≥ 900 px): side panel beside the map (SPEC 3, 9; approved mockups).
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type Ref } from 'react'
 import { hu } from '../i18n/hu'
 import { loadResolver } from '../authority'
 import type { LatLon, Resolution, ResolveOptions } from '../authority/types'
@@ -25,6 +25,7 @@ import { IconBack, IconCheck, IconHelp, IconHistory, IconPin, IconSettings, Logo
 import { SheetHandle } from './SheetHandle'
 import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
+import { useStepSwipe } from './useStepSwipe'
 import './app.css'
 
 type Step = 'map' | 'report' | 'mail' | 'done' | SideStep
@@ -210,18 +211,20 @@ export function App() {
     }
     go('report')
   }
+  // Marks the missing fields and brings the first one into view. A swipe does not focus it,
+  // so the phone's keyboard does not pop up (owner: "resist and point").
+  const pointToErrors = (focus: boolean) => {
+    setShowErrors(true)
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(
+        `[data-field="${ERROR_FIELD[errors[0]]}"] :is(input:not([type=hidden]):not([hidden]), select, textarea, button)`,
+      )
+      if (focus) el?.focus()
+      el?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+    })
+  }
   const toMail = () => {
-    if (errors.length > 0) {
-      setShowErrors(true)
-      requestAnimationFrame(() => {
-        const el = document.querySelector<HTMLElement>(
-          `[data-field="${ERROR_FIELD[errors[0]]}"] :is(input:not([type=hidden]):not([hidden]), select, textarea, button)`,
-        )
-        el?.focus()
-        el?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-      })
-      return
-    }
+    if (errors.length > 0) { pointToErrors(true); return }
     go('mail')
   }
 
@@ -402,6 +405,16 @@ export function App() {
   const [stepSeen, setStepSeen] = useState({ now: stepNow, from: stepNow })
   if (stepSeen.now !== stepNow) setStepSeen({ now: stepNow, from: stepSeen.now })
   const stepFrom = stepSeen.now !== stepNow ? stepSeen.now : stepSeen.from
+  // The view before this one: a page that follows another page keeps its (opaque) frame and
+  // only slides its content, so nothing behind it shows through during the change.
+  const [viewSeen, setViewSeen] = useState({ now: view, from: view })
+  if (viewSeen.now !== view) setViewSeen({ now: view, from: viewSeen.now })
+  const viewFrom = viewSeen.now !== view ? viewSeen.now : viewSeen.from
+  const pageSwap = viewFrom === 'map' || viewFrom === view ? null
+    : viewFrom === 'privacy' || (!isSide(view) && !isSide(viewFrom) && stepNow < STEP_NO[viewFrom]) ? 'back' : 'fwd'
+  // The page frame now outlives a step change, so start each page at the top.
+  const pageRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => { pageRef.current?.scrollTo(0, 0) }, [view])
 
   // --- Phone bottom sheet height → map padding -------------------------------------------
   const sheetRef = useRef<HTMLElement>(null)
@@ -467,6 +480,19 @@ export function App() {
     }
   }, [sheetOpen, layout])
 
+  // --- Swipe between the steps (phone; owner, roadmap 6.7) --------------------------------
+  // Left: the next step, when it may open (otherwise the screen resists and the missing fields
+  // are marked). Right: the step before. Step 1 swipes on its sheet, steps 2 and 3 on the page.
+  const peekFwdRef = useRef<HTMLDivElement>(null)
+  const peekBackRef = useRef<HTMLDivElement>(null)
+  useStepSwipe({
+    enabled: layout === 'phone' && (view === 'map' || view === 'report' || view === 'mail'),
+    forward: view === 'map' ? { allowed: !!resolved && !!recipient, go: startReport, onBlocked: () => {} }
+      : view === 'report' ? { allowed: errors.length === 0, go: toMail, onBlocked: () => pointToErrors(false) }
+      : null,
+    back: view === 'report' || view === 'mail' ? { go: back } : null,
+  }, { target: view === 'map' ? sheetRef : pageRef, peekForward: peekFwdRef, peekBack: peekBackRef, reveal: sheetRef }, view)
+
   const [historyCount, setHistoryCount] = useState<number | null>(null)
 
   // --- Step content ----------------------------------------------------------------------
@@ -496,12 +522,17 @@ export function App() {
     </section>
   )
 
+  // Step 1's sheet content is built for every view: on the phone the sheet stays mounted under
+  // the full pages, so a step change never shows the bare map (owner: "the map shows for a split
+  // second between steps") and the map keeps its padding instead of panning on every change.
+  // Keyed by what the sheet shows, so a switch (start → loading → card) fades the new content in.
+  const mapBody = <div className="sheet-content" key={pin ? `pin-${resolution?.kind ?? (resolverError ? 'error' : 'loading')}` : 'start'}>{pin ? authorityCard : start}</div>
+  const mapFooter = resolved ? <button type="button" className="btn btn-primary" onClick={startReport}>{hu.authority.continue}</button> : null
   let body: ReactNode
   let footer: ReactNode = null
   if (view === 'map') {
-    // Keyed by what the sheet shows, so a switch (start → loading → card) fades the new content in.
-    body = <div className="sheet-content" key={pin ? `pin-${resolution?.kind ?? (resolverError ? 'error' : 'loading')}` : 'start'}>{pin ? authorityCard : start}</div>
-    if (resolved) footer = <button type="button" className="btn btn-primary" onClick={startReport}>{hu.authority.continue}</button>
+    body = mapBody
+    footer = mapFooter
   } else if (view === 'report') {
     body = (
       <div className="stack">
@@ -561,7 +592,9 @@ export function App() {
     if (lastView.current === view) return
     lastView.current = view
     const id = requestAnimationFrame(() => {
-      const h = document.querySelector<HTMLElement>('.page-header h1, .side-header h1, main h1, .panel h1, .sheet h1')
+      // In this order: on the phone the sheet stays mounted (inert) under the pages.
+      const h = ['.page-header h1', '.side-header h1', 'main h1', '.panel h1', '.sheet:not([inert]) h1']
+        .map((s) => document.querySelector<HTMLElement>(s)).find((e) => e !== null)
       if (!h) return
       h.tabIndex = -1
       h.focus({ preventScroll: true })
@@ -635,8 +668,7 @@ export function App() {
       <OfflineBanner />
       {/* A div with the main role while the map is the view, so a page's own <main> is the only one otherwise. */}
       <div className="map-area" role={view === 'map' ? 'main' : undefined} inert={view !== 'map'}>{map}</div>
-      {view === 'map' ? (
-        <section className="sheet" ref={sheetRef} aria-label={hu.steps.where} onKeyDown={(e) => {
+      <section className="sheet" ref={sheetRef} aria-label={hu.steps.where} inert={view !== 'map'} aria-hidden={view !== 'map' || undefined} onKeyDown={(e) => {
           // Escape folds the sheet (not while typing in a field: there it belongs to the field).
           if (e.key !== 'Escape' || !sheetOpen || e.defaultPrevented) return
           if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select')) return
@@ -647,7 +679,7 @@ export function App() {
           {/* Both parts stay mounted and slide (grid rows 1fr ↔ 0fr) so folding is smooth. */}
           <div className={`sheet-fold${sheetOpen ? ' is-open' : ''}`} inert={!sheetOpen}>
             <div className="sheet-fold-inner">
-              <div className="sheet-body">{body}</div>
+              <div className="sheet-body">{mapBody}</div>
             </div>
           </div>
           <div className={`sheet-fold sheet-fold-peek${sheetOpen ? '' : ' is-open'}`} inert={sheetOpen}>
@@ -677,10 +709,12 @@ export function App() {
               </button>
             </div>
           </div>
-          {footer && <div className="sheet-footer">{footer}</div>}
+          {mapFooter && <div className="sheet-footer">{mapFooter}</div>}
         </section>
-      ) : (
-        <div className={`page ${isSide(view) || stepNow >= stepFrom ? 'page-in-fwd' : 'page-in-back'}`} key={view}>
+      {view !== 'map' && (
+        // One frame for all pages: it slides in over the sheet when it opens from step 1; between
+        // pages it stays put and opaque, and only the content below the header slides.
+        <div className="page page-in-fwd" ref={pageRef}>
           <header className="page-header">
             {view !== 'done' && <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>}
             {view === 'done' ? <span className="page-title">{title}</span> : <h1 className="page-title">{title}</h1>}
@@ -696,12 +730,30 @@ export function App() {
               ))}
             </div>
           )}
-          <main className="page-body">{body}</main>
+          <main className={`page-body${pageSwap ? ` page-swap-${pageSwap}` : ''}`} key={view}>{body}</main>
           {footer && <div className="page-footer">{footer}</div>}
         </div>
       )}
+      {/* What a swipe pulls in: the next (or previous) step's header, its content follows on release. */}
+      {(view === 'map' || view === 'report') && <PeekHeader ref={peekFwdRef} title={view === 'map' ? hu.report.title : hu.mail.title}
+        n={STEP_NO[view] + 1} filled={stepNow} />}
+      {view === 'mail' && <PeekHeader ref={peekBackRef} title={hu.report.title} n={2} filled={stepNow} />}
       {toastEl}
       <UpdatePrompt onBeforeUpdate={beforeUpdate} />
+    </div>
+  )
+}
+
+/** A step's header and step bar, shown beside the screen while it is swiped (useStepSwipe). */
+function PeekHeader({ ref, title, n, filled }: { ref: Ref<HTMLDivElement>; title: string; n: number; filled: number }) {
+  return (
+    <div className="page-peek" ref={ref} aria-hidden="true" inert>
+      <header className="page-header">
+        <span className="icon-btn"><IconBack /></span>
+        <span className="page-title">{title}</span>
+        <span className="muted small">{hu.steps.progress(n, 3)}</span>
+      </header>
+      <div className="progress">{[1, 2, 3].map((i) => <span key={i} className={i <= filled ? 'on' : ''} />)}</div>
     </div>
   )
 }

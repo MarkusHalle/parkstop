@@ -120,7 +120,8 @@ export async function placePinBySearch(page: Page) {
 export async function fillReport(page: Page) {
   await page.getByRole('button', { name: hu.authority.continue }).click()
   await expect(page.getByRole('heading', { name: hu.report.title })).toBeVisible()
-  await page.locator('input[type=file]').setInputFiles(PHOTO)
+  // The gallery input (several photos); the phone also has a camera-only input.
+  await page.locator('input[type=file][multiple]').setInputFiles(PHOTO)
   await expect(page.getByRole('img', { name: hu.report.photoAlt(1) })).toBeVisible()
   // The reader is not wanted in these tests; "Nem, beírom" keeps it off.
   await page.getByRole('button', { name: hu.plate.optInNo }).click()

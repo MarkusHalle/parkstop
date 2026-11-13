@@ -60,6 +60,8 @@ h1[tabindex='-1']:focus { outline: none; }
 .btn:disabled { opacity: 0.55; cursor: default; }
 .btn-small { min-height: var(--tap); font-size: 15px; border-radius: var(--radius-m); width: auto; }
 .btn-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+/* Phone start: camera and gallery side by side, pictograms only. */
+.photo-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .btn-row .btn { font-size: 15px; padding: 0 10px; }
 .btn-link {
   min-height: var(--tap); padding: 0 4px;
@@ -184,7 +186,15 @@ h1[tabindex='-1']:focus { outline: none; }
   position: absolute; inset: 0; z-index: 10;
   display: flex; flex-direction: column;
   background: var(--c-bg);
-  overflow-y: auto;
+  overflow-x: hidden; overflow-y: auto;
+}
+/* Swipe (useStepSwipe): the screens take sideways moves, the browser keeps vertical scroll and
+   pinch zoom. The peek is the next step's header, beside the screen while it is dragged. */
+.app-phone > .page, .app-phone > .sheet { touch-action: pan-y pinch-zoom; }
+.page-peek {
+  position: absolute; inset: 0; z-index: 11;
+  display: flex; flex-direction: column;
+  background: var(--c-bg); visibility: hidden; pointer-events: none;
 }
 .page-header {
   position: sticky; top: 0; z-index: 2;
@@ -413,8 +423,14 @@ select.input { padding: 0 12px; }
 @keyframes ps-rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ps-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes ps-toast-in { from { transform: translate(-50%, 16px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-.page.page-in-fwd { animation: ps-slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) both; }
-.page.page-in-back { animation: ps-slide-in-left 280ms cubic-bezier(0.2, 0, 0, 1) both; }
+/* The page frame animates once, when it opens over step 1 (the sheet stays under it). Between
+   pages the frame stays opaque and only the body slides, so the map never shows through. */
+.page.page-in-fwd { animation: ps-slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) backwards; }
+/* Once a page has faded in over it, the sheet is hidden (not painted, not read out); it shows
+   again at once when the page closes. */
+.app-phone:has(> .page) > .sheet { visibility: hidden; transition: visibility 0s 300ms; }
+.page-body.page-swap-fwd { animation: ps-slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) backwards; }
+.page-body.page-swap-back { animation: ps-slide-in-left 280ms cubic-bezier(0.2, 0, 0, 1) backwards; }
 .panel-body { animation: ps-rise 220ms cubic-bezier(0.2, 0, 0, 1) both; }
 .sheet-content { animation: ps-fade 240ms ease both; }
 .toast { animation: ps-toast-in 240ms cubic-bezier(0.2, 0, 0, 1) both; }

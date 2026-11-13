@@ -15,7 +15,8 @@ test('pin, authority, report, mailto hand-off and history', async ({ page }) => 
   await toMailStep(page)
 
   // The e-mail step shows recipient, subject and body.
-  await expect(page.getByText(DISTRICT_1.email, { exact: true })).toBeVisible()
+  // Scoped to the page: on the phone step 1's sheet stays mounted (hidden) under it.
+  await expect(page.getByRole('main').getByText(DISTRICT_1.email, { exact: true })).toBeVisible()
   const subject = hu.mailTemplate.subjectA(PLATE, ADDRESS)
   await expect(page.getByText(subject, { exact: true })).toBeVisible()
   await expect(page.locator('pre.mail-text')).toContainText(jarda.sentence)

@@ -29,7 +29,9 @@ export function UpdatePrompt({ onBeforeUpdate }: Props) {
   useEffect(() => {
     if (!needRefresh) return
     const measure = () => {
-      const sheet = document.querySelector('.sheet, .page-footer')
+      // The sheet stays mounted under the pages, so a page's own button bar (or none) wins.
+      const page = document.querySelector('.page')
+      const sheet = page ? page.querySelector('.page-footer') : document.querySelector('.sheet')
       setBottom(toastBottom(sheet ? sheet.getBoundingClientRect().height : null))
     }
     measure()

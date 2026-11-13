@@ -321,6 +321,7 @@ Rules: `authority/` and `mail/` contain no UI imports and no network calls (pure
 ## 9. Layout
 
 - **Phone:** full-screen map; a bottom sheet carries the current step (authority → form → e-mail). Large touch targets (min 44 px).
+- **Phone navigation:** the phone's Back button goes one step back. Swiping left moves to the next step, the screen following the finger with the next step's header peeking in; it moves on when released past a third of the width or with a quick flick. While the next step is not allowed (a required field missing, no authority yet) the screen only stretches a little, springs back and the missing fields are marked, without opening the keyboard. Swiping right goes one step back. Step 1 swipes on its sheet (dragging the map moves the map); touches that start within 20 px of the screen edge are left to Android's own back gesture (D52).
 - **PC (≥ 900 px):** left panel 400 px with the steps, map fills the rest. The map takes input only in step 1 (as on the phone).
 - Light and dark theme: "Megjelenés" at the top of Settings — Világos, Sötét or Automatikus (follows the system; default). The map switches with it (OpenFreeMap `liberty` / `dark`, D43). WCAG AA contrast, full keyboard use, visible focus.
 - A ? icon in the header ("Súgó" link on the PC) opens the help; "Adatkezelés" opens from the help and from Settings (D44).
