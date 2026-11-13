@@ -1,7 +1,7 @@
 // Step 1 before a pin exists: phone bottom sheet / PC side panel (mockups Main, DesktopStart).
 import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { hu } from '../i18n/hu'
-import { IconCamera, IconImage, IconLocate } from './icons'
+import { IconCamera, IconLocate } from './icons'
 
 interface Props {
   layout: 'phone' | 'pc'
@@ -12,7 +12,6 @@ interface Props {
 
 export function StartPanel({ layout, photoCount, onAddFiles, onLocate }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
-  const cameraRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const pick = () => fileRef.current?.click()
   // A file dropped outside the dropzone would make the browser open it and leave the app,
@@ -34,12 +33,6 @@ export function StartPanel({ layout, photoCount, onAddFiles, onLocate }: Props) 
     <input ref={fileRef} type="file" accept="image/*" multiple hidden
       onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
   )
-  // Android's multi-photo picker has no camera option, so the camera gets its own input
-  // (capture opens the rear camera directly; one photo per shot).
-  const cameraInput = (
-    <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden
-      onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
-  )
   const added = photoCount > 0 && <p className="notice notice-ok" role="status">{hu.start.photoAdded(photoCount)}</p>
 
   if (layout === 'phone') {
@@ -48,16 +41,8 @@ export function StartPanel({ layout, photoCount, onAddFiles, onLocate }: Props) 
         <h1 className="title">{hu.start.title}</h1>
         <p className="lead">{hu.start.introPhone}</p>
         {added}
-        {/* Camera and gallery side by side, pictograms only (owner); names for screen readers. */}
-        <div className="photo-pair">
-          <button type="button" className="btn btn-primary" onClick={() => cameraRef.current?.click()}
-            aria-label={hu.start.takePhoto} title={hu.start.takePhoto}><IconCamera size={26} /></button>
-          <button type="button" className="btn btn-secondary" onClick={pick}
-            aria-label={hu.start.fromGallery} title={hu.start.fromGallery}><IconImage /></button>
-        </div>
-        <button type="button" className="btn btn-secondary" onClick={onLocate}><IconLocate />{hu.start.locate}</button>
-        {fileInput}
-        {cameraInput}
+        {/* The place only (owner's option A, roadmap 6.5): photos come at the top of step 2. */}
+        <button type="button" className="btn btn-primary" onClick={onLocate}><IconLocate />{hu.start.locate}</button>
       </div>
     )
   }

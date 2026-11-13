@@ -90,7 +90,7 @@ and the keeper's strict liability does not cover stopping or waiting (Kkt. 21. �
 
 | Field | Rule |
 |---|---|
-| Photos | 1–5 images, from camera or gallery. Shown as thumbnails, removable, reorderable. |
+| Photos | 1–5 images, from camera or gallery. Shown as thumbnails, removable, reorderable. On the phone they are added in step 2, not step 1: step 1 is the place only ("Saját helyzetem" as the main button), and step 2 opens with two large pictogram buttons, camera (opens the rear camera directly) and gallery, until the first photo is in; then small camera and "+" tiles follow the thumbnails (owner's option A, roadmap 6.5). The PC keeps its photo drop zone in step 1. |
 | Rendszám | Required. Upper-cased, common Hungarian formats recognised (ABC-123, AA BB-123, AAAA-123), anything else accepted with a "külföldi / egyedi" note. Suggested by the plate reader (4.9) when available, always editable, and must be confirmed by the user before the e-mail step. |
 | Szabálysértés típusa | Required. Fixed pick-list (section 6). |
 | Időpont | Required. Defaults to the photo's timestamp, else now. |

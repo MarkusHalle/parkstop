@@ -51,7 +51,7 @@ export const IconCopy = () => <Svg><rect x="8.5" y="8.5" width="11" height="11" 
 export const IconDownload = () => <Svg><path d="M12 3.5v11.5M7.5 10.5L12 15l4.5-4.5M4.5 19.5h15" /></Svg>
 export const IconMail = () => <Svg><rect x="3.5" y="5.5" width="17" height="13" /><path d="M3.5 6.5l8.5 6.5 8.5-6.5" /></Svg>
 export const IconPhone = () => <Svg size={20}><path d="M4.5 3.5h4.5l2 5-2.6 1.6a11 11 0 0 0 5.5 5.5l1.6-2.6 5 2v4.5h-2A16.5 16.5 0 0 1 2.5 5.5v-2z" /></Svg>
-export const IconImage = () => <Svg><rect x="3.5" y="4.5" width="17" height="15" /><rect x="7" y="8" width="3" height="3" fill="currentColor" stroke="none" /><path d="M20.5 16l-5-5-9 8.5" /></Svg>
+export const IconImage = ({ size = 22 }: { size?: number }) => <Svg size={size}><rect x="3.5" y="4.5" width="17" height="15" /><rect x="7" y="8" width="3" height="3" fill="currentColor" stroke="none" /><path d="M20.5 16l-5-5-9 8.5" /></Svg>
 export const IconSun = () => <Svg><circle cx="12" cy="12" r="4" /><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" /></Svg>
 export const IconMoon = () => <Svg><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" /></Svg>
 export const IconDevice = () => <Svg><rect x="7" y="3" width="10" height="18" /><path d="M10.5 18h3" /></Svg>

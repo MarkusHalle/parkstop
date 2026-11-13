@@ -62,6 +62,8 @@ h1[tabindex='-1']:focus { outline: none; }
 .btn-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 /* Phone start: camera and gallery side by side, pictograms only. */
 .photo-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+/* Step 2 on the phone before the first photo: the large version (option A, roadmap 6.5). */
+.photo-pair-lg .btn { min-height: 64px; }
 .btn-row .btn { font-size: 15px; padding: 0 10px; }
 .btn-link {
   min-height: var(--tap); padding: 0 4px;

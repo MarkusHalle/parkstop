@@ -4,7 +4,7 @@ import { useId, useRef } from 'react'
 import { useLayout } from '../app/useLayout'
 import { hu } from '../i18n/hu'
 import violationsData from '../data/violations.json'
-import { IconCamera, IconChevron, IconClose, IconPlus } from '../app/icons'
+import { IconCamera, IconChevron, IconClose, IconImage, IconPlus } from '../app/icons'
 import { PlateField, PlateOptIn, type PlateOption, type PlateReaderState, type UiPlate } from '../plate'
 import type { PlateSource, PlateVia } from './plate'
 import { MAX_PHOTOS, type PhotoItem } from './photos'
@@ -68,6 +68,16 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
           <h2 className="field-label" id={ids.photos}>{hu.report.photos}</h2>
           <span className="muted small">{hu.report.photoCount(photos.length, MAX_PHOTOS)}</span>
         </div>
+        {photos.length === 0 && layout === 'phone' ? (
+          // Phone, no photo yet: two large pictogram buttons (owner's option A, roadmap 6.5).
+          <div className="photo-pair photo-pair-lg">
+            <button type="button" className={`btn btn-primary${has('photos') ? ' input-invalid' : ''}`} aria-label={hu.report.takePhoto}
+              title={hu.report.takePhoto} onClick={() => cameraRef.current?.click()}><IconCamera size={28} /></button>
+            <button type="button" className={`btn btn-secondary${has('photos') ? ' input-invalid' : ''}`} aria-label={hu.report.addPhoto}
+              title={hu.report.addPhoto} aria-describedby={has('photos') ? `${ids.plate}-photos` : undefined}
+              onClick={() => fileRef.current?.click()}><IconImage size={28} /></button>
+          </div>
+        ) : (
         <div className="thumbs">
           {photos.map((p, i) => (
             <div className="thumb-cell" key={p.id}>
@@ -103,12 +113,13 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
               <IconPlus />
             </button>
           )}
+        </div>
+        )}
           <input ref={fileRef} type="file" accept="image/*" multiple hidden
             onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
           {/* Phone: the camera opens directly (the multi-photo picker has no camera option). */}
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden
             onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
-        </div>
         {photoMessages.map((m) => <p key={m} className="field-error" role="alert">{m}</p>)}
         {err('photos', hu.report.errors.photos)}
         <p className="muted small">{hu.report.photosHint}</p>

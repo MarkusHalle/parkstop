@@ -33,9 +33,6 @@ export const hu = {
     title: 'Hol áll a szabálytalanul parkoló autó?',
     introPhone: 'Koppints a térképre a hely megjelöléséhez, vagy keress rá a címre.',
     introPc: 'Kattints a térképre, vagy keress rá a címre. A jelölőt arrébb is húzhatod.',
-    // Icon-only buttons on the phone (owner): these are their accessible names.
-    takePhoto: 'Fotó készítése',
-    fromGallery: 'Kiválasztás a galériából',
     photoAdded: (n: number) => `${n} fotó hozzáadva. Most jelöld meg a helyet a térképen.`,
     dropPhotos: 'Húzd ide a fotókat',
     dropHint: 'Legfeljebb 5 kép. A gépeden maradnak, sehova nem töltjük fel őket.',
