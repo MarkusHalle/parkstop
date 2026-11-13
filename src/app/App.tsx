@@ -21,7 +21,7 @@ import { AuthorityCard, ConfidenceChip, recipients } from './AuthorityCard'
 import { DoneStep } from './DoneStep'
 import { MailStep } from './MailStep'
 import { StartPanel } from './StartPanel'
-import { IconBack, IconCheck, IconChevron, IconHelp, IconHistory, IconPin, IconSettings, LogoMark } from './icons'
+import { IconBack, IconCheck, IconHelp, IconHistory, IconPin, IconSettings, LogoMark } from './icons'
 import { SheetHandle } from './SheetHandle'
 import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
@@ -413,15 +413,59 @@ export function App() {
     // app per frame made the fold stutter, so the map's overlays follow through the CSS
     // variable directly and React state (map padding) catches up once the height settles.
     let settle = 0
+    // Content changes (start panel → authority card, a notice appearing) resize the sheet in
+    // one frame. Animate that from the old height to the new one (owner: "make the changes in
+    // the sheet smooth"); the fold has its own transition and is left alone.
+    let lastH = el.getBoundingClientRect().height
+    let grow: Animation | null = null
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const folding = () => el.getAnimations({ subtree: true }).some((a) => a !== grow && a.playState === 'running' && 'transitionProperty' in a)
     const ro = new ResizeObserver(() => {
       const h = el.getBoundingClientRect().height
       document.querySelector<HTMLElement>('.ps-map')?.style.setProperty('--ps-inset', `${h}px`)
+      const ours = grow?.playState === 'running'
+      if (!ours && Math.abs(h - lastH) > 4 && !folding() && !reduced.matches) {
+        grow = el.animate([{ height: `${lastH}px` }, { height: `${h}px` }], { duration: 300, easing: 'cubic-bezier(0.2, 0, 0, 1)' })
+        setSheetH(h) // the map eases along at once instead of after the sheet
+      }
+      if (!ours) lastH = h
       window.clearTimeout(settle)
       settle = window.setTimeout(() => setSheetH(h), 120)
     })
     ro.observe(el)
-    return () => { ro.disconnect(); window.clearTimeout(settle) }
+    return () => { ro.disconnect(); window.clearTimeout(settle); grow?.cancel() }
   }, [layout, view])
+
+  // When the sheet starts folding or opening, tell the map the height it is heading for right
+  // away, so the map eases to its new position together with the sheet instead of after it
+  // (owner). Target = today's height, minus each fold's current height, plus its end height
+  // (its content when opening, 0 when closing), capped by the sheet's max-height.
+  useLayoutEffect(() => {
+    const el = sheetRef.current
+    if (!el || layout !== 'phone') return
+    let h = el.getBoundingClientRect().height
+    for (const fold of el.querySelectorAll<HTMLElement>(':scope > .sheet-fold')) {
+      // Measure the children's own scrollHeight: while the fold is shut its inner box (and a
+      // scrolling body inside it) is squeezed, so its scrollHeight is not the content height.
+      const inner = fold.firstElementChild as HTMLElement | null
+      const content = inner ? [...inner.children].reduce((sum, c) => sum + (c as HTMLElement).scrollHeight, 0) : 0
+      h += (fold.classList.contains('is-open') ? content : 0) - fold.getBoundingClientRect().height
+    }
+    // max-height is a percentage of the containing block (62 %), not pixels.
+    const maxH = getComputedStyle(el).maxHeight
+    const box = (el.offsetParent as HTMLElement | null) ?? document.documentElement
+    const cap = maxH.endsWith('%') ? (parseFloat(maxH) / 100) * box.clientHeight : parseFloat(maxH)
+    const target = Number.isFinite(cap) ? Math.min(h, cap) : h
+    setSheetH(target)
+    // The fold's grid row grows towards the full content height, far taller than the capped
+    // sheet, so opening reached the cap in a few frames. Ease the sheet's own height to the
+    // target over the same 360 ms so opening is as smooth as folding.
+    const from = el.getBoundingClientRect().height
+    if (Math.abs(target - from) > 4 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.animate([{ height: `${from}px`, overflow: 'hidden' }, { height: `${target}px`, overflow: 'hidden' }],
+        { duration: 360, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' })
+    }
+  }, [sheetOpen, layout])
 
   const [historyCount, setHistoryCount] = useState<number | null>(null)
 
@@ -455,7 +499,8 @@ export function App() {
   let body: ReactNode
   let footer: ReactNode = null
   if (view === 'map') {
-    body = pin ? authorityCard : start
+    // Keyed by what the sheet shows, so a switch (start → loading → card) fades the new content in.
+    body = <div className="sheet-content" key={pin ? `pin-${resolution?.kind ?? (resolverError ? 'error' : 'loading')}` : 'start'}>{pin ? authorityCard : start}</div>
     if (resolved) footer = <button type="button" className="btn btn-primary" onClick={startReport}>{hu.authority.continue}</button>
   } else if (view === 'report') {
     body = (
@@ -608,7 +653,7 @@ export function App() {
           <div className={`sheet-fold sheet-fold-peek${sheetOpen ? '' : ' is-open'}`} inert={sheetOpen}>
             <div className="sheet-fold-inner">
               {/* Folded summary (owner's option A): label and confidence, the recipient, the place. */}
-              <button type="button" className="sheet-peek" onClick={() => setSheetOpen(true)}>
+              <button type="button" className={`sheet-peek${pin && resolved && recipient ? '' : ' sheet-peek--title'}`} onClick={() => setSheetOpen(true)}>
                 <span className="sheet-peek-text">
                   {pin && resolved && recipient ? (
                     <>
@@ -629,7 +674,6 @@ export function App() {
                     </span>
                   )}
                 </span>
-                <span className="sheet-peek-chevron" aria-hidden="true"><IconChevron dir="up" size={22} /></span>
               </button>
             </div>
           </div>

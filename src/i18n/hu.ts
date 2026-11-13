@@ -78,7 +78,7 @@ export const hu = {
       '<span class="ps-attr-sep"> · </span>' +
       '<span class="ps-attr"><a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a></span>' +
       '<span class="ps-attr-sep"> · </span>' +
-      '<span class="ps-attr">Adatok:</span><span class="ps-attr-sep"> </span>' +
+      '<span class="ps-attr ps-attr-label">Adatok:</span><span class="ps-attr-sep"> </span>' +
       '<span class="ps-attr"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap közreműködők</a></span>',
     attributionToggle: 'Térképadatok forrása',
     pinLabel: 'Jelölő – húzd a pontos helyre, vagy mozgasd a nyílbillentyűkkel',
@@ -317,7 +317,8 @@ export const hu = {
     themeLight: 'Világos',
     themeDark: 'Sötét',
     themeAuto: 'Automatikus',
-    appearanceHint: 'Automatikus: a készülék beállítását követi. A térkép is vált.',
+    // Two sentences: one per line on the PC, run together on the phone (SettingsPage).
+    appearanceHint: ['Automatikus: a készülék beállítását követi.', 'A térkép is vált.'],
     profileTitle: 'Bejelentő adatai',
     profileIntro: 'Az e-mail aláírásába kerülnek. Csak ez a készülék tárolja őket. A hatóságok többnyire csak névvel ellátott bejelentéssel foglalkoznak.',
     name: 'Név',

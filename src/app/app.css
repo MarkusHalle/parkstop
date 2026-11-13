@@ -170,7 +170,9 @@ h1[tabindex='-1']:focus { outline: none; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .sheet-peek-sub { font-size: 14px; line-height: 19px; color: var(--c-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sheet-peek-chevron { flex-shrink: 0; color: var(--c-text-muted); display: flex; }
+/* No pin yet (or still loading): just the title, centred and larger in the folded space (owner). */
+.sheet-peek--title { justify-content: center; min-height: 56px; text-align: center; }
+.sheet-peek--title .sheet-peek-name { font-size: 21px; line-height: 27px; white-space: normal; }
 /* Folded, the summary and the button read as one panel. */
 .sheet:has(.sheet-fold-peek.is-open) .sheet-footer { background: transparent; border-top-color: transparent; padding-top: 8px; }
 .sheet-footer { transition: background-color 260ms ease, border-color 260ms ease, padding 260ms ease; }
@@ -414,6 +416,7 @@ select.input { padding: 0 12px; }
 .page.page-in-fwd { animation: ps-slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) both; }
 .page.page-in-back { animation: ps-slide-in-left 280ms cubic-bezier(0.2, 0, 0, 1) both; }
 .panel-body { animation: ps-rise 220ms cubic-bezier(0.2, 0, 0, 1) both; }
+.sheet-content { animation: ps-fade 240ms ease both; }
 .toast { animation: ps-toast-in 240ms cubic-bezier(0.2, 0, 0, 1) both; }
 .btn, .icon-btn, .btn-link { transition: transform 100ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
 .btn:active:not(:disabled), .icon-btn:active { transform: scale(0.97); }

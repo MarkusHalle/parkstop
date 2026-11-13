@@ -15,6 +15,7 @@ import type { MapViewProps } from './types'
 import { geoFailureFromCode } from './geolocation'
 import { nudgeOffset, withAttribution } from './pin'
 import { areaPolygons } from './capitalAreas'
+import { animateCreditsFold } from './creditsMotion'
 
 // Same host for both (SPEC 10). Light: liberty; dark: dark (owner's choice over fiord).
 const STYLE_URLS: Record<ResolvedTheme, string> = {
@@ -93,6 +94,8 @@ export function MapView({
   const [geoError, setGeoError] = useState<GeoError>(null)
   const [locating, setLocating] = useState(false)
   const [turned, setTurned] = useState(false)
+  // The first padding (map just created) is applied at once; later changes ease.
+  const paddedOnce = useRef(false)
   const needleRef = useRef<HTMLSpanElement>(null)
   const [query, setQuery] = useState('')
   const [search, setSearch] = useState<SearchState>({ status: 'idle' })
@@ -149,6 +152,7 @@ export function MapView({
     map.on('rotate', syncCompass)
     map.on('pitch', syncCompass)
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+    const stopCreditsMotion = animateCreditsFold(map.getContainer())
     // The credits start open on every screen and fold to the (i) button on the first map drag
     // (MapLibre's compact default), as F-MAP-1 and the OSMF attribution guidelines ask (D47).
     map.setPadding({ top: initialPhone.current ? PHONE_TOP_PAD : 0, left: 0, right: 0, bottom: insetRef.current })
@@ -217,6 +221,7 @@ export function MapView({
 
     return () => {
       cancelled = true
+      stopCreditsMotion()
       marker.remove()
       map.remove()
       mapRef.current = null
@@ -275,12 +280,19 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    map.setPadding({ top: phone ? PHONE_TOP_PAD : 0, left: 0, right: 0, bottom: phone ? bottomInset : 0 })
+    // Eased, not set: setPadding moved the map in one jump when the sheet opened (owner).
+    // MapLibre jumps anyway when the user prefers reduced motion.
+    const padding = { top: phone ? PHONE_TOP_PAD : 0, left: 0, right: 0, bottom: phone ? bottomInset : 0 }
+    let center: [number, number] | undefined
     if (phone && pinLat !== undefined && pinLon !== undefined) {
       const y = map.project([pinLon, pinLat]).y
       const visibleBottom = map.getContainer().clientHeight - bottomInset
-      if (y > visibleBottom - 8 || y < PHONE_TOP_PAD + 40) map.easeTo({ center: [pinLon, pinLat], duration: 300 })
+      if (y > visibleBottom - 8 || y < PHONE_TOP_PAD + 40) center = [pinLon, pinLat]
     }
+    const first = !paddedOnce.current
+    paddedOnce.current = true
+    if (first) map.setPadding(padding)
+    else map.easeTo({ padding, ...(center ? { center } : {}), duration: 360, easing: (t) => 1 - Math.pow(1 - t, 3) })
     // Only react to the inset itself; a moved pin is handled by the callers' fly-to.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bottomInset, phone])

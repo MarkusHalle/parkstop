@@ -55,6 +55,7 @@ export const IconImage = () => <Svg><rect x="3.5" y="4.5" width="17" height="15"
 export const IconSun = () => <Svg><circle cx="12" cy="12" r="4" /><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" /></Svg>
 export const IconMoon = () => <Svg><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" /></Svg>
 export const IconDevice = () => <Svg><rect x="7" y="3" width="10" height="18" /><path d="M10.5 18h3" /></Svg>
+export const IconMonitor = () => <Svg><rect x="3" y="4" width="18" height="12" rx="1.5" /><path d="M9 20h6M12 16v4" /></Svg>
 
 export const IconRefresh = ({ size = 22 }: { size?: number }) => <Svg size={size}><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" /><path d="M19.5 3.5v4h-4" /></Svg>
 export const IconWifiOff = ({ size = 20 }: { size?: number }) => <Svg size={size}><path d="M2.5 9.5a15 15 0 0 1 19 0M6 13a10 10 0 0 1 12 0M9.5 16.3a5 5 0 0 1 5 0" /><Dot x={12} y={19.5} s={2.6} /><path d="M3.5 3.5l17 17" /></Svg>

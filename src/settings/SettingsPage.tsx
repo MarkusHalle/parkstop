@@ -3,7 +3,8 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { hu } from '../i18n/hu'
 import { APP_VERSION, useSettings } from './store'
 import type { Profile, Settings, ThemeChoice } from './types'
-import { IconDevice, IconMoon, IconSun } from '../app/icons'
+import { IconDevice, IconMonitor, IconMoon, IconSun } from '../app/icons'
+import { useLayout } from '../app/useLayout'
 import './settings.css'
 
 export interface SettingsPageProps {
@@ -49,10 +50,12 @@ export function SettingsPage({ onExportAll, onDeleteEverything, onPrivacy, statu
   ]
 
   const plateOn = settings.plateReader === 'on'
+  const layout = useLayout()
   const themes: Array<{ value: ThemeChoice; label: string; icon: ReactNode }> = [
     { value: 'light', label: t.themeLight, icon: <IconSun /> },
     { value: 'dark', label: t.themeDark, icon: <IconMoon /> },
-    { value: 'auto', label: t.themeAuto, icon: <IconDevice /> },
+    // "Automatic" follows the device: a phone on the phone layout, a monitor on the PC (owner).
+    { value: 'auto', label: t.themeAuto, icon: layout === 'pc' ? <IconMonitor /> : <IconDevice /> },
   ]
 
   return (
@@ -71,7 +74,10 @@ export function SettingsPage({ onExportAll, onDeleteEverything, onPrivacy, statu
             </label>
           ))}
         </fieldset>
-        <p className="muted small" id={`${uid}-look-hint`} style={{ margin: 0 }}>{t.appearanceHint}</p>
+        <p className="muted small" id={`${uid}-look-hint`} style={{ margin: 0 }}>
+          {/* Phone: one running line; PC: one sentence per line (owner). */}
+          {layout === 'pc' ? <>{t.appearanceHint[0]}<br />{t.appearanceHint[1]}</> : t.appearanceHint.join(' ')}
+        </p>
       </section>
 
       <section className="stack" aria-labelledby={`${uid}-profile`}>

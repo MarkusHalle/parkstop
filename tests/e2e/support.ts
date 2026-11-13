@@ -110,7 +110,10 @@ export async function placePinBySearch(page: Page) {
   await box.fill(SEARCH_TEXT)
   await box.press('Enter')
   await page.getByRole('button', { name: new RegExp(`^${ADDRESS}`) }).click()
-  await expect(page.getByText(DISTRICT_1.name).first()).toBeVisible()
+  // The resolver loads ~2 MB of bundled data on first use; with 8 parallel workers on a
+  // software-rendered GPU that occasionally took over the default 5 s (seen as "Illetékes
+  // hatóság keresése…" at timeout, never as a wrong result), so allow 15 s here.
+  await expect(page.getByText(DISTRICT_1.name).first()).toBeVisible({ timeout: 15_000 })
 }
 
 /** Step 2: fill the form (photo, plate, offence) and continue to the e-mail step. */

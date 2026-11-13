@@ -50,7 +50,7 @@
 .ps-map .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-button {
   position: absolute;
   top: 2px;
-  left: 2px;
+  right: 2px; /* right, not left: it stays put while the card shrinks into the circle */
 }
 .ps-map .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
   width: 32px;
@@ -78,6 +78,11 @@
 }
 .ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .ps-attr-sep {
   display: none;
+}
+/* "Adatok:" belongs to the link under it: a gap above it, none below (owner). */
+.ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .ps-attr-label {
+  margin-top: 5px;
+  margin-bottom: -2px;
 }
 .ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
   margin-top: -4px;
@@ -540,4 +545,4 @@
 .ps-search__results, .ps-search__note { animation: ps-fade 160ms ease both; }
 .ps-empty__card { animation: ps-rise 240ms cubic-bezier(0.2, 0, 0, 1) both; }
 .ps-hint { animation: ps-fade 200ms ease both; }
-.ps-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-inner { animation: ps-fade 200ms ease both; }
+/* The credits text fade on unfolding is run by creditsMotion.ts together with the card. */
