@@ -45,7 +45,26 @@ URLs were taken from the projects' own model-hub code by the spike agent; sizes 
 Licence of the weights (read by the main session in the maintainer's own issue replies):
 
 - **Reader:** "weights are MIT … you can use them commercially" — github.com/ankandrew/fast-plate-ocr/issues/99 (2026-10-20); "all custom fast-plate-ocr models weights are [MIT] too" — github.com/ankandrew/fast-alpr/issues/47.
-- **Detector:** no formal licence. Trained and exported with a fork of WongKinYiu/yolov9, which is GPL-3.0; the maintainer writes he is "no legal expert to know whether that applies" and suggests retraining a detector if in doubt — github.com/ankandrew/open-image-models/issues/22, fast-alpr/issues/47. Training data: not formally documented. **Unresolved — see DECISIONS.md O5.**
+- **Detector:** no formal licence. Trained and exported with a fork of WongKinYiu/yolov9, which is GPL-3.0; the maintainer writes he is "no legal expert to know whether that applies" and suggests retraining a detector if in doubt — github.com/ankandrew/open-image-models/issues/22, fast-alpr/issues/47. **Shipped as GPL-3.0 with its source (D45).**
+
+### Detector licence, re-checked 2026-11-13 (O5 → D45)
+
+Facts, each re-opened by a Fable sceptic:
+
+- **No licence added since.** open-image-models: `LICENSE` is MIT (code); the `assets` release body is only "Model repository."; no model licence file — api.github.com/repos/ankandrew/open-image-models, accessed 2026-11-13.
+- **The author's own part is MIT:** "from my end everything is MIT and you can use commercially … However, the YOLOv9 models here I guess depends if [WongKinYiu/yolov9's] license applies" — github.com/ankandrew/open-image-models/issues/20 (2026-06-08); "On my end code is MIT and data no problem" — issues/29 (2026-10-06).
+- **Asked often, answered the same way:** 17 licence questions across his three repositories since June 2026; newer ones are closed as duplicates. The question "trained from scratch or fine-tuned from pretrained YOLOv9?" (issues/22, 2026-10-24; issues/28) has no answer.
+- **The `.pt` checkpoint is published** in the same `assets` release (8,320,608 bytes). Read on 2026-11-13 as raw pickle opcodes, never loaded: model config `gelan-t.yaml`, class `models.yolo.DetectionModel`; `opt`, `git` and `date` are empty (stripped), so the starting weights are not recorded.
+- **Training data:** about 11k images "mostly from free/open datasets" (issues/14); the LocalizadorPatentes set is "most of what I have used" (issues/9); UFPR-ALPR not used (issues/24). Not published as a set.
+- **Upstream code:** github.com/ankandrew/yolov9 (GPL-3.0, last commit 2bac800, 2024-09-21) forks WongKinYiu/yolov9 (GPL-3.0), which contains Ultralytics YOLOv5 code. YOLOv9's authors also publish an MIT reimplementation, github.com/MultimediaTechLab/YOLO.
+- **GPL-3.0 text** (gnu.org/licenses/gpl-3.0.txt): §2 — the output of running a covered work is covered only if the output itself constitutes a covered work; private use without conveying is unrestricted. §0 — serving files to visitors is conveying. §6(d) — object code served from a network place needs the source offered with clear directions. §8 — a first violation is cured within 30 days of notice.
+
+Opinion and open law (not legal advice):
+
+- No court has ruled that weights trained with GPL code are GPL, and no enforcement over such weights was found. The strongest argument that the GPL applies: the end2end ONNX graph is traced from the GPL model code. Untested.
+- Whether weights are copyright works at all is unsettled: Hungarian Szjt. 1.§(3) and 4.§(1) protect a work from an author's own intellectual activity; Getty Images v Stability AI (UK) is on appeal, with no judgment yet as of 2026-11-13.
+
+Alternatives looked at (2026-11-13): no ready-made browser plate detector is clean on weights, training code and data together. OpenCV Zoo LPD-YuNet has Apache-2.0 weights but undocumented Chinese training data; an Apache-2.0 RT-DETR plate model on Open Images is 80 MB with weak scores. The clean path, if ever needed: train YOLOv9-t with MultimediaTechLab/YOLO (MIT) on Open Images "Vehicle registration plate" (annotations CC BY 4.0, images CC BY 2.0 with attribution), about 2–3 working days.
 
 ## Authority directory (M1, verified 2026-11-12)
 

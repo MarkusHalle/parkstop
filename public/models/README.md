@@ -15,11 +15,42 @@ except that the reader config is also stored as JSON for the browser.
 | `cct_v2_global_plate_config.yaml` (reader config) | https://github.com/ankandrew/cnn-ocr-lp/releases/download/arg-plates/cct_xs_v2_global_plate_config.yaml | 1725 | 0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6 |
 | `cct_v2_global_plate_config.json` | the YAML above converted with `yaml.safe_load` + `json.dump` | 1250 | (derived) |
 
+## Plate detector: GPL-3.0 and its source (D45)
+
+ParkStop treats the detector `yolo-v9-t-384-license-plates-end2end.onnx` as covered by the
+**GNU General Public License v3** (full text: `LICENSE-GPL-3.0.txt` in this folder). It was trained
+and exported by ankandrew with [ankandrew/yolov9](https://github.com/ankandrew/yolov9), a fork of
+[WongKinYiu/yolov9](https://github.com/WongKinYiu/yolov9) (GPL-3.0, which itself contains code from
+Ultralytics YOLOv5, GPL-3.0 at the time). Whether the GPL reaches trained weights is legally
+untested; ParkStop follows it anyway.
+
+The source of the detector is kept here, next to the model, as GPL-3.0 section 6 asks:
+
+| File in `source/` | What it is | Source URL | Bytes | sha256 |
+|---|---|---|---|---|
+| `ankandrew-yolov9-2bac800.zip` | The training and export code (fork at commit `2bac800489567ad3f078cbdc161f51904c15c255`, 2024-09-21, its latest) | https://github.com/ankandrew/yolov9/archive/2bac800489567ad3f078cbdc161f51904c15c255.zip | 2344472 (see note) | 0b375ead71bd674aa85ed704812c08c9510911124b77bb09455091a2c7aa88ee |
+| `yolo-v9-t-384-license-plates.pt` | The trained PyTorch checkpoint the ONNX file was exported from (training options stripped before release, so the starting weights are not recorded) | https://github.com/ankandrew/open-image-models/releases/download/assets/yolo-v9-t-384-license-plates.pt | 8320608 | 4d525da3ebe44fb6e6bfe8b05ca717b777db3feb2b44b472250f8b32f4754fdb |
+
+Note: GitHub builds archive zips on request; a fresh download of the same commit can differ in
+bytes. The sha256 above is of the copy kept here (downloaded 2026-11-13).
+
+The training data is described only in the maintainer's issue replies and is not published as
+a set: about 11k images "mostly from free/open datasets" ([#14](https://github.com/ankandrew/open-image-models/issues/14)); the set of
+[ankandrew/LocalizadorPatentes](https://github.com/ankandrew/LocalizadorPatentes) is "most of what I have used"
+([#9](https://github.com/ankandrew/open-image-models/issues/9)); UFPR-ALPR was not used ([#24](https://github.com/ankandrew/open-image-models/issues/24)).
+
 ## Licences
 
-- **Reader weights** (`cct_xs_v2_global.onnx`): MIT, according to the maintainer's statements in
-  [fast-plate-ocr#99](https://github.com/ankandrew/fast-plate-ocr/issues/99) and [fast-alpr#47](https://github.com/ankandrew/fast-alpr/issues/47); the training data is not documented.
-- **Detector weights** (`yolo-v9-t-384-…onnx`): no formal licence. They were trained with a GPL-3.0 YOLOv9 fork
-  ([open-image-models#22](https://github.com/ankandrew/open-image-models/issues/22)) on about 11k web images ([#14](https://github.com/ankandrew/open-image-models/issues/14)); whether GPL applies is unresolved.
+- **Detector weights** (`yolo-v9-t-384-…onnx`): no licence file from the author. His own part:
+  "from my end everything is MIT and you can use commercially" ([open-image-models#20](https://github.com/ankandrew/open-image-models/issues/20)),
+  "On my end code is MIT and data no problem" ([#29](https://github.com/ankandrew/open-image-models/issues/29)); on the GPL question he
+  is "no legal expert" ([#22](https://github.com/ankandrew/open-image-models/issues/22)). Shipped under GPL-3.0 as above.
+- **Reader weights** (`cct_xs_v2_global.onnx`): MIT, according to the maintainer in
+  [fast-plate-ocr#99](https://github.com/ankandrew/fast-plate-ocr/issues/99), [fast-alpr#47](https://github.com/ankandrew/fast-alpr/issues/47) and [open-image-models#20](https://github.com/ankandrew/open-image-models/issues/20); the training data is
+  a custom set plus synthetic plates, not published.
+- **Code** of open-image-models, fast-plate-ocr and fast-alpr (whose pre- and post-processing
+  `src/plate/pipeline.ts` ports): MIT, see `LICENSE-open-image-models.txt`,
+  `LICENSE-fast-plate-ocr.txt` and `LICENSE-fast-alpr.txt`.
 
-The code of both projects is MIT: see `LICENSE-open-image-models.txt` and `LICENSE-fast-plate-ocr.txt`.
+All third-party parts of ParkStop are listed in `THIRD-PARTY-NOTICES.md` at the root of the
+source repository.
