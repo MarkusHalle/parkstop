@@ -42,12 +42,15 @@
   font-size: 12px;
   line-height: 16px;
 }
-/* Folded: just the round (i) button, centred in the 32 px circle (2 px all round inside the
-   1 px border). Placed absolutely: MapLibre's own button rules shift it in the flex flow. */
+/* The round (i) button sits in the top right corner, 2 px inside the 1 px border, folded and
+   open alike: folded that centres it in the 32 px circle; open it is on the first line. Placed
+   absolutely, so it is never pushed out of the card while the card grows (owner: unfolding was
+   not smooth); the open card keeps room for it on the right. */
 .ps-map .maplibregl-ctrl-attrib.maplibregl-compact {
   position: relative;
+  padding-right: 34px;
 }
-.ps-map .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-button {
+.ps-map .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button {
   position: absolute;
   top: 2px;
   right: 2px; /* right, not left: it stays put while the card shrinks into the circle */
@@ -68,7 +71,7 @@
 }
 .ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show {
   align-items: flex-start;
-  padding: 6px 2px 6px 8px;
+  padding: 6px 34px 6px 8px;
   font-size: 11px;
   line-height: 15px;
 }
@@ -83,9 +86,6 @@
 .ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .ps-attr-label {
   margin-top: 5px;
   margin-bottom: -2px;
-}
-.ps-map--phone .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
-  margin-top: -4px;
 }
 .ps-map .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner {
   display: none;

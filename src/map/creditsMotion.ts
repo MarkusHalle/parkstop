@@ -17,12 +17,29 @@ export function animateCreditsFold(root: HTMLElement): () => void {
   const ro = new ResizeObserver(() => {
     if (anim?.playState !== 'running') last = el.getBoundingClientRect()
   })
+  // MapLibre switches the class first and opens the <details> element after it, so the new size
+  // is only known a moment later (measuring at once gave a small box that then jumped to full
+  // size). Hold the card at its old size until the next frame, then measure and animate.
+  let pending = 0
   const mo = new MutationObserver(() => {
+    if (reduced.matches || pending) return
     const from = last
+    anim?.cancel()
+    el.style.width = `${from.width}px`
+    el.style.height = `${from.height}px`
+    el.style.overflow = 'hidden'
+    pending = requestAnimationFrame(() => {
+      pending = 0
+      el.style.width = ''
+      el.style.height = ''
+      el.style.overflow = ''
+      run(from)
+    })
+  })
+  const run = (from: DOMRect) => {
     const to = el.getBoundingClientRect()
     last = to
-    if (reduced.matches || (Math.abs(from.width - to.width) < 2 && Math.abs(from.height - to.height) < 2)) return
-    anim?.cancel()
+    if (Math.abs(from.width - to.width) < 2 && Math.abs(from.height - to.height) < 2) return
     const open = el.classList.contains('maplibregl-compact-show')
     anim = el.animate(
       [
@@ -37,12 +54,13 @@ export function animateCreditsFold(root: HTMLElement): () => void {
     if (open && inner) {
       inner.animate([{ opacity: 0 }, { opacity: 0, offset: 0.55 }, { opacity: 1 }], { duration: 440, easing: 'ease' })
     }
-  })
+  }
   ro.observe(el)
-  mo.observe(el, { attributes: true, attributeFilter: ['class'] })
+  mo.observe(el, { attributes: true, attributeFilter: ['class', 'open'] })
   return () => {
     ro.disconnect()
     mo.disconnect()
+    cancelAnimationFrame(pending)
     anim?.cancel()
   }
 }
