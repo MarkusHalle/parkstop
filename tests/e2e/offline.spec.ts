@@ -8,6 +8,17 @@ test('opens offline from the service worker, form and history work', async ({ pa
   await placePinBySearch(page)
   await fillReport(page)
   await toMailStep(page) // saves the draft with the plate and the offence
+  // The save is asynchronous: wait until the stored draft has the plate before leaving the page
+  // (on CI the reload below sometimes came first and the older copy without it was read).
+  await expect.poll(() => page.evaluate(() => new Promise<string[]>((resolve) => {
+    const open = indexedDB.open('parkstop')
+    open.onerror = () => resolve([])
+    open.onsuccess = () => {
+      const get = open.result.transaction('reports').objectStore('reports').getAll()
+      get.onsuccess = () => { resolve((get.result as { form?: { plate?: string } }[]).map((r) => r.form?.plate ?? '')); open.result.close() }
+      get.onerror = () => { resolve([]); open.result.close() }
+    }
+  })), { timeout: 10_000 }).toContain(PLATE)
 
   await context.setOffline(true)
   await page.goto('/')
