@@ -95,6 +95,7 @@ Exit: a full report can be made end to end on PC and phone with one photo.
 | # | Task | SPEC | Model · effort | Agents | Est. | Actual | Status |
 |---|---|---|---|---|---|---|---|
 | 6.1 | Owner's review of the live site: Hungarian proofread (no Hunglish, AkH spelling and typography); GPS button in the map button column; Google-Maps-like rotate and tilt with a compass; restyled OSM (i) credits; capital-road band above the roads; more readable e-mail layout (D48) | 4.1, 4.5, 7, 9 | Opus · medium | 1 Opus proofreader (148k agent tokens) | 30–45 min · 8–12 % | Main session ~14 min + proofreader ~7 min in parallel, ~4 % of the 5-hour window. Owner chose option A for the yellow roads, kept "licenc", GPS top right on the phone | ☑ |
+| 6.2 | Map polish from the owner's second look: (i) button centred and on the text line, credits separated with middle dots, solid yellow band (no overlap blotches), gaps in the capital-road band closed with display-only links (D49) | 4.1, 5 | Opus · medium | 1 Opus data agent (two rounds, ~540k agent tokens) | 30–45 min · 10–15 % | Main session ~15 min, data agent ~17 min. 53 gap bridges + 186 junction links (4.7 km, display-only); loose ends facing a capital road 867 → 582; 4 flyover sections now cut to the decree; resolver unchanged for the 30 owner points | ☑ |
 
 ## Backlog
 

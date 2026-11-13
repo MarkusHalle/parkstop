@@ -268,7 +268,9 @@ export function createResolver(data: ResolverData): Resolver {
   roadFeatures.forEach((f, i) => {
     // Tunnels are underground: a pin above one (e.g. Szent György tér over the Alagút) is
     // not on the road (sceptic 2.3).
-    if (f.properties.kind === 'tunnel') return
+    // Links are display-only stretches that close gaps in the drawn band (D49); they are not
+    // in the decree row's own geometry and never decide who is responsible.
+    if (f.properties.kind === 'tunnel' || f.properties.kind === 'link') return
     const lines = f.geometry.type === 'LineString' ? [f.geometry.coordinates] : f.geometry.coordinates
     if (f.properties.area === true) {
       areas.push({ owner: i, rings: lines, bbox: bboxOf(lines.flat()) })

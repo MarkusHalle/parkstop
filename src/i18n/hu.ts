@@ -72,8 +72,9 @@ export const hu = {
     resetNorth: 'Észak felfelé, térkép kiegyenesítése',
     legendCapital: 'fővárosi kezelésű út',
     attribution:
-      '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> ' +
-      '<a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> ' +
+      // Middle dots between the three credits, so "Adatok:" does not run into the link before it.
+      '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · ' +
+      '<a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> · ' +
       'Adatok: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap közreműködők</a>',
     attributionToggle: 'Térképadatok forrása',
     pinLabel: 'Jelölő – húzd a pontos helyre, vagy mozgasd a nyílbillentyűkkel',

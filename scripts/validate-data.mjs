@@ -10,7 +10,8 @@ const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'
   'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII']
 const TYPES = new Set(['district', 'fori', 'police'])
 const CAPITAL_ROADS = new Set(['fori', 'district', 'both', 'unknown'])
-const KINDS = new Set(['road', 'bridge', 'square', 'tunnel', 'other'])
+// 'link': display-only stretch closing a gap in the drawn band, ignored by the resolver (D49).
+const KINDS = new Set(['road', 'bridge', 'square', 'tunnel', 'other', 'link'])
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 // Deliberately simple: one @, no spaces, a dot in the domain.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -179,6 +180,8 @@ function checkCapitalRoads(geo, errors) {
     if (p.cutApprox && !p.cutApplied) e(`${at}: cutApprox without cutApplied`)
     if ('osmWays' in p) e(`${at}: osmWays belongs in the audit report, not the shipped file`)
     if (!KINDS.has(p.kind)) e(`${at}: bad kind ${p.kind}`)
+    // A display-only link (D49) belongs to a decree row that has its own feature.
+    if (p.kind === 'link' && !geo.features.some((o) => o.properties?.kind !== 'link' && o.properties?.annex === p.annex && o.properties?.row === p.row)) e(`${at}: link without its row's own feature`)
     const g = f.geometry
     if (!g || !['LineString', 'MultiLineString'].includes(g.type)) { e(`${at}: geometry must be LineString or MultiLineString`); continue }
     const lines = g.type === 'LineString' ? [g.coordinates] : g.coordinates
@@ -221,7 +224,7 @@ export function validateData(dataDir, today = new Date().toISOString().slice(0, 
 // otherwise the resolver could never apply the district override.
 function checkCrossRefs(auth, roads, errors) {
   if (!auth || !Array.isArray(auth.districtRules) || !roads || !Array.isArray(roads.features)) return
-  const have = new Set(roads.features.map((f) => `${f.properties?.annex}/${f.properties?.row}`))
+  const have = new Set(roads.features.filter((f) => f.properties?.kind !== 'link').map((f) => `${f.properties?.annex}/${f.properties?.row}`))
   for (const r of auth.districtRules) {
     if (r.capitalRoads === 'both' && (!Array.isArray(r.districtActsOn) || r.districtActsOn.length === 0)) {
       errors.push(`authorities.json: district ${r.district} has capitalRoads "both" but no districtActsOn list`)

@@ -20,7 +20,8 @@ const points: Pt[] = fixture.points
 const districtOf = (ll: [number, number]) =>
   districts.features.find((f: Feature<Polygon | MultiPolygon>) => booleanPointInPolygon(point(ll), f))?.properties.district ?? null
 const budapest = { type: 'Feature', properties: {}, geometry: districts.budapest } as Feature<Polygon | MultiPolygon>
-const parts: { id: string; l: ReturnType<typeof lineString> }[] = roads.features.flatMap(
+// Display-only links (kind 'link', D49) are not capital roads for the resolver.
+const parts: { id: string; l: ReturnType<typeof lineString> }[] = roads.features.filter((f: { properties: { kind: string } }) => f.properties.kind !== 'link').flatMap(
   (f: { properties: { annex: number; row: string }; geometry: { type: string; coordinates: number[][] | number[][][] } }) =>
     (f.geometry.type === 'LineString' ? [f.geometry.coordinates as number[][]] : (f.geometry.coordinates as number[][][])).map((c) => ({
       id: `${f.properties.annex}/${f.properties.row}`,

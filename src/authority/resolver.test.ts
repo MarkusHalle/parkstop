@@ -33,7 +33,7 @@ const real = createResolver(realData)
 const roadDistance = (key: string, lon: number, lat: number) =>
   Math.min(
     ...realData.roads.features
-      .filter((f) => `${f.properties.annex}/${f.properties.row}` === key)
+      .filter((f) => f.properties.kind !== 'link' && `${f.properties.annex}/${f.properties.row}` === key)
       .flatMap((f: Feature<LineString | MultiLineString, RoadProps>) =>
         f.geometry.type === 'LineString' ? [f.geometry.coordinates] : f.geometry.coordinates,
       )
@@ -178,6 +178,7 @@ function synth(change?: (a: AuthoritiesData) => void) {
         road('10', 650, 500, 900), // listed "full" in district 1
         road('11', 650.5, 600, 800), // listed "narrower" in district 1, 0.5 m beside row 10
         road('13', 100, 900, 1100), // listed "full" in district 1, crosses the border into district 2
+        road('14', 950, 1200, 1400, { kind: 'link' }), // display-only link (D49), not a capital road
       ],
     },
     authorities,
@@ -186,6 +187,12 @@ function synth(change?: (a: AuthoritiesData) => void) {
 
 describe('resolver rules on synthetic data', () => {
   const r = synth()
+
+  it('a display-only link is not a capital road: a pin on it is a district street (D49)', () => {
+    const res = resolved(r(P(1300, 950), opts))
+    expect(res).toMatchObject({ district: 2, reason: { code: 'district-street' }, confidence: 'biztos' })
+    expect(res.primary.id).toBe('district-02')
+  })
 
   it('outside the city outline', () => {
     expect(r(P(2100, 300), opts)).toEqual({ kind: 'outside' })
@@ -466,6 +473,24 @@ describe('resolver: sceptic regressions (real data)', () => {
 
   it('a listed square stays bizonytalan', () => {
     expect(at(47.503634, 19.079608)).toMatchObject({ primary: { id: 'district-07' }, confidence: 'bizonytalan' })
+  })
+
+  it('a pin on a display-only link stretch is not on a capital road (D49)', () => {
+    // Every link feature in the shipped data: its middle vertex resolves as if the link were
+    // not there (compare with the same data without links).
+    const links = realData.roads.features.filter((f) => f.properties.kind === 'link')
+    expect(links.length).toBeGreaterThan(0)
+    const noLinks = createResolver({ ...realData, roads: { ...realData.roads, features: realData.roads.features.filter((f) => f.properties.kind !== 'link') } })
+    for (const f of links) {
+      const line = f.geometry.type === 'LineString' ? f.geometry.coordinates : f.geometry.coordinates[0]
+      const [lon, lat] = line[Math.floor(line.length / 2)]
+      const res = real({ lat, lon }, opts)
+      expect(res).toEqual(noLinks({ lat, lon }, opts))
+      if (res.kind === 'resolved' && 'road' in res.reason) expect(res.reason.road.kind).not.toBe('link')
+    }
+    // Batthyány tér, on the link that carries the Fő utca band (2/25) across the square.
+    const batthyany = resolved(real({ lat: 47.506357, lon: 19.038201 }, opts))
+    expect('road' in batthyany.reason && batthyany.reason.road.annex === 2 && batthyany.reason.road.row === '25').toBe(false)
   })
 
   it('a pin above the Alagút is not on the tunnel road', () => {

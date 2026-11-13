@@ -107,6 +107,17 @@ describe('validate-data', () => {
     expect(run(f).join('\n')).toMatch(/row 2\/999 is not a capital-road feature/)
   })
 
+  it('accepts a display-only link of an existing row, rejects one without its row (D49)', () => {
+    const f = validFixture()
+    const own = f.roads.features[0] as { properties: Record<string, unknown>; geometry: unknown }
+    own.properties = { ...own.properties, annex: 2, row: '1' }
+    const link = (row: string) => ({ type: 'Feature', properties: { ...own.properties, row, kind: 'link' }, geometry: own.geometry })
+    f.roads.features.push(link('1') as (typeof f.roads.features)[number])
+    expect(run(f)).toEqual([])
+    f.roads.features.push(link('2') as (typeof f.roads.features)[number])
+    expect(run(f).join('\n')).toMatch(/link without its row's own feature/)
+  })
+
   it('rejects swapped coordinates in the district file', () => {
     const f = validFixture()
     f.districtsGeo.features[0].geometry.coordinates = [[[47.5, 19.0], [47.5, 19.01], [47.51, 19.01], [47.5, 19.0]]]

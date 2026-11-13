@@ -25,12 +25,13 @@ const MAX_BOUNDS: [[number, number], [number, number]] = [
   [18.7, 47.25],
   [19.5, 47.75],
 ]
-const CAPITAL_COLOR = '#F0B33A' // keep in step with --c-capital-road
-// Capital roads: a see-through band drawn on top of the base style's roads (owner, option A),
-// so the road stays visible under it and the street names above it.
-const CAPITAL_PAINT: Record<ResolvedTheme, { color: string; opacity: number; width: number }> = {
-  light: { color: CAPITAL_COLOR, opacity: 0.55, width: 1 },
-  dark: { color: '#FFC233', opacity: 0.6, width: 1 },
+// Capital roads: a band on top of the base style's roads, below the street names (owner,
+// option A). Solid colours: MapLibre applies line-opacity per feature, so a see-through band
+// darkened wherever two ways overlap (junctions, way ends) and looked painted over twice.
+// Keep in step with --c-capital-road in theme.css.
+const CAPITAL_PAINT: Record<ResolvedTheme, { color: string; width: number }> = {
+  light: { color: '#F2C14E', width: 1 },
+  dark: { color: '#C99A2E', width: 1 },
 }
 /** Phone: map padding under the floating search box, so the pin is centred below it. */
 const PHONE_TOP_PAD = 72
@@ -575,9 +576,8 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
           'line-color': paint.color,
-          // Zoomed out, most visible roads are capital-managed: keep the band thin and faint there.
-          'line-opacity': ['interpolate', ['linear'], ['zoom'], 12, 0.3, 15, paint.opacity],
-          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5 * paint.width, 15, 5 * paint.width, 18, 14 * paint.width],
+          // Zoomed out, most visible roads are capital-managed: keep the band thin there.
+          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1 * paint.width, 15, 4 * paint.width, 18, 10 * paint.width],
         },
       },
       before,

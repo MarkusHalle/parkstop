@@ -11,7 +11,7 @@ type RoadProps = {
   cutApplied: boolean
   cutApprox: boolean
   section: string | null
-  kind: 'road' | 'bridge' | 'square' | 'tunnel' | 'other'
+  kind: 'road' | 'bridge' | 'square' | 'tunnel' | 'other' | 'link'
 }
 type Road = Feature<LineString | MultiLineString, RoadProps>
 type Unmatched = { annex: number; row: string; name: string; reason: string }
@@ -32,7 +32,11 @@ const report = read('../../scripts/data/capital-roads-report.json') as {
   osmWays: Record<string, number[]>
 }
 const expectedUnmatched = read('../../scripts/data/capital-roads-expected-unmatched.json') as { row: string }[]
-const roads = fc.features as Road[]
+// `kind: 'link'` features are display-only stretches that close gaps in the drawn band (D49);
+// the resolver ignores them, so the row checks below use the rows' own features.
+const all = fc.features as Road[]
+const links = all.filter((f) => f.properties.kind === 'link')
+const roads = all.filter((f) => f.properties.kind !== 'link')
 const key = (p: { annex: number; row: string }) => `${p.annex}/${p.row}`
 
 const linesOf = (r: Road) => (r.geometry.type === 'LineString' ? [r.geometry.coordinates] : r.geometry.coordinates)
@@ -86,7 +90,7 @@ describe('capital-roads.geojson', () => {
   })
 
   it('has exactly the agreed properties on every feature', () => {
-    for (const f of roads) {
+    for (const f of all) {
       // `area: true` marks a hand-placed square or area (closed outline rings, read as a polygon).
       const area = 'area' in f.properties
       expect(Object.keys(f.properties).sort()).toEqual(
@@ -98,12 +102,12 @@ describe('capital-roads.geojson', () => {
       if (p.cutApplied) expect(p.partial).toBe(true)
       if (p.cutApprox) expect(p.cutApplied).toBe(true)
       if (p.partial) expect(p.section).not.toBeNull()
-      expect(['road', 'bridge', 'square', 'tunnel', 'other']).toContain(p.kind)
+      expect(['road', 'bridge', 'square', 'tunnel', 'other', 'link']).toContain(p.kind)
     }
   })
 
   it('has valid line geometry inside Budapest, rounded to 6 decimals', () => {
-    for (const f of roads) {
+    for (const f of all) {
       for (const line of linesOf(f)) {
         expect(line.length).toBeGreaterThanOrEqual(2)
         for (const [lon, lat] of line) {
@@ -173,6 +177,24 @@ describe('capital-roads.geojson', () => {
     ['Kelenhegyi út far from its Somlói út section (row 2/574)', 47.48342, 19.04342],
   ])('%s is more than 15 m from every capital road', (_label, lat, lon) => {
     expect(near(lat, lon).metres).toBeGreaterThan(15)
+  })
+
+  it('has at most one short display-only link per row, each next to its row (D49)', () => {
+    expect(links.length).toBeGreaterThan(0)
+    const seen = new Set<string>()
+    for (const l of links) {
+      const k = key(l.properties)
+      expect(seen.has(k)).toBe(false)
+      seen.add(k)
+      const own = roads.find((r) => key(r.properties) === k)!
+      expect(own).toBeDefined()
+      expect({ ...l.properties, kind: own.properties.kind }).toEqual(own.properties)
+      // Every link line touches the row's own geometry (within 3 m) at one end at least.
+      for (const line of linesOf(l)) {
+        const d = Math.min(...[line[0], line.at(-1)!].map((p) => Math.min(...linesOf(own).map((c) => pointToLineDistance(p, c, { units: 'meters' })))))
+        expect(d).toBeLessThanOrEqual(3)
+      }
+    }
   })
 
   it('keeps bridges whole across district borders', () => {

@@ -193,7 +193,7 @@ from `fast-plate-ocr`), run in the browser with ONNX Runtime Web.
 | File | Content | Source |
 |---|---|---|
 | `data/districts.geojson` | 23 district polygons, simplified, plus the Budapest outline (top-level `budapest` member) | OpenStreetMap (ODbL) |
-| `data/capital-roads.geojson` | Line geometry of capital-managed roads, with `partial` flag for roads listed only between two junctions | Names from Decree 432/2012 annexes 1–2, geometry from OpenStreetMap, built by script |
+| `data/capital-roads.geojson` | Line geometry of capital-managed roads, with `partial` flag for roads listed only between two junctions; `kind: 'link'` features are short display-only stretches that close gaps on the map and are ignored when deciding responsibility (D49) | Names from Decree 432/2012 annexes 1–2, geometry from OpenStreetMap, built by script |
 | `data/authorities.json` | One record per body: id, name, type (`district` / `fori` / `police`), district(s), e-mail, phone, web, `sourceUrl`, `verifiedOn`, per-district rule overrides | Official websites only |
 | `data/violations.json` | Offence types, Hungarian label, template sentence, legal reference | KRESZ (1/1975 KPM–BM), verified in M1 |
 | `public/models/*.onnx` | Plate detector and plate text reader | fast-alpr project (`open-image-models`, `fast-plate-ocr`); licence and exact files confirmed in spike S3 |

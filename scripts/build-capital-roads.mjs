@@ -26,6 +26,14 @@
 // 45 m corridor so both carriageways are kept, trimmed to at most 10 m past either end, then
 // clipped to the district (+25 m; bridges are kept whole). An end placed by closest approach,
 // by the road's nearest point to a border, or by an approximate override sets cutApprox.
+// A junction "X úti felüljáró" on road X itself is the start of X's own bridge ways.
+//
+// Gaps (display only, D49): where OSM gives a short stretch of the road another name or none
+// (junction, roundabout, square, bridge), the row's pieces are joined over the shortest OSM
+// carriageway path of at most 150 m that continues the road in line ("bridges"), and a row end
+// that stops short of another capital row is joined to it over at most 25 m ("junctionLinks").
+// Both are written as separate `kind: 'link'` features that the resolver ignores
+// (GAP_DIAG=<file> also writes the refused bridge candidates).
 //
 // Rows listed in scripts/data/capital-roads-osm-places.json (squares, parking areas, unnamed
 // connector roads) skip the name rules: their reviewed OSM way / relation ids are fetched in a
@@ -911,7 +919,17 @@ function junctionNodes(text, g, ctx) {
       if (jw.length) break
     }
   }
-  if (!jw.length) return { error: `junction "${t}" not found in OpenStreetMap near the road` }
+  if (!jw.length) {
+    // "Csömöri úti felüljáró" on Csömöri út itself: the road's own flyover, i.e. its own
+    // bridge ways, which the rule above leaves out because they carry the road's name.
+    const street = overpassStreet(t)
+    if (street && ctx.name && norm(street) === norm(ctx.name)) {
+      const own = new Set([...ctx.wayIds].map((id) => wayById.get(id)).filter((w) => w.tags.bridge && w.tags.bridge !== 'no').flatMap((w) => w.nodes.map((n) => `n${n}`)))
+      const nodes = new Set([...g.pos.keys()].filter((k) => own.has(k)))
+      if (nodes.size) return { nodes, variant: `junction "${t}" taken as the road's own bridge ways` }
+    }
+    return { error: `junction "${t}" not found in OpenStreetMap near the road` }
+  }
   const jNodes = new Set(jw.flatMap((w) => w.nodes.map((n) => `n${n}`)))
   let nodes = new Set([...g.pos.keys()].filter((k) => jNodes.has(k)))
   let approx = false
@@ -1166,7 +1184,7 @@ for (const [label, { item, cls, region, cands }] of byRow) {
     unmatched.push({ annex: item.annex, row: item.row, name: item.name, reason: 'matching ways lie outside the district' })
     continue
   }
-  const ctx = { wayIds: new Set(cands.map((w) => w.id)), region, byName: cls.type !== 'ref' }
+  const ctx = { wayIds: new Set(cands.map((w) => w.id)), region, byName: cls.type !== 'ref', name: cls.name ?? cls.of ?? null }
   const ov = OVERRIDES[label] ?? {}
   // "X – X" (a loop leaving and rejoining the same road) is the whole road.
   const loop = item.from !== null && item.from === item.to
@@ -1240,8 +1258,330 @@ for (const [label, { item, cls, region, cands }] of byRow) {
     const far = groups.length > 1 && groups.some((a, i) => groups.some((b, j) => j > i && !a.some((w) => b.some((w2) => boxesMeet(w.bbox, w2.bbox, 300)))))
     if (far) ambiguous.push({ row: label, name: item.name, clusters: groups.length })
   }
-  results.push({ item, cls, selected, partial, cutApplied, cutApprox })
+  results.push({ item, cls, selected, partial, cutApplied, cutApprox, clipRegion, cands })
 }
+
+// --- gap bridging -----------------------------------------------------------------------
+// The name rules leave a road in pieces wherever OpenStreetMap gives a short stretch of it
+// another name or none: the junction area, a roundabout, a slip lane, a short bridge. Two
+// pieces of one row are joined by the shortest OSM path between a loose end of one piece and
+// the other piece when all of this holds (D49):
+//   - the path is at most BRIDGE_MAX m long and runs only over carriageways (BRIDGE_CLASS; no
+//     motorway, service, footway, pedestrian or track);
+//   - it heads on from the end: the end's outward direction and the straight line to the
+//     other piece differ by at most BRIDGE_ANGLE degrees, and the same holds at the other
+//     piece's end (so the two carriageways of a dual road are never joined sideways);
+//   - it is no detour: length <= 1.5 x the straight distance + 20 m, and it keeps within
+//     max(20 m, half the straight distance) of that straight line (a parallel street or a
+//     cross street fails this);
+//   - it crosses other streets but does not follow them: at most BRIDGE_STREET_MAX m of it run
+//     on named ways other than roundabouts, bridges and squares (a road interrupted by a
+//     square or a roundabout is bridged across it; a same-name side road is not taken);
+//   - it stays inside the row's district (+25 m), like the rest of the row.
+// Only pieces already selected are joined, so a partial row never grows past its section
+// ends. Rows of squares, ramps and service roads are left as they are (their pieces are
+// separate by nature).
+// Every bridge is DISPLAY ONLY: it is written as its own feature with the row's annex, row and
+// name and `kind: 'link'`, which the resolver skips (like tunnels). The map draws it; who is
+// responsible for a pin is decided by the rows' own geometry alone.
+const BRIDGE_MAX = 150
+const BRIDGE_ANGLE = 45
+const BRIDGE_STREET_MAX = 25
+const BRIDGE_CLASS = /^(trunk|primary|secondary|tertiary|unclassified|residential|living_street|road)(_link)?$/
+const GRID = 500
+const wayGrid = new Map()
+for (const w of ways) {
+  if (!BRIDGE_CLASS.test(w.tags.highway) || w.tags.area === 'yes') continue
+  for (let gx = Math.floor(w.bbox[0] / GRID); gx <= Math.floor(w.bbox[2] / GRID); gx++)
+    for (let gy = Math.floor(w.bbox[1] / GRID); gy <= Math.floor(w.bbox[3] / GRID); gy++) addTo(wayGrid, `${gx},${gy}`, w)
+}
+function waysNear(b, buf) {
+  const out = new Set()
+  for (let gx = Math.floor((b[0] - buf) / GRID); gx <= Math.floor((b[2] + buf) / GRID); gx++)
+    for (let gy = Math.floor((b[1] - buf) / GRID); gy <= Math.floor((b[3] + buf) / GRID); gy++)
+      for (const w of wayGrid.get(`${gx},${gy}`) ?? []) if (boxesMeet(w.bbox, b, buf)) out.add(w)
+  return [...out]
+}
+const bridges = []
+const gapDiag = []
+const edgeKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`)
+
+/** Splits selected pieces into connected parts (shared nodes, or ends within 3 m). */
+function partsOf(segs) {
+  const parent = new Map()
+  const find = (x) => {
+    while (parent.get(x) !== x) {
+      parent.set(x, parent.get(parent.get(x)))
+      x = parent.get(x)
+    }
+    return x
+  }
+  const union = (a, b) => parent.set(find(a), find(b))
+  const pos = new Map()
+  const sadj = new Map()
+  for (const s of segs) {
+    for (const [k, p] of [[s.a, s.p], [s.b, s.q]]) {
+      if (!parent.has(k)) parent.set(k, k)
+      pos.set(k, p)
+    }
+    addTo(sadj, s.a, s.b)
+    addTo(sadj, s.b, s.a)
+    union(s.a, s.b)
+  }
+  const cell = new Map()
+  for (const [k, p] of pos) addTo(cell, `${Math.floor(p[0] / 3)},${Math.floor(p[1] / 3)}`, k)
+  for (const [k, p] of pos) {
+    const cx = Math.floor(p[0] / 3)
+    const cy = Math.floor(p[1] / 3)
+    for (let dx = -1; dx <= 1; dx++)
+      for (let dy = -1; dy <= 1; dy++)
+        for (const k2 of cell.get(`${cx + dx},${cy + dy}`) ?? []) {
+          const q = pos.get(k2)
+          if (Math.hypot(q[0] - p[0], q[1] - p[1]) <= 3) union(k, k2)
+        }
+  }
+  return { pos, sadj, find }
+}
+
+/** Unit vector from node k into the piece through neighbour n, over its first ~20 m. */
+function inwardAt(k, n, sadj, pos) {
+  let prev = k
+  let cur = n
+  let run = Math.hypot(pos.get(n)[0] - pos.get(k)[0], pos.get(n)[1] - pos.get(k)[1])
+  while (run < 20) {
+    const next = sadj.get(cur).filter((x) => x !== prev)
+    if (next.length !== 1 || next[0] === k) break
+    run += Math.hypot(pos.get(next[0])[0] - pos.get(cur)[0], pos.get(next[0])[1] - pos.get(cur)[1])
+    prev = cur
+    cur = next[0]
+  }
+  const p = pos.get(k)
+  const q = pos.get(cur)
+  const len = Math.hypot(q[0] - p[0], q[1] - p[1])
+  return len < 3 ? null : [(q[0] - p[0]) / len, (q[1] - p[1]) / len]
+}
+
+function bridgeGaps(r) {
+  const label = `${r.item.annex}/${r.item.row}`
+  if (!(r.cls.type === 'name' || r.cls.type === 'ref') || r.cls.kind === 'square' || r.selected.length < 2) return
+  const { pos, sadj, find } = partsOf(r.selected)
+  if (new Set([...pos.keys()].map(find)).size < 2) return
+  const ends = [...pos.keys()].filter((k) => sadj.get(k).length === 1)
+  const g = buildGraph([...new Set([...waysNear(bboxOf([...pos.values()]), BRIDGE_MAX + 50), ...r.cands])], () => true)
+  const segByEdge = new Map(g.segs.map((s) => [edgeKey(s.a, s.b), s]))
+  const taken = new Set(r.selected.map((s) => edgeKey(s.a, s.b)))
+  const cosMax = Math.cos((BRIDGE_ANGLE * Math.PI) / 180)
+  const found = []
+  for (const e of ends) {
+    if (!g.pos.has(e)) continue
+    // Shortest paths from this end, not along the row's own pieces, stopping at the first
+    // selected node reached.
+    const dist = new Map([[e, 0]])
+    const prev = new Map()
+    const heap = [[0, e]]
+    const hits = []
+    while (heap.length) {
+      let bi = 0
+      for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i
+      const [d, k] = heap[bi]
+      heap[bi] = heap.at(-1)
+      heap.pop()
+      if (d > dist.get(k)) continue
+      if (k !== e && pos.has(k)) {
+        if (find(k) !== find(e)) hits.push(k)
+        continue
+      }
+      for (const ed of g.adj.get(k) ?? []) {
+        if (taken.has(edgeKey(k, ed.to))) continue
+        const nd = d + ed.w
+        if (nd > BRIDGE_MAX || nd >= (dist.get(ed.to) ?? Infinity)) continue
+        dist.set(ed.to, nd)
+        prev.set(ed.to, k)
+        heap.push([nd, ed.to])
+      }
+    }
+    const ie = inwardAt(e, sadj.get(e)[0], sadj, pos)
+    for (const f of hits) {
+      const path = [f]
+      while (path.at(-1) !== e) path.push(prev.get(path.at(-1)))
+      const segs = []
+      for (let i = 1; i < path.length; i++) segs.push(segByEdge.get(edgeKey(path[i - 1], path[i])))
+      const L = dist.get(f)
+      const pe = pos.get(e)
+      const pf = pos.get(f)
+      const d = Math.hypot(pf[0] - pe[0], pf[1] - pe[1])
+      const u = d > 0 ? [(pf[0] - pe[0]) / d, (pf[1] - pe[1]) / d] : [0, 0]
+      const why = []
+      if (L > 1.5 * d + 20) why.push('detour')
+      // The piece must end here and the other piece must start there, both in line with the
+      // gap: at f every branch of the other piece leads on (a fork into two carriageways is
+      // fine; the side of a passing road is not).
+      if (ie && -(ie[0] * u[0] + ie[1] * u[1]) < cosMax) why.push('turns off at the end')
+      if (!sadj.get(f).every((n) => {
+        const v = inwardAt(f, n, sadj, pos)
+        return !v || v[0] * u[0] + v[1] * u[1] >= cosMax
+      })) why.push('does not lead on at the other piece')
+      const dev = Math.max(...path.map((k) => segDist(g.pos.get(k)[0], g.pos.get(k)[1], pe[0], pe[1], pf[0], pf[1])))
+      if (dev > Math.max(20, d / 2)) why.push('leaves the straight line')
+      if (!segs.every((s) => inRegion(s.mid, r.clipRegion, 25))) why.push('outside the district')
+      // A street of its own (or a same-name side road the cut left out) may only be crossed,
+      // not followed: at most BRIDGE_STREET_MAX m of the path may run on a named way that is
+      // not a roundabout, a bridge or a square.
+      let street = 0
+      for (const s of segs) {
+        const t = wayById.get(s.way).tags
+        if (t.name && !/^(roundabout|circular)$/.test(t.junction ?? '') && !(t.bridge && t.bridge !== 'no') && !/ (tér|tere|körtér|körönd)$/.test(t.name)) street += s.len
+      }
+      if (street > BRIDGE_STREET_MAX) why.push(`follows a street for ${Math.round(street)} m`)
+      found.push({ e, f, L, d, dev, segs, why })
+    }
+  }
+  // Each loose end takes its shortest valid bridge (so both carriageways of a dual road are
+  // joined across a junction, not only the first); the same path found from both of its ends
+  // is added once.
+  found.sort((a, b) => a.L - b.L)
+  const done = new Set()
+  const seen = new Set()
+  const added = []
+  for (const c of found) {
+    const id = c.segs.map((s) => edgeKey(s.a, s.b)).sort().join()
+    if (done.has(c.e) || seen.has(id)) continue
+    const wayIds = [...new Set(c.segs.map((s) => s.way))]
+    const wayTags = wayIds.map((id) => wayById.get(id).tags)
+    const diag = {
+      row: label,
+      name: r.item.name,
+      metres: Math.round(c.L),
+      straight: Math.round(c.d),
+      at: unproj(pos.get(c.e)).map((v) => +v.toFixed(6)).reverse(),
+      ways: wayTags.map((t) => `${t.highway}${t.junction ? '/' + t.junction : ''}${t.bridge && t.bridge !== 'no' ? '/bridge' : ''}:${t.name ?? '-'}`),
+      cause: gapCause(wayTags, r),
+      why: c.why,
+    }
+    gapDiag.push(diag)
+    if (c.why.length) continue
+    seen.add(id)
+    done.add(c.e)
+    if (sadj.get(c.f).length === 1) done.add(c.f)
+    added.push(...c.segs)
+    bridges.push({ row: label, metres: Math.round(c.L), cause: diag.cause, at: diag.at, ways: wayIds.sort((a, b) => a - b) })
+  }
+  // Display only (D49): drawn as a separate `kind: 'link'` feature, never part of the row's
+  // own geometry, so the resolver's answer does not change.
+  if (added.length) r.links = [...(r.links ?? []), ...new Set(added)]
+}
+
+/** Why OpenStreetMap leaves this stretch out of the row's ways (for the audit report). */
+function gapCause(tags, r) {
+  const own = new Set(r.cands.map((w) => w.tags.name).filter(Boolean))
+  if (tags.some((t) => /_link$/.test(t.highway))) return 'link road'
+  if (tags.some((t) => /^(roundabout|circular)$/.test(t.junction ?? ''))) return 'roundabout'
+  if (tags.some((t) => t.bridge && t.bridge !== 'no' && !own.has(t.name))) return 'bridge under another name'
+  if (tags.every((t) => own.has(t.name))) return 'own name, cut away'
+  if (tags.some((t) => !t.name)) return 'unnamed piece'
+  return 'piece under another name'
+}
+
+for (const r of results) bridgeGaps(r)
+
+// --- junction links between rows (display only) ---------------------------------------
+// A row whose section ends at a junction often stops a few metres short of the next capital
+// road (district clip, offset junction nodes, an unlisted roundabout). A loose end that
+// touches no other row is joined to the nearest other capital row ahead over an OSM
+// carriageway path of at most JUNCTION_LINK_MAX m, with the bridge rules for direction and
+// detour (the other road may be met from the side: that is what a junction is). Written as a
+// `kind: 'link'` feature of the row the end belongs to; never used for responsibility.
+const JUNCTION_LINK_MAX = 25
+const junctionLinks = []
+{
+  const rowsAt = new Map() // node key -> row labels whose own geometry uses it
+  const allPts = new Map() // 3 m cell -> [point, label]
+  const taken = new Set()
+  for (const r of results) {
+    const label = `${r.item.annex}/${r.item.row}`
+    for (const s of [...r.selected, ...(r.links ?? [])]) {
+      taken.add(edgeKey(s.a, s.b))
+      for (const [k, p] of [[s.a, s.p], [s.b, s.q]]) {
+        if (!rowsAt.has(k)) rowsAt.set(k, new Set())
+        rowsAt.get(k).add(label)
+        addTo(allPts, `${Math.floor(p[0] / 3)},${Math.floor(p[1] / 3)}`, [p, label])
+      }
+    }
+  }
+  const touchesOther = (p, label) => {
+    for (let dx = -1; dx <= 1; dx++)
+      for (let dy = -1; dy <= 1; dy++)
+        for (const [q, l] of allPts.get(`${Math.floor(p[0] / 3) + dx},${Math.floor(p[1] / 3) + dy}`) ?? []) {
+          if (l !== label && Math.hypot(q[0] - p[0], q[1] - p[1]) <= 3) return true
+        }
+    return false
+  }
+  const cosMax = Math.cos((BRIDGE_ANGLE * Math.PI) / 180)
+  const seen = new Set()
+  for (const r of results) {
+    if (!r.selected.length) continue
+    const label = `${r.item.annex}/${r.item.row}`
+    const { pos, sadj } = partsOf([...r.selected, ...(r.links ?? [])])
+    for (const [e, pe] of pos) {
+      if (sadj.get(e).length !== 1 || touchesOther(pe, label)) continue
+      const ie = inwardAt(e, sadj.get(e)[0], sadj, pos)
+      if (!ie) continue
+      const g = buildGraph(waysNear([pe[0], pe[1], pe[0], pe[1]], JUNCTION_LINK_MAX + 20), () => true)
+      if (!g.pos.has(e)) continue
+      const segByEdge = new Map(g.segs.map((s) => [edgeKey(s.a, s.b), s]))
+      const dist = new Map([[e, 0]])
+      const prev = new Map()
+      const heap = [[0, e]]
+      let hit = null
+      while (heap.length && !hit) {
+        let bi = 0
+        for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i
+        const [d, k] = heap[bi]
+        heap[bi] = heap.at(-1)
+        heap.pop()
+        if (d > dist.get(k)) continue
+        if (k !== e && rowsAt.has(k)) {
+          // Another row ends the search; the row's own geometry is not crossed.
+          if (!rowsAt.get(k).has(label)) hit = k
+          continue
+        }
+        for (const ed of g.adj.get(k) ?? []) {
+          if (taken.has(edgeKey(k, ed.to))) continue
+          const nd = d + ed.w
+          if (nd > JUNCTION_LINK_MAX || nd >= (dist.get(ed.to) ?? Infinity)) continue
+          dist.set(ed.to, nd)
+          prev.set(ed.to, k)
+          heap.push([nd, ed.to])
+        }
+      }
+      if (!hit) continue
+      const path = [hit]
+      while (path.at(-1) !== e) path.push(prev.get(path.at(-1)))
+      const segs = []
+      for (let i = 1; i < path.length; i++) segs.push(segByEdge.get(edgeKey(path[i - 1], path[i])))
+      const pf = g.pos.get(hit)
+      const d = Math.hypot(pf[0] - pe[0], pf[1] - pe[1])
+      const L = dist.get(hit)
+      if (d < 1 || L > 1.5 * d + 20) continue
+      const u = [(pf[0] - pe[0]) / d, (pf[1] - pe[1]) / d]
+      if (-(ie[0] * u[0] + ie[1] * u[1]) < cosMax) continue // must head on from the end
+      if (Math.max(...path.map((k) => segDist(g.pos.get(k)[0], g.pos.get(k)[1], pe[0], pe[1], pf[0], pf[1]))) > Math.max(20, d / 2)) continue
+      const id = segs.map((s) => edgeKey(s.a, s.b)).sort().join()
+      if (seen.has(id)) continue
+      seen.add(id)
+      r.links = [...(r.links ?? []), ...segs]
+      junctionLinks.push({
+        row: label,
+        to: [...rowsAt.get(hit)].sort().join(', '),
+        metres: Math.round(L),
+        at: unproj(pe).map((v) => +v.toFixed(6)).reverse(),
+        ways: [...new Set(segs.map((s) => s.way))].sort((a, b) => a - b),
+      })
+    }
+  }
+}
+// GAP_DIAG=<file> writes every bridge candidate, kept or refused with the reason (for review).
+if (process.env.GAP_DIAG) await writeFile(process.env.GAP_DIAG, JSON.stringify(gapDiag, null, 1))
 
 function debugRow(g, cands, ja, jb, path) {
   const ll = (k) => unproj(g.pos.get(k)).map((v) => v.toFixed(5)).reverse().join(',')
@@ -1371,6 +1711,22 @@ for (const { item, cls, selected, partial, cutApplied, cutApprox } of results) {
       kind: cls.kind,
     },
     geometry,
+  })
+}
+
+// Display-only links (gap bridges and junction links, D49): one `kind: 'link'` feature per row,
+// after the row's own feature. Same properties as the row so the map and the audit can name it.
+const linkFeatures = []
+for (const r of results) {
+  if (!r.links?.length) continue
+  const parent = features.find((f) => f.properties.annex === r.item.annex && f.properties.row === r.item.row)
+  if (!parent) continue
+  const lines = linesOf(r.links)
+  if (!lines.length) continue
+  linkFeatures.push({
+    type: 'Feature',
+    properties: { ...parent.properties, kind: 'link' },
+    geometry: lines.length === 1 ? { type: 'LineString', coordinates: lines[0] } : { type: 'MultiLineString', coordinates: lines },
   })
 }
 
@@ -1507,6 +1863,7 @@ console.log(
   `Rows: ${total} (empty rows skipped: ${decree.items.length - total}); matched ${matched}: whole ${matched - cut - partialUncut}, ` +
     `partial cut ${cut} (of which approximate ${approx}), partial uncut ${partialUncut}; unmatched ${unmatched.length}`,
 )
+console.log(`Display-only links: ${bridges.length} gap bridges in ${new Set(bridges.map((b) => b.row)).size} rows, ${bridges.reduce((s, b) => s + b.metres, 0)} m (longest ${Math.max(0, ...bridges.map((b) => b.metres))} m); ${junctionLinks.length} junction links, ${junctionLinks.reduce((s, b) => s + b.metres, 0)} m`)
 if (problems.length) fail(`checks failed, nothing written:\n  ${problems.join('\n  ')}`)
 
 const out = {
@@ -1516,7 +1873,8 @@ const out = {
   osmSource: 'OpenStreetMap contributors (ODbL)',
   generatedOn: new Date().toISOString().slice(0, 10),
   unmatched,
-  features,
+  // Each row's display-only link feature follows the row's own feature (stable sort).
+  features: [...features, ...linkFeatures].sort((a, b) => byRowKey(a.properties, b.properties)),
 }
 const text = JSON.stringify(out)
 await writeFile(OUT, text + '\n')
@@ -1532,6 +1890,8 @@ await writeFile(
       cutFailed,
       ambiguous,
       duplicates,
+      bridges,
+      junctionLinks,
       places: placeWays,
       remarks,
       highways: highwaysByRow,
