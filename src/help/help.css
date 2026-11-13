@@ -27,6 +27,7 @@
   background: none; border: 0; border-top: 1px solid var(--c-border-soft);
   font: inherit; font-weight: 600; color: var(--c-text); text-align: left; cursor: pointer;
 }
+a.help-link-row { text-decoration: none; }
 .help-chevron { margin-left: auto; color: var(--c-text-muted); flex-shrink: 0; }
 .help-footer { font-size: 13px; line-height: 18px; color: var(--c-text-muted); }
 .help-block { display: flex; flex-direction: column; gap: 8px; }

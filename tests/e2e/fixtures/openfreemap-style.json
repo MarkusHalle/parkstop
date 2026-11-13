@@ -1,0 +1,22 @@
+{
+  "version": 8,
+  "name": "ParkStop e2e fixture",
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "tiles": ["https://tiles.openfreemap.org/planet/e2e/{z}/{x}/{y}.pbf"],
+      "minzoom": 0,
+      "maxzoom": 14
+    }
+  },
+  "layers": [
+    { "id": "background", "type": "background", "paint": { "background-color": "#e8e6e0" } },
+    {
+      "id": "roads",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "paint": { "line-color": "#888888", "line-width": 1 }
+    }
+  ]
+}

@@ -44,10 +44,10 @@ export type Reason =
   | { code: 'capital-road'; road: RoadRef }
   /** Nearest capital road is 8–15 m away (owner's choice 2026-11-12): FÖRI, but bizonytalan. */
   | { code: 'capital-road-edge'; road: RoadRef }
-  /** `partial && (!cutApplied || cutApprox)`: section ends not placed on the map. */
-  | { code: 'capital-road-unplaced'; road: RoadRef }
-  /** `kind === 'square'` (or another area-like kind): squares and parks are bizonytalan. */
-  | { code: 'capital-square'; road: RoadRef }
+  /** `partial && (!cutApplied || cutApprox)`: section ends not placed on the map. `edge`: pin 8–15 m from the road. */
+  | { code: 'capital-road-unplaced'; road: RoadRef; edge: boolean }
+  /** `kind === 'square'` (or another area-like kind): squares and parks are bizonytalan. `edge`: pin 8–15 m from the road. */
+  | { code: 'capital-square'; road: RoadRef; edge: boolean }
   /** Road section listed in the district's `districtActsOn` with scope "full". */
   | { code: 'district-acts-on'; road: RoadRef }
   /** Listed with scope "narrower": FÖRI stays primary, district first alternative. */
@@ -67,6 +67,12 @@ export interface NearBorder {
   district: number | null
   roman: string | null
   distanceM: number
+  /**
+   * Who is primary for the same road/street rules on the far side of the border; null when
+   * the nearby border is the city edge. The card shows the border hint only when this
+   * differs from the pin's own primary.
+   */
+  otherSidePrimaryId: string | null
 }
 
 export type Resolution =

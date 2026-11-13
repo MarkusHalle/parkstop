@@ -10,3 +10,5 @@ Thumbs.db
 .idea/
 .vscode/
 scripts/.cache/
+test-results-e2e/
+playwright-report/

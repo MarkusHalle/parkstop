@@ -50,15 +50,16 @@ function near(lat: number, lon: number): { metres: number; rows: string[] } {
   return { metres, rows }
 }
 
-// Rows that cannot be matched to OpenStreetMap, reviewed by hand (2026-11-12): unnamed
+// Rows that cannot be matched to OpenStreetMap, reviewed by hand (2026-11-12; ten rows placed
+// from scripts/data/capital-roads-osm-places.json on 2026-11-13, D47): unnamed
 // connector roads, a parking area, bus stations, roads to bus garages, squares or streets
 // with no carriageway of that name in the district, one 8 m fragment, and one continuation
 // row whose geometry equals the row before it.
 const EXPECTED_UNMATCHED = [
-  '2/36', '2/37', '2/190', '2/265', '2/364', '2/376', '2/396', '2/441', '2/451', '2/509',
-  '2/519', '2/522', '2/525', '2/587', '2/598', '2/705', '2/812', '2/848', '2/854', '2/872',
-  '2/890', '2/970', '2/1001', '2/1015', '2/1041', '2/1042', '2/1043', '2/1048', '2/1051',
-  '2/1057', '2/1100', '2/1163', '2/1174', '2/1198', '2/1246',
+  '2/36', '2/190', '2/265', '2/376', '2/396', '2/441', '2/451', '2/509',
+  '2/519', '2/522', '2/525', '2/848', '2/854', '2/872',
+  '2/970', '2/1001', '2/1015', '2/1041', '2/1043', '2/1048', '2/1051',
+  '2/1057', '2/1100', '2/1163', '2/1174',
 ]
 
 describe('decree-432-2012-roads.json', () => {
@@ -86,10 +87,13 @@ describe('capital-roads.geojson', () => {
 
   it('has exactly the agreed properties on every feature', () => {
     for (const f of roads) {
+      // `area: true` marks a hand-placed square or area (closed outline rings, read as a polygon).
+      const area = 'area' in f.properties
       expect(Object.keys(f.properties).sort()).toEqual(
-        ['annex', 'cutApplied', 'cutApprox', 'kind', 'name', 'partial', 'row', 'section'],
+        ['annex', ...(area ? ['area'] : []), 'cutApplied', 'cutApprox', 'kind', 'name', 'partial', 'row', 'section'],
       )
       const p = f.properties
+      if (area) expect([(p as { area?: unknown }).area, p.kind]).toEqual([true, 'square'])
       expect([1, 2]).toContain(p.annex)
       if (p.cutApplied) expect(p.partial).toBe(true)
       if (p.cutApprox) expect(p.cutApplied).toBe(true)

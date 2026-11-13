@@ -26,6 +26,10 @@
 // 45 m corridor so both carriageways are kept, trimmed to at most 10 m past either end, then
 // clipped to the district (+25 m; bridges are kept whole). An end placed by closest approach,
 // by the road's nearest point to a border, or by an approximate override sets cutApprox.
+//
+// Rows listed in scripts/data/capital-roads-osm-places.json (squares, parking areas, unnamed
+// connector roads) skip the name rules: their reviewed OSM way / relation ids are fetched in a
+// second, cached Overpass request and drawn as given (areas as closed outline rings, area: true).
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { existsSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -42,6 +46,7 @@ const USER_AGENT = 'ParkStop-data-build/0.1'
 const DISTRICTS = join(root, 'src', 'data', 'districts.geojson')
 const OUT = join(root, 'src', 'data', 'capital-roads.geojson')
 const EXPECTED_UNMATCHED = join(root, 'scripts', 'data', 'capital-roads-expected-unmatched.json')
+const PLACES = join(root, 'scripts', 'data', 'capital-roads-osm-places.json')
 const REPORT = join(root, 'scripts', 'data', 'capital-roads-report.json')
 // Annex 2 row totals of the consolidated text parsed here; a different count means the decree
 // changed and the parse must be re-checked by a human.
@@ -277,22 +282,27 @@ async function overpass() {
     console.log('Using cached Overpass response')
     return JSON.parse(await readFile(OVERPASS_CACHE, 'utf8'))
   }
-  // One request at a time; back off while the server is busy (HTTP 429 / 502 / 504).
+  const text = await overpassRequest(OVERPASS_QUERY)
+  await mkdir(CACHE, { recursive: true })
+  await writeFile(OVERPASS_CACHE, text)
+  console.log(`Fetched Overpass response (${(text.length / 1e6).toFixed(1)} MB), cached`)
+  return JSON.parse(text)
+}
+
+/** One Overpass request; backs off while the server is busy (HTTP 429 / 502 / 503 / 504). */
+async function overpassRequest(query) {
   let wait = 30
   for (let attempt = 1; attempt <= 7; attempt++) {
     const res = await fetch(OVERPASS_URL, {
       method: 'POST',
       headers: { 'User-Agent': USER_AGENT, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'data=' + encodeURIComponent(OVERPASS_QUERY),
+      body: 'data=' + encodeURIComponent(query),
     })
     const text = await res.text()
     if (res.ok && text.trimStart().startsWith('{')) {
       const data = JSON.parse(text)
       if (data.remark) fail(`Overpass remark: ${data.remark}`)
-      await mkdir(CACHE, { recursive: true })
-      await writeFile(OVERPASS_CACHE, text)
-      console.log(`Fetched Overpass response (${(text.length / 1e6).toFixed(1)} MB), cached`)
-      return data
+      return text
     }
     if (![429, 502, 503, 504].includes(res.status)) fail(`Overpass HTTP ${res.status}: ${text.slice(0, 200)}`)
     console.log(`Overpass busy (HTTP ${res.status}), attempt ${attempt}; retrying in ${wait} s`)
@@ -300,6 +310,42 @@ async function overpass() {
     wait *= 2
   }
   fail('Overpass still busy after 7 attempts')
+}
+
+// Rows placed by hand on listed OSM elements (scripts/data/capital-roads-osm-places.json):
+// squares, parking areas and unnamed connector roads the name rules cannot find. Exactly the
+// listed elements are fetched (cached per element list) and drawn; nothing is searched.
+const PLACES_CACHE = join(CACHE, 'capital-roads-places-overpass.json')
+function placesQuery(rows) {
+  const ids = { way: new Set(), relation: new Set() }
+  for (const r of Object.values(rows)) {
+    for (const el of r.elements) {
+      const [type, id] = el.split('/')
+      ids[type].add(Number(id))
+    }
+  }
+  const list = (s) => [...s].sort((a, b) => a - b).join(',')
+  return `[out:json][timeout:120];
+(
+  ${ids.way.size ? `way(id:${list(ids.way)});` : ''}
+  ${ids.relation.size ? `relation(id:${list(ids.relation)});` : ''}
+);
+out body geom;`
+}
+async function overpassPlaces(rows) {
+  const query = placesQuery(rows)
+  if (!args.has('--refresh') && existsSync(PLACES_CACHE)) {
+    const cached = JSON.parse(await readFile(PLACES_CACHE, 'utf8'))
+    if (cached.query === query) {
+      console.log('Using cached Overpass response for the hand-placed rows')
+      return cached.data
+    }
+  }
+  const text = await overpassRequest(query)
+  await mkdir(CACHE, { recursive: true })
+  await writeFile(PLACES_CACHE, JSON.stringify({ query, data: JSON.parse(text) }))
+  console.log('Fetched Overpass response for the hand-placed rows, cached')
+  return JSON.parse(text)
 }
 
 // ---------------------------------------------------------------------------------------
@@ -340,7 +386,30 @@ try {
 const decreeErrors = validateDecree(decree)
 if (decreeErrors.length) fail(`malformed decree JSON:\n  ${decreeErrors.slice(0, 20).join('\n  ')}`)
 
+let places
+try {
+  places = JSON.parse(await readFile(PLACES, 'utf8'))
+} catch (err) {
+  fail(`cannot read ${PLACES}: ${err.message}`)
+}
+{
+  const errs = []
+  const decreeRows = new Set(decree.items.filter((i) => i.name !== '').map((i) => `${i.annex}/${i.row}`))
+  if (!places || typeof places.rows !== 'object') errs.push('"rows" object missing')
+  else {
+    for (const [row, p] of Object.entries(places.rows)) {
+      if (!decreeRows.has(row)) errs.push(`${row}: no such decree row`)
+      if (!['square', 'road'].includes(p.kind)) errs.push(`${row}: kind must be "square" or "road"`)
+      if ('approx' in p && typeof p.approx !== 'boolean') errs.push(`${row}: approx must be true/false`)
+      if (!Array.isArray(p.elements) || !p.elements.length || !p.elements.every((e) => /^(way|relation)\/\d+$/.test(e))) errs.push(`${row}: elements must be "way/<id>" or "relation/<id>"`)
+      if (typeof p.why !== 'string' || !p.why || typeof p.decree !== 'string' || !p.decree) errs.push(`${row}: "why" and "decree" are required`)
+    }
+  }
+  if (errs.length) fail(`malformed ${PLACES}:\n  ${errs.join('\n  ')}`)
+}
+
 const osm = await overpass()
+const placesOsm = await overpassPlaces(places.rows)
 if (args.has('--fetch-only')) process.exit(0)
 
 // --- planar geometry (local metres; error well below 1 % inside Budapest) ---------------
@@ -520,6 +589,10 @@ const ALIASES = {
   // The one main road across Margit-sziget; OSM names it "Schulek Frigyes sétány" (unclassified,
   // ways 220028262, 436026678, …). Matched within the city outline (OVERRIDES 2/709).
   'margit szigeti főútvonal': ['Schulek Frigyes sétány'],
+  // The access road of the Savoya Park shopping centre (OSM building=retail "Savoya Park",
+  // Hunyadi János út 19, way 102022716): OSM names it "Feltáró út" (unclassified, ways
+  // 151597621, 425221264, …), running from Hunyadi János út to Fehérvári út in XI (2026-11-13).
+  'savoya park feltáró útja': ['Feltáró út'],
 }
 
 // Hand-checked corrections for rows the general rules get wrong (OSM cache of 2026-11-12).
@@ -1023,11 +1096,16 @@ const cutFailed = []
 const ambiguous = []
 const remarks = []
 const byRow = new Map()
+const placedItems = []
 
 for (const item of decree.items) {
   if (item.name === '') continue // empty row in the consolidated text
-  const cls = classify(item)
   const label = `${item.annex}/${item.row}`
+  if (places.rows[label]) {
+    placedItems.push(item)
+    continue
+  }
+  const cls = classify(item)
   if (cls.type === 'none') {
     for (const n of cls.notes) remarks.push({ row: label, name: item.name, note: n })
     unmatched.push({ annex: item.annex, row: item.row, name: item.name, reason: cls.reason })
@@ -1296,6 +1374,83 @@ for (const { item, cls, selected, partial, cutApplied, cutApprox } of results) {
   })
 }
 
+// --- hand-placed rows (capital-roads-osm-places.json) -----------------------------------
+// A square or area is written as its closed outline rings (outer and inner) with
+// `area: true`; the resolver treats it as a polygon (pin inside, or within a few metres of the
+// outline) instead of snapping 15 m around it. Roads are the listed ways as drawn.
+const placeEls = new Map(placesOsm.elements.map((e) => [`${e.type}/${e.id}`, e]))
+const placeProblems = []
+const placeWays = {}
+const isClosed = (g) => g.length >= 4 && g[0].lat === g.at(-1).lat && g[0].lon === g.at(-1).lon
+for (const item of placedItems) {
+  const label = `${item.annex}/${item.row}`
+  const p = places.rows[label]
+  const lines = []
+  const rings = []
+  const wayIds = []
+  const highways = new Set()
+  const addWay = (id, tags, geometry) => {
+    wayIds.push(id)
+    // The audit report lists highway types per row; an area without one (a parking lot) is
+    // listed by its defining tag, e.g. "(amenity=parking)".
+    if (tags?.highway) highways.add(tags.highway)
+    else if (tags?.amenity) highways.add(`(amenity=${tags.amenity})`)
+    else placeProblems.push(`${label}: way ${id} has neither highway nor amenity tag`)
+    if (/^motorway/.test(tags?.highway ?? '')) placeProblems.push(`${label}: way ${id} is a motorway`)
+    const pts = geometry.map((g) => proj(g.lon, g.lat))
+    if (p.kind === 'square') {
+      if (!isClosed(geometry)) placeProblems.push(`${label}: way ${id} is not a closed area`)
+      rings.push(pts)
+    } else lines.push(pts)
+  }
+  for (const ref of p.elements) {
+    const el = placeEls.get(ref)
+    if (!el) {
+      placeProblems.push(`${label}: ${ref} not returned by Overpass (deleted?)`)
+      continue
+    }
+    if (el.type === 'way') addWay(el.id, el.tags, el.geometry)
+    else {
+      if (p.kind !== 'square' || el.tags?.type !== 'multipolygon') placeProblems.push(`${label}: ${ref} must be a multipolygon of a square`)
+      for (const m of el.members ?? []) {
+        if (m.type !== 'way' || !m.geometry || !['outer', 'inner'].includes(m.role)) placeProblems.push(`${label}: ${ref} member ${m.type}/${m.ref} (${m.role}) not usable`)
+        else addWay(m.ref, el.tags, m.geometry) // member ways carry the relation's tags
+      }
+    }
+  }
+  const region = [districts.get(item.district)]
+  const outside = [...lines, ...rings].flat().filter((pt) => !inRegion(pt, region, 40))
+  if (outside.length) placeProblems.push(`${label}: ${outside.length} points lie more than 40 m outside ${item.district}`)
+  const partial = item.from !== null || item.to !== null
+  if (p.approx && p.kind === 'road' && !partial) placeProblems.push(`${label}: approx needs a section (partial row)`)
+  const all = [...lines, ...rings]
+  const coords = all.map((l) => {
+    const out = []
+    for (const c of l.map(unproj).map((xy) => xy.map(round))) if (!out.length || out.at(-1)[0] !== c[0] || out.at(-1)[1] !== c[1]) out.push(c)
+    return out
+  }).filter((l) => l.length >= 2)
+  if (p.kind === 'square' && coords.some((l) => l.length < 4 || l[0][0] !== l.at(-1)[0] || l[0][1] !== l.at(-1)[1])) placeProblems.push(`${label}: an outline ring is not closed after rounding`)
+  wayIdsByRow[label] = [...new Set(wayIds)].sort((a, b) => a - b)
+  highwaysByRow[label] = [...highways].sort()
+  placeWays[label] = { kind: p.kind, approx: Boolean(p.approx), elements: p.elements }
+  remarks.push({ row: label, name: item.name, note: `hand-placed on OSM ${p.elements.join(', ')} (capital-roads-osm-places.json)` })
+  features.push({
+    type: 'Feature',
+    properties: {
+      name: item.name,
+      annex: item.annex,
+      row: item.row,
+      partial,
+      cutApplied: partial,
+      cutApprox: partial && Boolean(p.approx),
+      section: sectionOf(item),
+      kind: p.kind,
+      ...(p.kind === 'square' ? { area: true } : {}),
+    },
+    geometry: coords.length === 1 ? { type: 'LineString', coordinates: coords[0] } : { type: 'MultiLineString', coordinates: coords },
+  })
+}
+
 // Row order: annex, number, letter ("71a" after 71), sub-row ("144.2").
 const rowKey = (annex, row) => {
   const m = /^(\d+)([a-z]?)(?:\.(\d+))?$/.exec(row)
@@ -1311,10 +1466,10 @@ unmatched.sort(byRowKey)
 
 // --- checks (nothing is written unless all pass) ---------------------------------------
 const total = decree.items.filter((i) => i.name !== '').length
-const problems = []
+const problems = [...placeProblems]
 const accounted = [...features.map((f) => `${f.properties.annex}/${f.properties.row}`), ...unmatched.map((u) => `${u.annex}/${u.row}`)]
 if (accounted.length !== total || new Set(accounted).size !== total) problems.push(`rows accounted ${accounted.length} (unique ${new Set(accounted).size}) != decree rows ${total}`)
-const motorway = Object.entries(wayIdsByRow).filter(([, ids]) => ids.some((id) => /^motorway/.test(wayById.get(id).tags.highway)))
+const motorway = Object.entries(wayIdsByRow).filter(([row, ids]) => !placeWays[row] && ids.some((id) => /^motorway/.test(wayById.get(id).tags.highway)))
 if (motorway.length) problems.push(`motorway ways in rows ${motorway.map(([r]) => r).join(', ')}`)
 // The unmatched rows must be exactly the committed, reviewed list. After a decree or OSM
 // change, review the difference and rerun with --accept-unmatched to update the list.
@@ -1369,7 +1524,19 @@ await writeFile(OUT, text + '\n')
 await writeFile(
   REPORT,
   JSON.stringify(
-    { generatedOn: out.generatedOn, osmBase: osm.osm3s?.timestamp_osm_base ?? null, unmatched, cutFailed, ambiguous, duplicates, remarks, highways: highwaysByRow, osmWays: wayIdsByRow },
+    {
+      generatedOn: out.generatedOn,
+      osmBase: osm.osm3s?.timestamp_osm_base ?? null,
+      placesOsmBase: placesOsm.osm3s?.timestamp_osm_base ?? null,
+      unmatched,
+      cutFailed,
+      ambiguous,
+      duplicates,
+      places: placeWays,
+      remarks,
+      highways: highwaysByRow,
+      osmWays: wayIdsByRow,
+    },
     null,
     1,
   ).replace(/\[\s+([^[\]{}]*?)\s+\]/g, (_, inner) => `[${inner.replace(/\s*\n\s*/g, ' ')}]`) + '\n', // one line per array

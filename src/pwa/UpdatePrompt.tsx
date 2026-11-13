@@ -7,7 +7,12 @@ import { IconRefresh } from '../app/icons'
 import { toastBottom } from './layout'
 import './pwa.css'
 
-export function UpdatePrompt() {
+type Props = {
+  /** Runs before the reload (the app saves the open report and notes it for reopening). */
+  onBeforeUpdate?: () => Promise<void>
+}
+
+export function UpdatePrompt({ onBeforeUpdate }: Props) {
   const { needRefresh: [needRefresh, setNeedRefresh], updateServiceWorker } = useRegisterSW({
     // An installed app may stay open for days: look for a new version hourly and whenever
     // it comes back to the foreground.
@@ -32,13 +37,20 @@ export function UpdatePrompt() {
     return () => window.clearInterval(id)
   }, [needRefresh])
 
-  if (!needRefresh) return null
+  // The live region stays mounted so screen readers announce the toast when it appears.
   return (
-    <div className="update-toast" role="status" style={{ bottom }}>
-      <IconRefresh size={20} />
-      <span className="update-text">{hu.pwa.updateAvailable}</span>
-      <button type="button" className="btn btn-primary btn-small" onClick={() => void updateServiceWorker(true)}>{hu.pwa.update}</button>
-      <button type="button" className="icon-btn update-close" aria-label={hu.pwa.later} onClick={() => setNeedRefresh(false)}>×</button>
+    <div role="status">
+      {needRefresh && (
+        <div className="update-toast" style={{ bottom }}>
+          <IconRefresh size={20} />
+          <span className="update-text">{hu.pwa.updateAvailable}</span>
+          <button type="button" className="btn btn-primary btn-small" onClick={async () => {
+            try { await onBeforeUpdate?.() } catch { /* update anyway */ }
+            await updateServiceWorker(true)
+          }}>{hu.pwa.update}</button>
+          <button type="button" className="icon-btn update-close" aria-label={hu.pwa.later} onClick={() => setNeedRefresh(false)}>×</button>
+        </div>
+      )}
     </div>
   )
 }

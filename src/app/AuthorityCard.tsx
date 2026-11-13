@@ -10,6 +10,9 @@ import { IconCheck, IconInfo, IconPhone, IconWarn } from './icons'
 
 type Resolved = Extract<Resolution, { kind: 'resolved' }>
 
+/** 8–15 m band (SPEC 4.2 step 3): add the side-street sentence. */
+const withSideStreet = (text: string, edge: boolean) => (edge ? `${text} ${hu.authority.reason.edgeSideStreet}` : text)
+
 export function reasonText(r: Reason): string {
   const t = hu.authority.reason
   const road = (x: { name: string; section: string | null }) => (x.section ? `${x.name}, ${x.section}` : x.name)
@@ -18,8 +21,8 @@ export function reasonText(r: Reason): string {
     case 'no-own-body': return t.noOwnBody
     case 'capital-road': return t.capitalRoad(road(r.road))
     case 'capital-road-edge': return t.capitalRoadEdge(road(r.road), Math.round(r.road.distanceM))
-    case 'capital-road-unplaced': return t.capitalRoadUnplaced(road(r.road))
-    case 'capital-square': return t.capitalSquare(road(r.road))
+    case 'capital-road-unplaced': return withSideStreet(t.capitalRoadUnplaced(road(r.road)), r.edge)
+    case 'capital-square': return withSideStreet(t.capitalSquare(road(r.road)), r.edge)
     case 'district-acts-on': return t.districtActsOn(road(r.road))
     case 'district-acts-on-partial': return t.districtActsOnPartial(r.road.name, r.sectionText)
     case 'no-district': return t.noDistrict(r.areaName)
@@ -84,6 +87,10 @@ export function AuthorityCard(p: Props) {
   const r = p.resolution
   const list = recipients(r)
   const selected = list.find((x) => x.authority.id === p.selectedId)?.authority ?? r.primary
+  // Border hint only when the far side has a different primary (a capital road is FÖRI's on both sides).
+  const farSide = r.nearBorder?.otherSidePrimaryId && r.nearBorder.otherSidePrimaryId !== r.primary.id
+    ? list.find((x) => x.authority.id === r.nearBorder?.otherSidePrimaryId)?.authority
+    : undefined
 
   return (
     <section className="authority" aria-live="polite">
@@ -94,7 +101,7 @@ export function AuthorityCard(p: Props) {
       <h1 className="title">{r.primary.name}</h1>
       <AddressField address={p.address} status={p.addressStatus} districtRoman={r.districtRoman} onChange={p.onAddressChange} />
       <p className="notice notice-info">{reasonText(r.reason)}</p>
-      {r.nearBorder?.roman && <p className="notice notice-info">{hu.authority.nearBorder(r.nearBorder.roman)}</p>}
+      {r.nearBorder?.roman && farSide && <p className="notice notice-info">{hu.authority.nearBorder(r.nearBorder.roman, farSide.name)}</p>}
       {r.stale && <p className="notice notice-warn"><IconWarn />{hu.authority.stale}</p>}
 
       <fieldset className="choices">

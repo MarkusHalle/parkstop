@@ -1,6 +1,6 @@
 // The "Rendszám" field with the plate reader's states (SPEC 4.9 F-PLATE-2…8; approved mockup
 // "08 Rendszám mező állapotai") and the zoomable photo (roadmap 3.6).
-import { useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { hu } from '../i18n/hu'
 import { IconCheck } from '../app/icons'
 import { useSettings } from '../settings'
@@ -106,6 +106,15 @@ export function PlateField(props: PlateFieldProps) {
   else { view = helpView; shown = helpShown }
 
   const showInput = view !== 'pick'
+
+  // The input unmounts when the picker replaces it. React fires no blur on unmount, so the
+  // flag stays true; hand focus to the first option so keyboard and screen-reader users keep their place.
+  const inputFocused = useRef(false)
+  useEffect(() => {
+    if (view !== 'pick' || !inputFocused.current) return
+    inputFocused.current = false
+    fieldRef.current?.querySelector<HTMLElement>('.plate-pick-btn')?.focus({ preventScroll: true })
+  }, [view])
   const zoomDefault = view === 'manual' || view === 'incomplete' ||
     // Typing after "írd be kézzel": keep the zoomed photo that was open.
     (view === 'plain' && source === 'user' && (outcome.kind === 'manual' || (outcome.kind === 'pick' && dismissed === pickSig)))
@@ -189,8 +198,9 @@ export function PlateField(props: PlateFieldProps) {
             {view === 'working' && <span className="plate-skeleton" aria-hidden="true" />}
             <input ref={inputRef} id={inputId} type="text" value={value} autoComplete="off" autoCapitalize="characters" spellCheck={false}
               aria-invalid={invalid || undefined} aria-describedby={describedBy}
+              onFocus={() => { inputFocused.current = true }}
               onChange={(e) => onType(plateWhileTyping(e.target.value))}
-              onBlur={() => { const v = normalizePlate(value).value; if (v !== value) onFormat(v) }} />
+              onBlur={() => { inputFocused.current = false; const v = normalizePlate(value).value; if (v !== value) onFormat(v) }} />
           </span>
         </div>
       )}

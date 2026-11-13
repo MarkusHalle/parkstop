@@ -16,14 +16,14 @@ interface Props {
   onHandedOff: (bodyCopied: boolean | null) => void
 }
 
-type Flash = { key: string; text: string; tone: 'ok' | 'error' } | null
+type Flash = { key: string; text: string; tone: 'ok' | 'error'; n: number } | null
 
 export function MailStep({ input, photos, reduced, layout, onHandedOff }: Props) {
   const draft = useMemo(() => buildMail(input), [input])
   const link = useMemo(() => buildMailto(draft), [draft])
   const [flash, setFlash] = useState<Flash>(null)
   const show = (key: string, ok: boolean, okText: string = hu.mail.copied, errText: string = hu.mail.copyFailed) =>
-    setFlash({ key, text: ok ? okText : errText, tone: ok ? 'ok' : 'error' })
+    setFlash((f) => ({ key, text: ok ? okText : errText, tone: ok ? 'ok' : 'error', n: (f?.n ?? 0) + 1 }))
   const copy = async (key: string, text: string) => show(key, await copyText(text))
 
   const savePhotos = async () => {
@@ -47,16 +47,25 @@ export function MailStep({ input, photos, reduced, layout, onHandedOff }: Props)
   }
 
   const flashFor = (key: string) =>
-    flash?.key === key && <p className={`flash flash-${flash.tone}`} role="status">{flash.text}</p>
+    flash?.key === key && <p className={`flash flash-${flash.tone}`} aria-hidden="true">{flash.text}</p>
   const photosLabel =
     reduced.status === 'working' ? hu.mail.photosPreparing
       : reduced.status === 'error' ? hu.mail.photosFailed
         : layout === 'phone' ? hu.mail.photosReadyPhone : hu.mail.photosReadyPc
 
+  // Do not promise a filled body or recipient when the hand-off will not carry them.
+  const phoneHint = link.bodyInLink
+    ? (draft.to ? hu.mail.hintPhone : hu.mail.hintPhoneNoTo)
+    : (draft.to ? hu.mail.hintPhoneLongBody : hu.mail.hintPhoneNoToLongBody)
+
   return (
     <div className="stack">
+      {/* One live region, mounted from the start: a region inserted together with its text is
+          often not read out, and a new child per message makes a repeated tap announce again. */}
+      <p className="sr-only" role="status">{flash && <span key={flash.n}>{flash.text}</span>}</p>
       {!draft.to && <p className="notice notice-warn">{hu.mail.noEmail}</p>}
       {input.template === 'B' && <p className="notice notice-info">{hu.mail.policeNote}</p>}
+      {!link.bodyInLink && <p className="notice notice-warn">{hu.mail.longBodyBefore}</p>}
 
       <section className="mail-part">
         <div className="mail-part-text">
@@ -89,7 +98,7 @@ export function MailStep({ input, photos, reduced, layout, onHandedOff }: Props)
       {flashFor('body')}
       <p className="muted small">{input.reporter ? hu.settings.signatureFromSettings : hu.mail.signatureHint}</p>
 
-      <section className="mail-part">
+      <section className="mail-part mail-photos">
         <div className="mini-thumbs">
           {photos.map((p, i) => <img key={p.id} src={p.url} alt={hu.report.photoAlt(i + 1)} />)}
         </div>
@@ -116,7 +125,7 @@ export function MailStep({ input, photos, reduced, layout, onHandedOff }: Props)
               <span className="num">2</span>
               <button type="button" className="btn btn-primary" onClick={open}><IconMail />{hu.mail.open}</button>
             </div>
-            <p className="muted small center">{hu.mail.hintPhone}</p>
+            <p className="muted small center">{phoneHint}</p>
           </>
         ) : (
           <>

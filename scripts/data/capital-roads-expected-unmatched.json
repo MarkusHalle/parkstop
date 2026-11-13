@@ -5,11 +5,6 @@
   "reason": "\"Krisztina körút átkötő útjai\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
  },
  {
-  "row": "2/37",
-  "name": "Krisztina körút átkötő útjai",
-  "reason": "\"Krisztina körút átkötő útjai\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
- },
- {
   "row": "2/190",
   "name": "Óbudai buszgarázshoz behajtó út",
   "reason": "no OpenStreetMap carriageway found for \"Óbudai buszgarázshoz behajtó út\" in III. kerület"
@@ -18,11 +13,6 @@
   "row": "2/265",
   "name": "Újpest Városkapu metróállomás parkolójához vezető út",
   "reason": "no OpenStreetMap carriageway found for \"Újpest Városkapu metróállomás parkolójához vezető út\" in IV. kerület"
- },
- {
-  "row": "2/364",
-  "name": "Blaha Lujza tér",
-  "reason": "no OpenStreetMap carriageway found for \"Blaha Lujza tér\" in VIII. kerület"
  },
  {
   "row": "2/376",
@@ -65,26 +55,6 @@
   "reason": "no OpenStreetMap carriageway found for \"Kőbányai buszgarázshoz behajtó út\" in X. kerület"
  },
  {
-  "row": "2/587",
-  "name": "Balatoni út - Budaörsi út átkötő útja",
-  "reason": "\"Balatoni út - Budaörsi út átkötő útja\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
- },
- {
-  "row": "2/598",
-  "name": "Savoya park feltáró útja",
-  "reason": "no OpenStreetMap carriageway found for \"Savoya park feltáró útja\" in XI. kerület"
- },
- {
-  "row": "2/705",
-  "name": "Lehel téri összekötő út",
-  "reason": "no OpenStreetMap carriageway found for \"Lehel téri összekötő út\" in XIII. kerület"
- },
- {
-  "row": "2/812",
-  "name": "Hubay Jenő tér",
-  "reason": "no OpenStreetMap carriageway found for \"Hubay Jenő tér\" in XV. kerület"
- },
- {
   "row": "2/848",
   "name": "Szilas park déli bevezető útja",
   "reason": "no OpenStreetMap carriageway found for \"Szilas park déli bevezető útja\" in XV. kerület"
@@ -98,11 +68,6 @@
   "row": "2/872",
   "name": "Csöbör út",
   "reason": "no OpenStreetMap carriageway found for \"Csöbör út\" in XVI. kerület"
- },
- {
-  "row": "2/890",
-  "name": "Ostoros út parkolója",
-  "reason": "\"Ostoros út parkolója\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
  },
  {
   "row": "2/970",
@@ -123,11 +88,6 @@
   "row": "2/1041",
   "name": "Kőbánya-Kispest buszpályaudvar",
   "reason": "\"Kőbánya-Kispest buszpályaudvar\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
- },
- {
-  "row": "2/1042",
-  "name": "Kőbánya-Kispest buszpályaudvar csatlakozó útjai",
-  "reason": "\"Kőbánya-Kispest buszpályaudvar csatlakozó útjai\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
  },
  {
   "row": "2/1043",
@@ -163,15 +123,5 @@
   "row": "2/1174",
   "name": "6. sz. főút fővárosi bevezető szakasz átkötő útja",
   "reason": "\"6. sz. főút fővárosi bevezető szakasz átkötő útja\" is not a named road in OpenStreetMap (parking area, bus station or unnamed connector roads)"
- },
- {
-  "row": "2/1198",
-  "name": "Híd utca",
-  "reason": "no OpenStreetMap carriageway found for \"Híd utca\" in XXII. kerület"
- },
- {
-  "row": "2/1246",
-  "name": "Dózsa György utca",
-  "reason": "matching ways lie outside the district"
  }
 ]

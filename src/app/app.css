@@ -360,6 +360,9 @@ select.input { padding: 0 12px; }
   font-family: var(--font-body); font-size: 14px; line-height: 21px; color: var(--c-text-strong);
 }
 .mini-thumbs { display: flex; gap: 8px; flex-shrink: 0; }
+/* With many photos the text moves under the thumbnails instead of shrinking to a sliver. */
+.mail-photos { flex-wrap: wrap; }
+.mail-photos .mail-part-text { flex: 1 1 160px; }
 .mini-thumbs img { width: 48px; height: 48px; object-fit: cover; border-radius: var(--radius-s); background: var(--c-thumb); }
 .mail-actions { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
 .numbered-action { display: flex; align-items: center; gap: 12px; }

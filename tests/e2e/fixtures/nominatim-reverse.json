@@ -1,0 +1,15 @@
+{
+  "place_id": 2,
+  "lat": "47.505225",
+  "lon": "19.033754",
+  "display_name": "3, Hunfalvy utca, Víziváros, I. kerület, Budapest, Közép-Magyarország, 1011, Magyarország",
+  "address": {
+    "house_number": "3",
+    "road": "Hunfalvy utca",
+    "suburb": "Víziváros",
+    "city": "Budapest",
+    "postcode": "1011",
+    "country": "Magyarország",
+    "country_code": "hu"
+  }
+}

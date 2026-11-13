@@ -78,6 +78,24 @@ function checkAuthorities(data, today, errors) {
     if (typeof r.sourceUrl !== 'string' || !URL_RE.test(r.sourceUrl)) e(`${at}: sourceUrl missing`)
     if (!isDate(r.verifiedOn, today)) e(`${at}: verifiedOn missing or in the future`)
   }
+  // The resolver reads only the first entry (v1: Margit-sziget), so exactly one is required.
+  const areas = data.noDistrictAreas
+  if (!Array.isArray(areas) || areas.length !== 1) e('noDistrictAreas must be an array with exactly one entry')
+  else {
+    const a = areas[0] ?? {}
+    const at = `noDistrictAreas[0]${a.id ? ` (${a.id})` : ''}`
+    if (typeof a.id !== 'string' || a.id.trim() === '') e(`${at}: missing id`)
+    if (typeof a.name !== 'string' || a.name.trim() === '') e(`${at}: missing name`)
+    // SPEC 4.2 step 2: a no-district area is FÖRI's, so only a FÖRI record is allowed here.
+    const primary = ids.get(a.primaryId)
+    if (!primary || primary.type !== 'fori') e(`${at}: primaryId "${a.primaryId}" is not a FÖRI record`)
+    if (a.policeId !== null) {
+      const police = ids.get(a.policeId)
+      if (!police || police.type !== 'police') e(`${at}: policeId "${a.policeId}" must be null or a police record`)
+    }
+    if (typeof a.sourceUrl !== 'string' || !URL_RE.test(a.sourceUrl)) e(`${at}: sourceUrl missing`)
+    if (!isDate(a.verifiedOn, today)) e(`${at}: verifiedOn missing or in the future`)
+  }
   for (let d = 1; d <= 23; d++) if (!seen.has(d)) e(`districtRules: district ${ROMAN[d - 1]} missing`)
   if (![...ids.values()].some((a) => a.type === 'fori')) e('no FÖRI record')
 }
@@ -167,6 +185,16 @@ function checkCapitalRoads(geo, errors) {
     for (const line of lines) {
       if (!Array.isArray(line) || line.length < 2) e(`${at}: line with fewer than 2 positions`)
       else if (line.some(([lon, lat]) => !inBudapestBox(lon, lat))) e(`${at}: coordinate outside Budapest`)
+    }
+    // Area features (hand-placed squares, parking lots): every line is a closed outline ring,
+    // read by the resolver as a polygon.
+    if ('area' in p) {
+      if (p.area !== true) e(`${at}: area must be true when present`)
+      if (p.kind !== 'square') e(`${at}: area features must have kind square`)
+      for (const line of lines) {
+        const closed = Array.isArray(line) && line.length >= 4 && line[0][0] === line.at(-1)[0] && line[0][1] === line.at(-1)[1]
+        if (!closed) e(`${at}: area outline ring not closed`)
+      }
     }
   }
 }

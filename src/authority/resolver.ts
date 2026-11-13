@@ -42,6 +42,12 @@ export interface RoadProps {
   cutApprox: boolean
   section: string | null
   kind: string
+  /**
+   * True for a hand-placed square or area (Blaha Lujza tér, a parking lot): its lines are
+   * the closed outline rings of a polygon. It counts only for a pin inside the polygon or
+   * within AREA_SNAP_M of its outline, not within the 15 m road snap.
+   */
+  area?: boolean
 }
 
 /** `src/data/capital-roads.geojson`: capital-managed roads (Decree 432/2012 annexes). */
@@ -88,6 +94,14 @@ export interface ResolverData {
   authorities: AuthoritiesData
 }
 
+/** Outcome of SPEC 4.2 steps 3 and 4 for one district's rule. */
+interface Decision {
+  primary: Authority
+  primaryRole: 'district' | 'fori'
+  reason: Reason
+  confidence: Confidence
+}
+
 export type Resolver = (ll: LatLon, opts: ResolveOptions) => Resolution
 
 // ---------------------------------------------------------------------------
@@ -99,6 +113,11 @@ export const ROAD_SNAP_M = 15
 export const ROAD_EDGE_M = 8
 /** Roads within dMin + this count as a tie. */
 export const ROAD_TIE_M = 1
+/**
+ * An area feature (`area: true`) counts for a pin inside it or this close to its outline
+ * (OSM outline error), so the square does not spill 15 m into the side streets around it.
+ */
+export const AREA_SNAP_M = 2
 /** District border band. */
 export const BORDER_M = 30
 /** Data older than this many months is stale. */
@@ -170,6 +189,19 @@ function polygonRings(g: Polygon | MultiPolygon): Position[][] {
   return g.type === 'Polygon' ? g.coordinates : g.coordinates.flat()
 }
 
+/** Even-odd test against a set of closed rings (outer and inner rings, several parts). */
+function insideRings(x: number, y: number, rings: Position[][]): boolean {
+  let inside = false
+  for (const r of rings) {
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const [xi, yi] = r[i]
+      const [xj, yj] = r[j]
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
+    }
+  }
+  return inside
+}
+
 /** Nearest distance in metres from `pt` to each owner's chunks within `maxM`. */
 function distancesWithin(chunks: Chunk[], pt: Feature<Point>, maxM: number): Map<number, number> {
   const [x, y] = pt.geometry.coordinates
@@ -231,13 +263,32 @@ export function createResolver(data: ResolverData): Resolver {
 
   const roadFeatures = roads.features
   const roadChunks: Chunk[] = []
+  const areaChunks: Chunk[] = []
+  const areas: { owner: number; rings: Position[][]; bbox: BBox }[] = []
   roadFeatures.forEach((f, i) => {
     // Tunnels are underground: a pin above one (e.g. Szent György tér over the Alagút) is
     // not on the road (sceptic 2.3).
     if (f.properties.kind === 'tunnel') return
     const lines = f.geometry.type === 'LineString' ? [f.geometry.coordinates] : f.geometry.coordinates
+    if (f.properties.area === true) {
+      areas.push({ owner: i, rings: lines, bbox: bboxOf(lines.flat()) })
+      for (const l of lines) chunkLine(i, l, areaChunks)
+      return
+    }
     for (const l of lines) chunkLine(i, l, roadChunks)
   })
+
+  /** Capital roads within the snap distance, plus areas the pin is in or right next to. */
+  const capitalRoadDistances = (pt: Feature<Point>, x: number, y: number): Map<number, number> => {
+    const out = distancesWithin(roadChunks, pt, ROAD_SNAP_M)
+    const put = (i: number, d: number) => {
+      const prev = out.get(i)
+      if (prev === undefined || d < prev) out.set(i, d)
+    }
+    for (const [i, d] of distancesWithin(areaChunks, pt, AREA_SNAP_M)) put(i, d)
+    for (const a of areas) if (nearBBox(a.bbox, x, y, 0) && insideRings(x, y, a.rings)) put(a.owner, 0)
+    return out
+  }
 
   const roadRef = (i: number, d: number): RoadRef => {
     const p = roadFeatures[i].properties
@@ -311,6 +362,7 @@ export function createResolver(data: ResolverData): Resolver {
     // Near border: own boundary within BORDER_M; neighbour = nearest other district within BORDER_M.
     let nearBorder: NearBorder | null = null
     let neighbourBody: Authority | undefined
+    let neighbourDistrict: number | null = null
     const borderDist = distancesWithin(borderChunks, pt, BORDER_M)
     const own = borderDist.get(di)
     if (own !== undefined) {
@@ -324,72 +376,79 @@ export function createResolver(data: ResolverData): Resolver {
       }
       if (ni >= 0) {
         const np = districtFeatures[ni].properties
-        nearBorder = { district: np.district, roman: np.roman, distanceM: round1(own) }
+        nearBorder = { district: np.district, roman: np.roman, distanceM: round1(own), otherSidePrimaryId: null }
+        neighbourDistrict = np.district
         const nRule = ruleByDistrict.get(np.district)
         neighbourBody = nRule?.ownBody ? auth(nRule.primaryId) : undefined
       } else {
-        nearBorder = { district: null, roman: null, distanceM: round1(own) }
+        nearBorder = { district: null, roman: null, distanceM: round1(own), otherSidePrimaryId: null }
       }
     }
 
     // 3. Capital roads.
-    const roadDist = distancesWithin(roadChunks, pt, ROAD_SNAP_M)
-    let primary: Authority
-    let primaryRole: 'district' | 'fori'
-    let reason: Reason
-    let confidence: Confidence
+    const roadDist = capitalRoadDistances(pt, x, y)
+    const dMin = roadDist.size > 0 ? Math.min(...roadDist.values()) : Infinity
+    const candidates = [...roadDist].filter(([, d]) => d <= dMin + ROAD_TIE_M).sort((a, b) => a[1] - b[1])
+    const edge = dMin > ROAD_EDGE_M
 
-    if (roadDist.size > 0) {
-      const dMin = Math.min(...roadDist.values())
-      const candidates = [...roadDist].filter(([, d]) => d <= dMin + ROAD_TIE_M).sort((a, b) => a[1] - b[1])
-      const listed = new Map((rule?.districtActsOn ?? []).map((e) => [roadKey(e.annex, e.row), e]))
-      const entryOf = (i: number) => listed.get(roadKey(roadFeatures[i].properties.annex, roadFeatures[i].properties.row))
-      // The decree lists a border street once per district (Lehel utca, Lövölde tér): a tied
-      // row of the same name from the other district must not defeat this district's list.
-      const listedNames = new Set(candidates.filter(([i]) => entryOf(i)).map(([i]) => roadFeatures[i].properties.name))
-      const unlisted = candidates.find(([i]) => !entryOf(i) && !listedNames.has(roadFeatures[i].properties.name))
-      const narrower = candidates.find(([i]) => entryOf(i)?.scope === 'narrower')
-      const edge = dMin > ROAD_EDGE_M
+    /**
+     * Steps 3 and 4 for one district's rule and body. Run for the pin's own district and,
+     * near a border, for the neighbour, so the card can tell who is responsible on the far
+     * side of the line (a capital road is FÖRI's on both sides, D21).
+     */
+    const decide = (dRule: DistrictRule | undefined, body: Authority | undefined): Decision => {
+      if (candidates.length > 0) {
+        const listed = new Map((dRule?.districtActsOn ?? []).map((e) => [roadKey(e.annex, e.row), e]))
+        const entryOf = (i: number) => listed.get(roadKey(roadFeatures[i].properties.annex, roadFeatures[i].properties.row))
+        // The decree lists a border street once per district (Lehel utca, Lövölde tér): a tied
+        // row of the same name from the other district must not defeat this district's list.
+        const listedNames = new Set(candidates.filter(([i]) => entryOf(i)).map(([i]) => roadFeatures[i].properties.name))
+        const unlisted = candidates.find(([i]) => !entryOf(i) && !listedNames.has(roadFeatures[i].properties.name))
+        const narrower = candidates.find(([i]) => entryOf(i)?.scope === 'narrower')
 
-      if (unlisted || !districtBody) {
-        // FÖRI path (also when a listed road lies in a district with no body of its own).
-        const [ri, rd] = unlisted ?? candidates[0]
-        const p = roadFeatures[ri].properties
-        const road = roadRef(ri, rd)
-        primary = fori
-        primaryRole = 'fori'
-        if (p.kind === 'square') reason = { code: 'capital-square', road }
-        else if (p.partial && (!p.cutApplied || p.cutApprox)) reason = { code: 'capital-road-unplaced', road }
-        else if (edge) reason = { code: 'capital-road-edge', road }
-        else reason = { code: 'capital-road', road }
-        confidence = reason.code === 'capital-road' ? 'valószínű' : 'bizonytalan'
-      } else if (narrower) {
-        const [ri, rd] = narrower
-        primary = fori
-        primaryRole = 'fori'
-        reason = { code: 'district-acts-on-partial', road: roadRef(ri, rd), sectionText: entryOf(ri)?.text ?? '' }
-        confidence = 'bizonytalan'
-      } else {
+        if (unlisted || !body) {
+          // FÖRI path (also when a listed road lies in a district with no body of its own).
+          // The edge flag is set from the unrounded distance, so the card never re-derives it.
+          const [ri, rd] = unlisted ?? candidates[0]
+          const p = roadFeatures[ri].properties
+          const road = roadRef(ri, rd)
+          let reason: Reason
+          if (p.kind === 'square') reason = { code: 'capital-square', road, edge }
+          else if (p.partial && (!p.cutApplied || p.cutApprox)) reason = { code: 'capital-road-unplaced', road, edge }
+          else if (edge) reason = { code: 'capital-road-edge', road }
+          else reason = { code: 'capital-road', road }
+          return { primary: fori, primaryRole: 'fori', reason, confidence: reason.code === 'capital-road' ? 'valószínű' : 'bizonytalan' }
+        }
+        if (narrower) {
+          const [ri, rd] = narrower
+          return {
+            primary: fori,
+            primaryRole: 'fori',
+            reason: { code: 'district-acts-on-partial', road: roadRef(ri, rd), sectionText: entryOf(ri)?.text ?? '' },
+            confidence: 'bizonytalan',
+          }
+        }
         const [ri, rd] = candidates.find(([i]) => entryOf(i)) ?? candidates[0]
         const p = roadFeatures[ri].properties
-        primary = districtBody
-        primaryRole = 'district'
-        reason = { code: 'district-acts-on', road: roadRef(ri, rd) }
         // SPEC 4.2.6: squares and sections whose ends were not placed stay bizonytalan.
         const vague = p.kind === 'square' || (p.partial && (!p.cutApplied || p.cutApprox))
-        confidence = edge || vague ? 'bizonytalan' : 'valószínű'
+        return {
+          primary: body,
+          primaryRole: 'district',
+          reason: { code: 'district-acts-on', road: roadRef(ri, rd) },
+          confidence: edge || vague ? 'bizonytalan' : 'valószínű',
+        }
       }
-    } else if (districtBody) {
       // 4. District street.
-      primary = districtBody
-      primaryRole = 'district'
-      reason = { code: 'district-street' }
-      confidence = 'biztos'
-    } else {
-      primary = fori
-      primaryRole = 'fori'
-      reason = { code: 'no-own-body' }
-      confidence = 'valószínű'
+      if (body) return { primary: body, primaryRole: 'district', reason: { code: 'district-street' }, confidence: 'biztos' }
+      return { primary: fori, primaryRole: 'fori', reason: { code: 'no-own-body' }, confidence: 'valószínű' }
+    }
+
+    const decision = decide(rule, districtBody)
+    const { primary, primaryRole, reason } = decision
+    let confidence = decision.confidence
+    if (nearBorder && neighbourDistrict !== null) {
+      nearBorder.otherSidePrimaryId = decide(ruleByDistrict.get(neighbourDistrict), neighbourBody).primary.id
     }
 
     // 5. Alternatives.

@@ -172,7 +172,41 @@ Margit-sziget belongs to no district: Mötv. 22. § (4), https://njt.jog.gov.hu/
 | Item | Source | Note |
 |---|---|---|
 | Road list | Korm. rendelet 432/2012. (XII. 29.) annexes 1–2, consolidated version in force from 2024-11-01 — https://njt.jog.gov.hu/jogszabaly/2012-432-20-22 (retrieved 2026-11-12) | Parsed verbatim to `scripts/data/decree-432-2012-roads.json` (1330 rows); 2. § 1.: both annexes are "fővárosi közutak" |
-| Geometry | OpenStreetMap via Overpass (ODbL) | `scripts/build-capital-roads.mjs`; 1295 rows matched, 35 listed as `unmatched` in the output; audit trail in `scripts/.cache/capital-roads-report.json` (not committed) |
+| Geometry | OpenStreetMap via Overpass (ODbL) | `scripts/build-capital-roads.mjs`; 1307 of 1332 rows matched (10 of them hand-placed, below), 25 listed as `unmatched` in the output (reviewed list: `scripts/data/capital-roads-expected-unmatched.json`); audit trail in `scripts/data/capital-roads-report.json` |
+
+### Hand-placed rows (review finding authority-1, checked 2026-11-13)
+
+Rows with no usable OSM name are placed on reviewed OSM element ids in
+`scripts/data/capital-roads-osm-places.json` (each entry quotes the decree row and says why the
+geometry is that place); the build fetches exactly those ids (Overpass, data of
+2026-11-13). Squares and areas are written as their closed outline rings with kind `square` and
+`area: true`; the resolver counts them only for a pin inside the polygon or within 2 m of its
+outline (`AREA_SNAP_M`, so they do not spill 15 m into side streets) and gives FÖRI,
+`bizonytalan` (SPEC 4.2.6). Unnamed connector roads
+placed by judgement carry `cutApprox`, so they are `bizonytalan` too. Row 2/598 is matched by
+the name rules through the alias "Feltáró út" (the Savoya Park access road).
+
+| Row | Decree name (section) | OSM | How it is identified |
+|---|---|---|---|
+| 2/37 | Krisztina körút átkötő útjai (Krisztina körút – Sarló utca) | ways 24302455, 24302437 | the two ways ("útjai") from the node where Sarló utca begins to Krisztina körút |
+| 2/364 | Blaha Lujza tér | relation 18790970 | multipolygon highway=pedestrian name=Blaha Lujza tér |
+| 2/587 | Balatoni út - Budaörsi út átkötő útja (Budaörsi út – Balatoni út) | 19 ways, unnamed primary ref=7 | both carriageways from Balatoni út's north end to Budaörsi út |
+| 2/598 | Savoya park feltáró útja (Hunyadi János út – Fehérvári út) | ways named "Feltáró út" | alias; runs beside OSM "Savoya Park" (building=retail, Hunyadi János út 19) |
+| 2/705 | Lehel téri összekötő út (Lehel utca – Váci út) | 6 secondary ways named "Lehel tér" | link Lehel utca to Váci út; no separate Lehel tér row in XIII (sceptic correction) |
+| 2/812 | Hubay Jenő tér | way 126097532 | area=yes highway=pedestrian name=Hubay Jenő tér |
+| 2/890 | Ostoros út parkolója | 6 amenity=parking ways of site relation 21464148 | "Cinkota parkoló" P+R on Ostoros út, operator Budapest Közút Zrt. (name differs: judgement) |
+| 2/1042 | Kőbánya-Kispest buszpályaudvar csatlakozó útjai (Lehel utca – Liszt Ferenc Repülőtérre vezető út) | ways 29893991, 133299535 | unclassified road from Lehel utca past the terminal to the airport road (sceptic correction) |
+| 2/1198 | Híd utca (Bányalég utca – 6. sz. főút) | 7 ways, unnamed tertiary incl. bridge 27404790 | the only road from the Bányalég utca junction to road 6; no OSM way is named Híd utca |
+| 2/1246 | Dózsa György utca (Majori út – Ültetvény utca) | 5 ways, unnamed tertiary | from the end of Majori út to Ültetvény utca, where OSM's named Dózsa György utca continues into XVIII |
+
+Still unmatched after the review (reasons in the reviewed list): no OSM object for the place
+(2/190, 2/525 bus garages; 2/1041 Kőbánya-Kispest bus station, so also 2/1043, 2/1057;
+2/522 housing-estate roads; 2/1001 no bridge on Méta utca; 2/1163 several access roads; 2/396
+"Névtelen utca"), the connection runs over other named streets (2/376, 2/441, 2/1015, 2/1051,
+2/1100, 2/1174; 2/36: Orvos utca does not reach Krisztina körút in OSM), several candidate ways and no way to choose (2/265, 2/451, 2/509, 2/519
+Népliget park roads with access=no, 2/848, 2/970), unclear identity (2/854; 2/872: OSM's
+"Csöbör utca" runs on the city boundary but joins Árpádföldi út only through Timur utca — needs a
+human check), and 2/1048 (same geometry as 2/1047).
 
 ## Legal references (M1, verified 2026-11-12)
 

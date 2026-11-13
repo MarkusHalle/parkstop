@@ -1,0 +1,68 @@
+{
+ "note": "Hand-reviewed placement of decree 432/2012 annex 2 rows that carry no usable OpenStreetMap name: squares, parking areas and unnamed connector roads. Each row maps to OSM way / relation ids; scripts/build-capital-roads.mjs fetches exactly these elements (cached) and writes their geometry. kind 'square' = an area: written as its closed outline rings with area: true; the resolver counts an area only for a pin inside it or within 3 m of its outline, and gives FÖRI, bizonytalan (SPEC 4.2.6). kind 'road' = the ways as drawn; approx: true marks a row placed by judgement on unnamed ways (cutApprox, so the resolver says bizonytalan). Re-check every id when OSM is refreshed.",
+ "checkedOn": "2026-11-13",
+ "osmBase": "2026-11-13T09:48:05Z",
+ "rows": {
+  "2/37": {
+   "kind": "road",
+   "approx": true,
+   "elements": ["way/24302455", "way/24302437"],
+   "decree": "37 | (Krisztina körút átkötő útjai) | Krisztina körút – Sarló utca (I. kerület)",
+   "why": "Both ways that leave the node where Sarló utca (way 259814574) begins (47.49570,19.03580) for Krisztina körút: way 24302455 (highway=tertiary_link, name=Krisztina körút, oneway) to the Krisztina körút carriageway (way 78414958) at 47.49534,19.03536, and way 24302437 (highway=secondary, name=Krisztina körút, oneway) to 47.49515,19.03610. The decree says 'útjai' (plural). Way 24302455 was 18 m from row 2/33 at its middle, so not covered before. Way 24302437 added after the sceptic review (2026-11-13)."
+  },
+  "2/364": {
+   "kind": "square",
+   "elements": ["relation/18790970"],
+   "decree": "364 | Blaha Lujza tér | (no section) (VIII. kerület)",
+   "why": "Relation 18790970: type=multipolygon, highway=pedestrian, name=Blaha Lujza tér, wikidata=Q804291 (outer way 1365252266, inner ways 1365252267-69). The only OSM object with the square's name. Test point 47.4963,19.0700 lies inside it."
+  },
+  "2/587": {
+   "kind": "road",
+   "approx": true,
+   "elements": ["way/269988669", "way/170104289", "way/24301480", "way/24301478", "way/315630014", "way/1206485921", "way/315630016", "way/8080736", "way/293201886", "way/288069964", "way/34879396", "way/1206485920", "way/1206485919", "way/952945082", "way/1206485915", "way/34800658", "way/504026251", "way/504026252", "way/410658487"],
+   "decree": "587 | Balatoni út - Budaörsi út átkötő útja | Budaörsi út – Balatoni út (XI. kerület)",
+   "why": "Both carriageways of the unnamed highway=primary, ref=7 road between the north end of Balatoni út (way 9047253, shared nodes at 47.46196,19.01183) and Budaörsi út: south-bound from link 269988669 (shares nodes with Budaörsi út ways 34800657 / 288069912), north-bound ending with way 410658487, which shares a node with Budaörsi út way 529164249. They carry no name, so the name rules never matched them. Was more than 40 m from every capital-road row."
+  },
+  "2/705": {
+   "kind": "road",
+   "approx": true,
+   "elements": ["way/38169385", "way/25079900", "way/325214540", "way/867900041", "way/38169400", "way/384062351"],
+   "decree": "705 | Lehel téri összekötő út | Lehel utca – Váci út (XIII. kerület)",
+   "why": "The highway=secondary, oneway ways named 'Lehel tér' (38169385, 25079900, 325214540, 867900041, 38169400, 384062351) link Lehel utca (nodes at 47.51663,19.06123 and 47.51700,19.06205) to Váci út (node at 47.51724,19.06058). The decree has no separate Lehel tér row in XIII, so this is the connector across the square. Replaces service way 25080367, refuted by the sceptic review (2026-11-13)."
+  },
+  "2/812": {
+   "kind": "square",
+   "elements": ["way/126097532"],
+   "decree": "812 | Hubay Jenő tér | (no section) (XV. kerület)",
+   "why": "Way 126097532: area=yes, highway=pedestrian, name=Hubay Jenő tér (closed, 94 m around), between Bácska utca, Illyés Gyula utca and Eötvös utca. The only OSM object with the square's name; the roads around it carry their own street names."
+  },
+  "2/890": {
+   "kind": "square",
+   "approx": true,
+   "elements": ["way/567772404", "way/658945396", "way/131834961", "way/1563868208", "way/1001886642", "way/1001886645"],
+   "decree": "890 | Ostoros út parkolója | (no section) (XVI. kerület)",
+   "why": "The amenity=parking members of site relation 21464148 (name=Cinkota parkoló, operator=Budapest Közút Zrt., park_ride=bus;train, website budapestkozut.hu/.../cinkota-pr/): P1 (567772404), P2 (658945396) and four small bays, all along Ostoros út (ways 1562093290, 765287507) at the Cinkota HÉV station. OSM gives the lot another name, so this is a judgement: it is the public lot on Ostoros út run by the capital's road company; the other lots on Ostoros út are private or customer-only."
+  },
+  "2/1042": {
+   "kind": "road",
+   "approx": true,
+   "elements": ["way/29893991", "way/133299535"],
+   "decree": "1042 | Kőbánya-Kispest buszpályaudvar csatlakozó útjai | Lehel utca – Liszt Ferenc Repülőtérre vezető út és (XIX. kerület)",
+   "why": "Unclassified way 29893991 (unnamed, 230 m) starts at Lehel utca (shared node with ways 103533223, 660930115 at 47.46382,19.14385) and runs past the Kőbánya-Kispest terminal; it continues as unclassified oneway way 133299535 to the airport road (OSM name Ferihegyi repülőtérre vezető út, ways 131977679, 133299530). Replaces service way 270723154, a oneway off-ramp from the airport road refuted by the sceptic review (2026-11-13): it fits row 2/1048's wording and is already covered. OSM has no bus-station object for the terminal itself (rows 2/1041, 2/1043, 2/1057 stay unmatched)."
+  },
+  "2/1198": {
+   "kind": "road",
+   "approx": true,
+   "elements": ["way/25941128", "way/1292739322", "way/27404790", "way/180444576", "way/1292739323", "way/152667930", "way/152667934"],
+   "decree": "1198 | Híd utca | Bányalég utca – 6. sz. főút (XXII. kerület)",
+   "why": "An unnamed highway=tertiary chain (638 m) from the Bányalég utca junction (shared node with ways 25941125 / 32847251 at 47.38822,18.95560) over a bridge (way 27404790, bridge=yes, layer=1) to road 6 (shared nodes with highway=primary ref=6 ways 162271523, 385603314 at 47.3831,18.9554). No OSM way is named Híd utca in XXII; this is the only road joining the decree's two ends, and it is a bridge road, hence approx."
+  },
+  "2/1246": {
+   "kind": "road",
+   "approx": true,
+   "elements": ["way/26453006", "way/26453004", "way/26453005", "way/127060132", "way/240340721"],
+   "decree": "1246 | Dózsa György utca | Majori út – Ültetvény utca (XXIII. kerület)",
+   "why": "An unnamed highway=tertiary chain (with bridge way 26453004) from the end of Majori út (way 574785521, node at 47.38860,19.16239) to the Ültetvény utca junction (way 26448178, node at 47.39666,19.17494), where OSM's named Dózsa György utca (way 26453003, same tags lcn=proposed) continues into XVIII. All of it lies in XXIII. The named part is in XVIII, which is why the name rule found nothing in XXIII."
+  }
+ }
+}

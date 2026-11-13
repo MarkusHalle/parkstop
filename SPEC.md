@@ -1,6 +1,6 @@
 # ParkStop — Product Specification
 
-Version 0.10 · 2026-11-12 · M4: update prompt and offline banner (4.8), appearance setting with a dark map (9), help and privacy screens (10); earlier, M3: plate read at several crop widths, offered only when two agree; zoomed second search; empty detections ignored (4.9 F-PLATE-9, D38, D39); earlier: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed (7, D31), photo position not used (3, 4.4, 11; D34)
+Version 0.11 · 2026-11-13 · M5: a handed report is copied on its first change (4.7), PC map locked after step 1 and panel 400 px (9), OSM credit visible at start (F-MAP-1); earlier, M4: update prompt and offline banner (4.8), appearance setting with a dark map (9), help and privacy screens (10); earlier, M3: plate read at several crop widths, offered only when two agree; zoomed second search; empty detections ignored (4.9 F-PLATE-9, D38, D39); earlier: resolver distance band and border neighbour (4.2), mailto limit 4 000 (4.5), witness sentence removed (7, D31), photo position not used (3, 4.4, 11; D34)
 
 ParkStop helps a person in Budapest report an illegally parked car: mark the spot on a map,
 see which authority is responsible, add photos, and get a ready-to-send Hungarian e-mail.
@@ -130,6 +130,7 @@ Settings screen: name, postal address, e-mail, phone (all optional). Stored in `
 ### 4.7 History (F-HIST)
 
 List of reports on this device: date, address, plate, authority, status (`piszkozat` / `átadva`). Open, duplicate, delete one, delete all. Storage: IndexedDB. Export of all data as a JSON file.
+An `átadva` report records what went to the mail app: the first change to it (pin, address, recipient, form or photos) continues in a new `piszkozat` and leaves the handed one unchanged (D47).
 
 ### 4.8 Installable app (F-PWA)
 
@@ -314,7 +315,7 @@ Rules: `authority/` and `mail/` contain no UI imports and no network calls (pure
 ## 9. Layout
 
 - **Phone:** full-screen map; a bottom sheet carries the current step (authority → form → e-mail). Large touch targets (min 44 px).
-- **PC (≥ 900 px):** left panel 380 px with the steps, map fills the rest.
+- **PC (≥ 900 px):** left panel 400 px with the steps, map fills the rest. The map takes input only in step 1 (as on the phone).
 - Light and dark theme: "Megjelenés" at the top of Settings — Világos, Sötét or Automatikus (follows the system; default). The map switches with it (OpenFreeMap `liberty` / `dark`, D43). WCAG AA contrast, full keyboard use, visible focus.
 - A ? icon in the header ("Súgó" link on the PC) opens the help; "Adatkezelés" opens from the help and from Settings (D44).
 

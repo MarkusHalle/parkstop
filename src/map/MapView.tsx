@@ -12,6 +12,8 @@ import type { LatLon } from '../authority/types'
 import { IconMapOff, IconSearchOff } from '../app/icons'
 import { formatAddress, searchAddress, type AddressHit } from './nominatim'
 import type { MapViewProps } from './types'
+import { geoFailureFromCode } from './geolocation'
+import { nudgeOffset, withAttribution } from './pin'
 
 // Same host for both (SPEC 10). Light: liberty; dark: dark (owner's choice over fiord).
 const STYLE_URLS: Record<ResolvedTheme, string> = {
@@ -41,7 +43,8 @@ const PIN_SVG =
 function createPinElement(): HTMLElement {
   const el = document.createElement('div')
   el.className = 'ps-pin'
-  el.setAttribute('role', 'img')
+  el.setAttribute('role', 'button')
+  el.tabIndex = 0
   el.setAttribute('aria-label', hu.map.pinLabel)
   el.innerHTML = PIN_SVG
   return el
@@ -53,7 +56,9 @@ type SearchState =
   | { status: 'error' }
   | { status: 'done'; hits: AddressHit[] }
 
-type GeoError = 'denied' | 'unsupported' | null
+type GeoError = 'denied' | 'unavailable' | 'unsupported' | null
+/** 'network': style or tiles failed to load. 'webgl': the map cannot be created at all. */
+type LoadError = 'network' | 'webgl' | null
 
 export function MapView({
   pin,
@@ -74,12 +79,14 @@ export function MapView({
   // The app remounts the map when phone/PC layout changes, so the first value is enough.
   const initialPhone = useRef(layout === "phone")
   const searchCtl = useRef<AbortController | null>(null)
+  // Set by pick(): the next pin placement moves focus to the pin (the result button is gone).
+  const focusPin = useRef(false)
   const lastLocate = useRef(locateRequest ?? 0)
   const theme = useResolvedTheme()
   // The style the map currently shows (or is loading), so a theme change only swaps once.
   const styleTheme = useRef<ResolvedTheme>(currentTheme())
 
-  const [loadError, setLoadError] = useState(false)
+  const [loadError, setLoadError] = useState<LoadError>(null)
   // Bumped by "Újra" (and when the browser comes back online): creates the map again.
   const [attempt, setAttempt] = useState(0)
   const [geoError, setGeoError] = useState<GeoError>(null)
@@ -110,8 +117,9 @@ export function MapView({
         attributionControl: false,
         dragRotate: false,
         pitchWithRotate: false,
+        transformStyle: (_prev, next) => withAttribution(next, hu.map.attribution),
         locale: {
-          'Map.Title': hu.map.label,
+          'Map.Title': hu.map.labelKeyboard,
           'AttributionControl.ToggleAttribution': hu.map.attributionToggle,
           'Marker.Title': hu.map.pinLabel,
         },
@@ -119,7 +127,7 @@ export function MapView({
     } catch {
       // WebGL unavailable: show the empty state instead of crashing.
       queueMicrotask(() => {
-        if (!cancelled) setLoadError(true)
+        if (!cancelled) setLoadError('webgl')
       })
       return () => {
         cancelled = true
@@ -127,22 +135,48 @@ export function MapView({
     }
     map.touchZoomRotate.disableRotation()
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
-    // On a phone the open attribution bar covers the map above the sheet: start it folded
-    // to its (i) button, which still shows the credits on tap (F-MAP-1).
-    if (initialPhone.current) {
-      map.once('load', () => {
-        container.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show')
-      })
-    }
+    // The credits start open on every screen and fold to the (i) button on the first map drag
+    // (MapLibre's compact default), as F-MAP-1 and the OSMF attribution guidelines ask (D47).
     map.setPadding({ top: initialPhone.current ? PHONE_TOP_PAD : 0, left: 0, right: 0, bottom: insetRef.current })
     mapRef.current = map
 
-    const marker = new maplibregl.Marker({ element: createPinElement(), draggable: true, anchor: 'bottom' })
+    const pinEl = createPinElement()
+    const marker = new maplibregl.Marker({ element: pinEl, draggable: true, anchor: 'bottom' })
     marker.on('dragend', () => {
       const p = marker.getLngLat()
       cb.current.onPinChange({ lat: p.lat, lon: p.lng }, 'map')
     })
     markerRef.current = marker
+
+    // Keyboard: arrows nudge the focused pin; the new place is reported once, on key up or
+    // blur, so key repeat does not restart the lookup on every step.
+    let nudged = false
+    const commitNudge = () => {
+      if (!nudged) return
+      nudged = false
+      const p = marker.getLngLat()
+      cb.current.onPinChange({ lat: p.lat, lon: p.lng }, 'map')
+    }
+    pinEl.addEventListener('keydown', (e) => {
+      const off = nudgeOffset(e.key, e.shiftKey)
+      if (!off) return
+      e.preventDefault()
+      e.stopPropagation() // MapLibre's own keyboard handler would pan the map
+      const pt = map.project(marker.getLngLat())
+      marker.setLngLat(map.unproject([pt.x + off.dx, pt.y + off.dy]))
+      nudged = true
+    })
+    pinEl.addEventListener('keyup', (e) => { if (nudgeOffset(e.key, false)) commitNudge() })
+    pinEl.addEventListener('blur', commitNudge)
+
+    // Enter or Space on the focused map drops the pin at the map centre.
+    const canvasContainer = map.getCanvasContainer()
+    canvasContainer.addEventListener('keydown', (e) => {
+      if (e.target !== canvasContainer || (e.key !== 'Enter' && e.key !== ' ')) return
+      e.preventDefault()
+      const c = map.getCenter()
+      cb.current.onPinChange({ lat: c.lat, lon: c.lng }, 'map')
+    })
 
     map.on('click', (e) => {
       const target = e.originalEvent.target
@@ -154,7 +188,7 @@ export function MapView({
     map.on('load', () => {
       loaded = true
       // An early tile or sprite error is not final if the map then loads.
-      if (!cancelled) setLoadError(false)
+      if (!cancelled) setLoadError(null)
     })
     // A style swap (theme change) drops every source and layer we added, so the capital
     // roads are re-added after each 'style.load', the first one included. The pin is a DOM
@@ -164,7 +198,7 @@ export function MapView({
     })
     map.on('error', () => {
       // Tile errors after the first load are not fatal; only a failed style is.
-      if (!loaded && !cancelled) setLoadError(true)
+      if (!loaded && !cancelled) setLoadError('network')
     })
 
     return () => {
@@ -178,9 +212,9 @@ export function MapView({
 
   // Offline when the page opened: try again by itself once the network is back.
   useEffect(() => {
-    if (!loadError) return
+    if (loadError !== 'network') return
     const retry = () => {
-      setLoadError(false)
+      setLoadError(null)
       setAttempt((n) => n + 1)
     }
     window.addEventListener('online', retry)
@@ -213,6 +247,10 @@ export function MapView({
     if (pinLat === undefined || pinLon === undefined) marker.remove()
     else {
       marker.setLngLat([pinLon, pinLat]).addTo(map)
+      if (focusPin.current) {
+        focusPin.current = false
+        marker.getElement().focus({ preventScroll: true })
+      }
       // A pin set from outside (a report reopened from the history) may be off-screen.
       if (!map.getBounds().contains([pinLon, pinLat])) map.jumpTo({ center: [pinLon, pinLat], zoom: Math.max(map.getZoom(), 16) })
     }
@@ -253,9 +291,9 @@ export function MapView({
         cb.current.onPinChange(ll, 'geolocation')
         flyTo(ll)
       },
-      () => {
+      (err) => {
         setLocating(false)
-        setGeoError('denied')
+        setGeoError(geoFailureFromCode(err.code))
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     )
@@ -292,6 +330,7 @@ export function MapView({
   function pick(hit: AddressHit) {
     setSearch({ status: 'idle' })
     setQuery('')
+    focusPin.current = true
     cb.current.onPinChange(hit.ll, 'search')
     cb.current.onAddressPicked?.(hit.label || formatAddress({ display_name: hit.displayName }))
     flyTo(hit.ll)
@@ -305,12 +344,21 @@ export function MapView({
   }
 
   const retryMap = () => {
-    setLoadError(false)
+    setLoadError(null)
     setAttempt((n) => n + 1)
   }
 
   const geoMessage =
-    geoError === 'unsupported' ? hu.map.geoUnsupported : geoError === 'denied' ? hu.map.geoErrorBody : null
+    geoError === 'unsupported'
+      ? hu.map.geoUnsupported
+      : geoError === 'denied'
+        ? hu.map.geoErrorBody
+        : geoError === 'unavailable'
+          ? hu.map.geoUnavailableBody
+          : null
+  // Without WebGL the search and locate button still work; only the canvas is missing.
+  const noWebgl = loadError === 'webgl'
+  const controlsUsable = !loadError || noWebgl
 
   return (
     <div
@@ -319,7 +367,7 @@ export function MapView({
     >
       <div ref={canvasRef} className="ps-map__canvas" role="application" aria-label={hu.map.label} />
 
-      {!loadError && (
+      {controlsUsable && (
         <div className="ps-search" onKeyDown={onSearchKey}>
           <form className="ps-search__form" onSubmit={runSearch} role="search">
             <label className="ps-sr-only" htmlFor="ps-search-input">
@@ -349,6 +397,9 @@ export function MapView({
             {lookupEnabled && search.status === 'loading' && <p className="ps-search__note">{hu.map.searching}</p>}
             {lookupEnabled && search.status === 'done' && search.hits.length === 0 && (
               <p className="ps-search__note">{hu.map.noResults}</p>
+            )}
+            {lookupEnabled && search.status === 'done' && search.hits.length > 0 && (
+              <p className="ps-sr-only">{hu.map.resultsCount(search.hits.length)}</p>
             )}
             {(!lookupEnabled || search.status === 'error') && (
               <div className="ps-search__note ps-search__note--off">
@@ -388,7 +439,7 @@ export function MapView({
         </div>
       )}
 
-      {!loadError && (
+      {controlsUsable && (
       <button
         type="button"
         className={phone ? 'ps-locate ps-locate--round' : 'ps-locate ps-locate--pc'}
@@ -437,22 +488,24 @@ export function MapView({
       )}
 
       {loadError && (
-        <div className="ps-empty" role="alert">
+        <div className={`ps-empty${noWebgl ? ' ps-empty--below' : ''}`} role="alert">
           <div className="ps-empty__card">
             <span className="ps-empty__icon">
               <IconMapOff />
             </span>
-            <p className="ps-empty__title">{hu.map.loadErrorTitle}</p>
-            <p className="ps-empty__body">{hu.map.loadErrorBody}</p>
+            <p className="ps-empty__title">{noWebgl ? hu.map.webglErrorTitle : hu.map.loadErrorTitle}</p>
+            <p className="ps-empty__body">{noWebgl ? hu.map.webglErrorBody : hu.map.loadErrorBody}</p>
             <div className="ps-empty__actions">
               {onOpenHistory && (
                 <button type="button" className="ps-empty__btn ps-empty__btn--secondary" onClick={onOpenHistory}>
                   {hu.map.loadErrorHistory}
                 </button>
               )}
-              <button type="button" className="ps-empty__btn ps-empty__btn--primary" onClick={retryMap}>
-                {hu.map.loadErrorRetry}
-              </button>
+              {!noWebgl && (
+                <button type="button" className="ps-empty__btn ps-empty__btn--primary" onClick={retryMap}>
+                  {hu.map.loadErrorRetry}
+                </button>
+              )}
             </div>
           </div>
         </div>

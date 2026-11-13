@@ -148,6 +148,9 @@ function synth(change?: (a: AuthoritiesData) => void) {
         districtActsOn: [
           { annex: 2, row: '2', text: 'Listed road', scope: 'full' },
           { annex: 2, row: '4', text: 'Narrow part text', scope: 'narrower' },
+          { annex: 2, row: '10', text: 'Listed road', scope: 'full' },
+          { annex: 2, row: '11', text: 'Narrow junction text', scope: 'narrower' },
+          { annex: 2, row: '13', text: 'Listed road across the border', scope: 'full' },
         ],
         verifiedOn: '2026-11-12',
       },
@@ -172,6 +175,9 @@ function synth(change?: (a: AuthoritiesData) => void) {
         road('7', 800, 500, 900, { partial: true, cutApplied: true, cutApprox: true }),
         road('8', 900, 950, 1000), // unlisted, ends at the district border
         road('9', 503, 820, 880), // unlisted, 3 m beside row 2
+        road('10', 650, 500, 900), // listed "full" in district 1
+        road('11', 650.5, 600, 800), // listed "narrower" in district 1, 0.5 m beside row 10
+        road('13', 100, 900, 1100), // listed "full" in district 1, crosses the border into district 2
       ],
     },
     authorities,
@@ -254,6 +260,27 @@ describe('resolver rules on synthetic data', () => {
     expect(altIds(res)).toEqual(['district:district-01', 'police:police-01'])
   })
 
+  it('tie between a full and a narrower listed row: FÖRI, district-acts-on-partial, bizonytalan', () => {
+    // Rows 10 (full) and 11 (narrower) are 0.25 m from the pin: the narrower one decides.
+    const res = resolved(r(P(700, 650.25), opts))
+    expect(res.primary.id).toBe('fori')
+    expect(res.reason).toMatchObject({ code: 'district-acts-on-partial', sectionText: 'Narrow junction text' })
+    expect(res.confidence).toBe('bizonytalan')
+    expect(altIds(res)).toEqual(['district:district-01', 'police:police-01'])
+    // Beyond the narrower row's reach only the full row counts: district body.
+    expect(resolved(r(P(550, 650.25), opts))).toMatchObject({ primary: { id: 'district-01' }, reason: { code: 'district-acts-on' } })
+  })
+
+  it('a listed road in a district without its own body takes the FÖRI path', () => {
+    const r2 = synth((a) => {
+      a.districtRules[0].ownBody = false
+    })
+    const res = resolved(r2(P(550, 505), opts))
+    expect(res).toMatchObject({ primaryRole: 'fori', reason: { code: 'capital-road' }, confidence: 'valószínű' })
+    expect(res.primary.id).toBe('fori')
+    expect(altIds(res)).toEqual(['police:police-01'])
+  })
+
   it('square: capital-square, bizonytalan', () => {
     const res = resolved(r(P(250, 805), opts))
     expect(res.reason.code).toBe('capital-square')
@@ -267,6 +294,42 @@ describe('resolver rules on synthetic data', () => {
       expect(res.primary.id).toBe('fori')
       expect(res.confidence).toBe('bizonytalan')
     }
+  })
+
+  it('8–15 m band on a square or an unplaced section keeps its reason and sets the edge flag', () => {
+    // Row 6 (partial, uncut) at 5 m and 11 m; row 5 (square) at 5 m and 11 m.
+    expect(resolved(r(P(250, 205), opts)).reason).toMatchObject({ code: 'capital-road-unplaced', edge: false })
+    const unplaced = resolved(r(P(250, 211), opts))
+    expect(unplaced.reason).toMatchObject({ code: 'capital-road-unplaced', edge: true })
+    expect(unplaced.primary.id).toBe('fori')
+    expect(unplaced.confidence).toBe('bizonytalan')
+    expect(altIds(unplaced)).toEqual(['district:district-01', 'police:police-01'])
+    expect(resolved(r(P(250, 805), opts)).reason).toMatchObject({ code: 'capital-square', edge: false })
+    const square = resolved(r(P(250, 811), opts))
+    expect(square.reason).toMatchObject({ code: 'capital-square', edge: true })
+    expect(square.confidence).toBe('bizonytalan')
+    // Just inside 8 m is not the edge band; the flag comes from the unrounded distance.
+    expect(resolved(r(P(250, 207.9), opts)).reason).toMatchObject({ code: 'capital-road-unplaced', edge: false })
+  })
+
+  it('otherSidePrimaryId: who is responsible on the far side of the border', () => {
+    // District street: the neighbour body.
+    expect(resolved(r(P(985, 350), opts)).nearBorder?.otherSidePrimaryId).toBe('district-02')
+    // FÖRI road with an unlisted neighbour: FÖRI on both sides, no different recipient.
+    const fori = resolved(r(P(985, 905), opts))
+    expect(fori.primary.id).toBe('fori')
+    expect(fori.nearBorder?.otherSidePrimaryId).toBe('fori')
+    // Listed road here, neighbour does not list it: FÖRI across the border.
+    const listed = resolved(r(P(985, 102), opts))
+    expect(listed.primary.id).toBe('district-01')
+    expect(listed.nearBorder).toMatchObject({ district: 2, otherSidePrimaryId: 'fori' })
+    // Unlisted side next to a neighbour that lists the road: the neighbour body.
+    const across = resolved(r(P(1015, 102), opts))
+    expect(across.primary.id).toBe('fori')
+    expect(across.nearBorder).toMatchObject({ district: 1, otherSidePrimaryId: 'district-01' })
+    // City edge and away from borders: no far side.
+    expect(resolved(r(P(300, 15), opts)).nearBorder?.otherSidePrimaryId).toBeNull()
+    expect(resolved(r(P(300, 350), opts)).nearBorder).toBeNull()
   })
 
   it('near a district border: neighbour alternative, confidence capped at valószínű', () => {
@@ -378,6 +441,29 @@ describe('resolver: sceptic regressions (real data)', () => {
     expect(at(47.507434, 19.07245)).toMatchObject({ primary: { id: 'district-07' }, reason: { code: 'district-acts-on' } })
   })
 
+  it('border hint targets on capital roads that are FÖRI on both sides or acted on by one district', () => {
+    // Rákóczi út, VII and VIII side: FÖRI on both sides, so no different recipient across the line.
+    for (const [lat, lon, roman] of [[47.49672, 19.06888, 'VIII'], [47.496612, 19.068943, 'VII']] as const) {
+      const res = at(lat, lon)
+      expect(res.primary.id, `${lat},${lon}`).toBe('fori')
+      expect(res.nearBorder?.roman, `${lat},${lon}`).toBe(roman)
+      expect(res.nearBorder?.otherSidePrimaryId, `${lat},${lon}`).toBe('fori')
+    }
+    // Lehel utca (VI lists it): across the line in XIII it is FÖRI's.
+    const lehel = at(47.517443, 19.062877)
+    expect(lehel.primary.id).toBe('district-06')
+    expect(lehel.nearBorder).toMatchObject({ roman: 'XIII', otherSidePrimaryId: 'fori' })
+    // Three metres across the line (XIII side) it is FÖRI's and VI's body acts on the far side.
+    const xiii = at(47.517465, 19.062853)
+    expect(xiii.primary.id).toBe('fori')
+    expect(xiii.nearBorder).toMatchObject({ roman: 'VI', otherSidePrimaryId: 'district-06' })
+  })
+
+  it('Erzsébet körút / Dohány utca junction: a full and a narrower row tie, FÖRI decides', () => {
+    expect(at(47.498624, 19.070043)).toMatchObject({ primary: { id: 'fori' }, reason: { code: 'district-acts-on-partial' }, confidence: 'bizonytalan' })
+    expect(at(47.498669, 19.07011)).toMatchObject({ primary: { id: 'district-07' }, reason: { code: 'district-acts-on' } })
+  })
+
   it('a listed square stays bizonytalan', () => {
     expect(at(47.503634, 19.079608)).toMatchObject({ primary: { id: 'district-07' }, confidence: 'bizonytalan' })
   })
@@ -390,5 +476,70 @@ describe('resolver: sceptic regressions (real data)', () => {
   it('isStale fails closed on bad input', () => {
     expect(isStale('2025-13-45', today)).toBe(true)
     expect(isStale('2026-01-01', new Date('nonsense'))).toBe(true)
+  })
+})
+
+// Decree rows placed by hand on OSM elements (scripts/data/capital-roads-osm-places.json,
+// review finding authority-1, 2026-11-13): squares and areas give FÖRI, bizonytalan
+// (SPEC 4.2.6); unnamed connector roads placed by judgement are bizonytalan too.
+describe('resolver: hand-placed capital squares, areas and connector roads (real data)', () => {
+  const at = (lat: number, lon: number) => resolved(real({ lat, lon }, opts))
+
+  it('Blaha Lujza tér (2/364): FÖRI, bizonytalan, not the VIII district body', () => {
+    expect(at(47.4963, 19.07)).toMatchObject({
+      district: 8,
+      primary: { id: 'fori' },
+      confidence: 'bizonytalan',
+      reason: { code: 'capital-square', road: { annex: 2, row: '364' } },
+    })
+  })
+
+  it('Hubay Jenő tér (2/812): FÖRI, bizonytalan', () => {
+    expect(at(47.56262, 19.11612)).toMatchObject({
+      primary: { id: 'fori' },
+      confidence: 'bizonytalan',
+      reason: { code: 'capital-square', road: { annex: 2, row: '812' } },
+    })
+  })
+
+  it('Ostoros út parkolója (2/890, Cinkota P+R): FÖRI, bizonytalan', () => {
+    expect(at(47.52015, 19.21776)).toMatchObject({
+      primary: { id: 'fori' },
+      confidence: 'bizonytalan',
+      reason: { code: 'capital-square', road: { annex: 2, row: '890' } },
+    })
+  })
+
+  it('unnamed connector roads placed by judgement: FÖRI, capital-road-unplaced, bizonytalan', () => {
+    const cases: [number, number, string][] = [
+      [47.49539, 19.03577, '37'], // Krisztina körút – Sarló utca link
+      [47.46327, 19.0123, '587'], // Balatoni út – Budaörsi út, road 7
+      [47.51708, 19.06103, '705'], // the "Lehel tér" ways, Lehel utca – Váci út
+      [47.46372, 19.1453, '1042'], // Kőbánya-Kispest, Lehel utca – terminal – airport road
+      [47.38672, 18.95647, '1198'], // Híd utca, Bányalég utca – road 6
+      [47.39207, 19.16724, '1246'], // Dózsa György utca, Majori út – Ültetvény utca
+    ]
+    for (const [lat, lon, row] of cases) {
+      expect(at(lat, lon), `2/${row}`).toMatchObject({
+        primary: { id: 'fori' },
+        confidence: 'bizonytalan',
+        reason: { code: 'capital-road-unplaced', road: { annex: 2, row } },
+      })
+    }
+  })
+
+  // Sceptic review 2026-11-13: an area must not spill 15 m into the streets around it.
+  it('areas count only inside or within AREA_SNAP_M of the outline, not 15 m around', () => {
+    // Inside Blaha Lujza tér: FÖRI. Márkus Emília utca, 2.9 m outside the outline: VIII body.
+    expect(at(47.4965, 19.07)).toMatchObject({ primary: { id: 'fori' }, confidence: 'bizonytalan', reason: { code: 'capital-square' } })
+    expect(at(47.49625, 19.06856)).toMatchObject({ primary: { id: 'district-08' }, reason: { code: 'district-street' } })
+    expect(at(47.496124, 19.070102)).toMatchObject({ primary: { id: 'district-08' }, reason: { code: 'district-street' } })
+    // Cinkota P+R (Ostoros út parkolója): inside FÖRI, 7 m outside the lot the XVI body.
+    expect(at(47.520051, 19.217436)).toMatchObject({ primary: { id: 'fori' }, reason: { code: 'capital-square', road: { row: '890' } } })
+    expect(at(47.520004, 19.217012)).toMatchObject({ primary: { id: 'district-16' }, reason: { code: 'district-street' } })
+  })
+
+  it('Savoya park feltáró útja (2/598, OSM "Feltáró út"): FÖRI on a placed section', () => {
+    expect(at(47.43826, 19.03698)).toMatchObject({ primary: { id: 'fori' }, reason: { road: { annex: 2, row: '598' } } })
   })
 })

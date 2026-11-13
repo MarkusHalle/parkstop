@@ -41,7 +41,8 @@ export function AddressField({ address, status, districtRoman, onChange, forceEd
           placeholder={hu.address.placeholder}
           autoComplete="street-address"
           aria-invalid={invalid || undefined}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { setEditing(true); onChange(e.target.value) }}
+          onBlur={() => { if (address.trim() !== '') setEditing(false) }}
           onKeyDown={(e) => { if (e.key === 'Enter' && address.trim()) setEditing(false) }}
         />
         {editing && address.trim() !== '' && (

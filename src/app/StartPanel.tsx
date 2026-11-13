@@ -1,5 +1,5 @@
 // Step 1 before a pin exists: phone bottom sheet / PC side panel (mockups Main, DesktopStart).
-import { useRef, useState, type DragEvent } from 'react'
+import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { hu } from '../i18n/hu'
 import { IconCamera, IconLocate } from './icons'
 
@@ -14,6 +14,21 @@ export function StartPanel({ layout, photoCount, onAddFiles, onLocate }: Props) 
   const fileRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const pick = () => fileRef.current?.click()
+  // A file dropped outside the dropzone would make the browser open it and leave the app,
+  // losing the photos and pin not yet saved. Cancel such drops everywhere else.
+  useEffect(() => {
+    const isFileDrag = (e: globalThis.DragEvent) => e.dataTransfer?.types.includes('Files') ?? false
+    const inZone = (e: globalThis.DragEvent) => e.target instanceof Element && e.target.closest('.dropzone') !== null
+    const over = (e: globalThis.DragEvent) => {
+      if (!isFileDrag(e)) return
+      e.preventDefault()
+      if (!inZone(e) && e.dataTransfer) e.dataTransfer.dropEffect = 'none'
+    }
+    const drop = (e: globalThis.DragEvent) => { if (isFileDrag(e)) e.preventDefault() }
+    window.addEventListener('dragover', over)
+    window.addEventListener('drop', drop)
+    return () => { window.removeEventListener('dragover', over); window.removeEventListener('drop', drop) }
+  }, [])
   const fileInput = (
     <input ref={fileRef} type="file" accept="image/*" multiple hidden
       onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />

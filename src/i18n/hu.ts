@@ -49,6 +49,7 @@ export const hu = {
 
   map: {
     label: 'Budapest térképe',
+    labelKeyboard: 'Budapest térképe — Enter: jelölő a térkép közepére',
     searchLabel: 'Cím keresése',
     searchPlaceholder: 'Cím keresése',
     searchSubmit: 'Keresés',
@@ -57,23 +58,30 @@ export const hu = {
     searchUnavailableTitle: 'A címkeresés nem érhető el',
     searchUnavailableBody: 'Tedd le a jelölőt a térképen, és írd be a címet kézzel.',
     resultsLabel: 'Találatok',
+    resultsCount: (n: number) => `${n} találat`,
     locate: 'Saját helyzetem',
     locating: 'Helymeghatározás…',
     geoErrorTitle: 'A helyzetedet nem érjük el',
     geoErrorBody: 'Engedélyezd a helymeghatározást a böngészőben, vagy jelöld a helyet a térképen.',
+    geoUnavailableBody: 'A helyzetedet most nem sikerült meghatározni. Kapcsold be a helymeghatározást, próbáld újra, vagy jelöld a helyet a térképen.',
     geoUnsupported: 'Ez a böngésző nem tud helyet meghatározni. Jelöld a helyet a térképen.',
     tapHint: 'Koppints a térképre a hely megjelöléséhez',
     clickHint: 'Kattints a térképre a hely megjelöléséhez',
     zoomIn: 'Nagyítás',
     zoomOut: 'Kicsinyítés',
     legendCapital: 'fővárosi kezelésű út',
-    attribution: '© OpenStreetMap közreműködők',
+    attribution:
+      '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> ' +
+      '<a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> ' +
+      'Adatok: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap közreműködők</a>',
     attributionToggle: 'Térképadatok forrása',
-    pinLabel: 'Jelölő — húzd a pontos helyre',
+    pinLabel: 'Jelölő — húzd vagy told a nyílbillentyűkkel a pontos helyre',
     loadErrorTitle: 'A térkép most nem tölt be',
     loadErrorBody: 'Internet nélkül nem lehet helyet jelölni. A korábbi bejelentéseidet így is megnyithatod.',
     loadErrorHistory: 'Előzmények',
     loadErrorRetry: 'Újra',
+    webglErrorTitle: 'A térkép nem jeleníthető meg',
+    webglErrorBody: 'A böngésződ nem tudja megrajzolni a térképet (a WebGL hiányzik vagy ki van kapcsolva). A helyet a címkereséssel vagy a „Saját helyzetem” gombbal is megadhatod.',
   },
 
   address: {
@@ -105,6 +113,7 @@ export const hu = {
         `A jelölő ${m} méterre van egy fővárosi kezelésű úttól (${road}). Ha az autó a mellékutcában áll, válaszd lent a kerületi felügyeletet.`,
       capitalRoadUnplaced: (road: string) =>
         `Fővárosi kezelésű útszakasz (${road}), de a szakasz vége a térképen nem pontos — ellenőrizd a címzettet.`,
+      edgeSideStreet: 'Ha az autó a mellékutcában áll, válaszd lent a kerületi felügyeletet.',
       capitalSquare: (road: string) =>
         `Fővárosi kezelésű tér vagy terület (${road}) — itt jellemzően a FÖRI intézkedik, de a tér egyes részei a kerülethez tartozhatnak.`,
       districtActsOn: (road: string) =>
@@ -114,8 +123,8 @@ export const hu = {
       noDistrict: (area: string) =>
         `${area}: nem tartozik kerülethez, a főváros közvetlenül kezeli — itt a FÖRI intézkedik.`,
     },
-    nearBorder: (roman: string) =>
-      `A jelölő kerülethatár közelében van. Ha az autó a szomszéd kerületben áll (${roman}. kerület), válaszd lent azt.`,
+    nearBorder: (roman: string, name: string) =>
+      `A jelölő kerülethatár közelében van. Ha az autó a határ túloldalán áll (${roman}. kerület), ott ${name} az illetékes — válaszd lent őt.`,
     stale: 'Az adat több mint 12 hónapja volt ellenőrizve — a hivatalos oldalon érdemes megnézni.',
     verified: (date: string) => `Adat ellenőrizve: ${date}`,
     source: 'Hivatalos forrás',
@@ -249,6 +258,10 @@ export const hu = {
     copyPhotoFailed: 'Ez a böngésző nem tud képet a vágólapra tenni. Használd a „Fotók letöltése” gombot.',
     open: 'Megnyitás levelezőben',
     hintPhone: 'A címzett, a tárgy és a szöveg kitöltve nyílik meg. A levelezőben a gemkapocs ikonnal csatold a mentett fotókat.',
+    hintPhoneNoToLongBody: 'A tárgy kitöltve nyílik meg, a címzettet te add meg. A levelezőben a gemkapocs ikonnal csatold a mentett fotókat.',
+    hintPhoneLongBody: 'A címzett és a tárgy kitöltve nyílik meg. A levelezőben a gemkapocs ikonnal csatold a mentett fotókat.',
+    hintPhoneNoTo: 'A tárgy és a szöveg kitöltve nyílik meg, a címzettet te add meg. A levelezőben a gemkapocs ikonnal csatold a mentett fotókat.',
+    longBodyBefore: 'A szöveg túl hosszú ahhoz, hogy a levelező közvetlenül átvegye. A megnyitáskor a vágólapra másoljuk; a megnyíló levélben illeszd be a szöveg helyére.',
     hintPc: 'A megnyíló levélhez csatold a letöltött fotókat, vagy illeszd be a kimásolt képet (Ctrl+V).',
     longBody: 'A szöveg túl hosszú ahhoz, hogy a levelező közvetlenül átvegye, ezért a vágólapra másoltuk. A megnyíló levélben illeszd be a szöveg helyére.',
     longBodyCopyFailed: 'A szöveg túl hosszú a közvetlen átadáshoz. Másold ki a „Másolás” gombbal, és illeszd be a levélbe.',
@@ -287,6 +300,7 @@ export const hu = {
     startReport: 'Új bejelentés',
     exportError: 'Az exportálás nem sikerült. Próbáld újra.',
     saveError: 'A bejelentést nem sikerült menteni erre a készülékre.',
+    forked: 'Az átadott bejelentés változatlan marad; a módosítás új piszkozatként mentődik.',
   },
 
   // Roadmap 3.4, mockup "07 Beállítások" (SPEC 4.6, 4.9 F-PLATE-6).
@@ -415,6 +429,13 @@ export const hu = {
     ],
     version: (v: string) => `ParkStop ${v}`,
     dataChecked: (date: string) => `A hatósági adatok ellenőrzése: ${date}`,
+    // Roadmap 5.0b (D45, D46): licence and source, as GPL-3.0 asks of a public site.
+    licenceTitle: 'Licenc és forráskód',
+    licenceText: 'A ParkStop szabad szoftver: a GNU General Public License 3-as vagy (választásod szerint) későbbi változata szerint használhatod, módosíthatod és terjesztheted. A rendszámfelismerő modell szintén GPL-3.0 alatt áll; a forráskódja a tárolóban van. A felhasznált külső részek és licencük a THIRD-PARTY-NOTICES fájlban.',
+    sourceLink: 'Forráskód a GitHubon',
+    noticesLink: 'Külső részek és licencük',
+    sourceUrl: 'https://github.com/justaguyulove/parkstop',
+    noticesUrl: 'https://github.com/justaguyulove/parkstop/blob/main/THIRD-PARTY-NOTICES.md',
   },
 
   // Roadmap 4.2: "Adatkezelés" (SPEC 1 C6, SPEC 10). Hosts must match SPEC 10.

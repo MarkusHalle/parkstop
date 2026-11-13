@@ -32,6 +32,7 @@ type SideStep = 'history' | 'settings' | 'help' | 'privacy'
 type Resolve = (ll: LatLon, opts: ResolveOptions) => Resolution
 const STEP_NO: Record<Step, number> = { map: 1, report: 2, mail: 3, done: 3, history: 0, settings: 0, help: 0, privacy: 0 }
 const isSide = (s: Step): s is SideStep => s === 'history' || s === 'settings' || s === 'help' || s === 'privacy'
+const REOPEN_KEY = 'parkstop-reopen-after-update'
 const same = (a: LatLon | null, b: LatLon | null) => !!a && !!b && a.lat === b.lat && a.lon === b.lon
 
 export function App() {
@@ -60,8 +61,12 @@ export function App() {
   const [locateRequest, setLocateRequest] = useState(0)
   const [chosenId, setChosenId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(true)
+  // A handed report is a record of what went to the mail app: the first change after the
+  // hand-off continues in a new draft and leaves that record untouched (D47). Set further down.
+  const forkIfHanded = useRef<() => void>(() => {})
 
   const onPinChange = useCallback((ll: LatLon, source: PinSource) => {
+    forkIfHanded.current()
     setPin(ll)
     setManualAddress(null)
     setChosenId(null)
@@ -97,10 +102,24 @@ export function App() {
   const [showErrors, setShowErrors] = useState(false)
   // Where the time came from: the user's own edit is never overwritten by a photo.
   const [timeSource, setTimeSource] = useState<'none' | 'now' | 'photo' | 'user'>('none')
-  const onAddFiles = useCallback(async (files: File[]) => {
-    if (files.length === 0) return
-    const res = await addPhotos(photos.length, files)
-    setPhotos((p) => [...p, ...res.added])
+  // Latest photo list and time source, for async work that must not read render-time values.
+  const photosRef = useRef<PhotoItem[]>([])
+  const timeSourceRef = useRef(timeSource)
+  useLayoutEffect(() => {
+    photosRef.current = photos
+    timeSourceRef.current = timeSource
+  })
+  const setTimeSourceNow = useCallback((s: 'none' | 'now' | 'photo' | 'user') => {
+    timeSourceRef.current = s
+    setTimeSource(s)
+  }, [])
+  // Batches run one after the other, so the 5-photo cap and the time rule see the result of the
+  // previous batch (a second pick during a slow decode would otherwise exceed 5 photos).
+  const addQueue = useRef<Promise<void>>(Promise.resolve())
+  const addBatch = useCallback(async (files: File[]) => {
+    const res = await addPhotos(photosRef.current.length, files)
+    photosRef.current = [...photosRef.current, ...res.added]
+    setPhotos(photosRef.current)
     setPhotoMessages([
       ...res.unreadable.map((n) => hu.report.photoUnreadable(n)),
       ...(res.overLimit > 0 ? [hu.report.tooMany(5)] : []),
@@ -108,20 +127,38 @@ export function App() {
     // SPEC 4.3: the time defaults to the photo's capture time (EXIF, read on the device).
     // The photo's position is not used: Android removes it before a browser sees the file (D34).
     const takenAt = firstTakenAt(await Promise.all(res.added.map((p) => readPhotoTime(p.file))))
-    if (takenAt && timeSource !== 'user') {
+    if (takenAt && timeSourceRef.current !== 'user') {
       setForm((f) => ({ ...f, time: toLocalDateTime(takenAt) }))
-      setTimeSource('photo')
+      setTimeSourceNow('photo')
     }
-  }, [photos.length, timeSource])
+  }, [setTimeSourceNow])
+  const onAddFiles = useCallback((files: File[]) => {
+    if (files.length === 0) return Promise.resolve()
+    forkIfHanded.current()
+    const run = addQueue.current.then(() => addBatch(files))
+    addQueue.current = run.catch(() => undefined)
+    return run
+  }, [addBatch])
   const onRemovePhoto = (id: string) => {
-    setPhotos((ps) => {
-      const gone = ps.find((p) => p.id === id)
-      if (gone) releasePhoto(gone)
-      return ps.filter((p) => p.id !== id)
-    })
+    forkIfHanded.current()
+    const gone = photosRef.current.find((p) => p.id === id)
+    if (gone) releasePhoto(gone)
+    const rest = photosRef.current.filter((p) => p.id !== id)
+    photosRef.current = rest
+    setPhotos(rest)
     setPhotoMessages([])
+    // The time came from the removed photo: take it from a remaining one, else use now.
+    if (gone && timeSourceRef.current === 'photo') {
+      void Promise.all(rest.map((p) => readPhotoTime(p.file))).then((times) => {
+        if (timeSourceRef.current !== 'photo') return
+        const takenAt = firstTakenAt(times)
+        setForm((f) => ({ ...f, time: toLocalDateTime(takenAt ?? new Date()) }))
+        setTimeSourceNow(takenAt ? 'photo' : 'now')
+      })
+    }
   }
   const onMovePhoto = (id: string, dir: -1 | 1) => {
+    forkIfHanded.current()
     setPhotos((ps) => {
       const i = ps.findIndex((p) => p.id === id)
       const j = i + dir
@@ -156,6 +193,7 @@ export function App() {
   const onPickPlate = useCallback((o: PlateOption<UiPlate>) => {
     const value = o.value
     if (value === null) return
+    forkIfHanded.current()
     setForm((f) => (f.plateSource === 'confirmed' ? f : { ...f, plate: value, plateSource: 'reader', plateVia: 'pick' }))
   }, [])
 
@@ -168,7 +206,7 @@ export function App() {
     if (!current) setCurrent({ id: newReportId(), createdAt: new Date().getTime() })
     if (!form.time) {
       setForm((f) => ({ ...f, time: toLocalDateTime(new Date()) }))
-      setTimeSource('now')
+      setTimeSourceNow('now')
     }
     go('report')
   }
@@ -242,27 +280,46 @@ export function App() {
     }
   }
   })
-  const saveNow = useCallback(() => {
+  const handoffRef = useRef(handoff)
+  useLayoutEffect(() => { handoffRef.current = handoff })
+  useLayoutEffect(() => {
+    forkIfHanded.current = () => {
+      if (!handoffRef.current) return
+      handoffRef.current = null
+      setHandoff(null)
+      setCurrent({ id: newReportId(), createdAt: Date.now() })
+      showToast(hu.history.forked)
+    }
+  })
+  const saveNow = useCallback((): Promise<void> => {
     const r = snapshot.current()
-    if (r) saveReport(r).catch(() => showToast(hu.history.saveError))
+    return r ? saveReport(r).catch(() => showToast(hu.history.saveError)) : Promise.resolve()
   }, [showToast])
+  // "Frissítés" reloads the page: save the open report first and reopen it after the reload.
+  const beforeUpdate = useCallback(async () => {
+    const r = snapshot.current()
+    await saveNow()
+    if (r) { try { sessionStorage.setItem(REOPEN_KEY, r.id) } catch { /* storage blocked */ } }
+  }, [saveNow])
   // Save on every step change, photo change and hand-off, and when the page is hidden (the
   // phone switches to the mail app); typing alone does not rewrite the photos each time.
   useEffect(() => {
     if (step === 'report' || step === 'mail' || step === 'done') saveNow()
   }, [step, photos, handoff, current, saveNow])
   useEffect(() => {
-    const onHide = () => { if (document.visibilityState === 'hidden') saveNow() }
+    const onHide = () => { if (document.visibilityState === 'hidden') void saveNow() }
+    const onPageHide = () => void saveNow()
     document.addEventListener('visibilitychange', onHide)
-    window.addEventListener('pagehide', saveNow)
-    return () => { document.removeEventListener('visibilitychange', onHide); window.removeEventListener('pagehide', saveNow) }
+    window.addEventListener('pagehide', onPageHide)
+    return () => { document.removeEventListener('visibilitychange', onHide); window.removeEventListener('pagehide', onPageHide) }
   }, [saveNow])
 
   const clearReport = () => {
     photos.forEach(releasePhoto)
     setPhotos([]); setPhotoMessages([]); setForm(emptyForm()); setShowErrors(false)
     setPin(null); setManualAddress(null); setSearchHit(null); setChosenId(null); setHandoff(null)
-    setTimeSource('none'); setSheetOpen(true); setCurrent(null)
+    photosRef.current = []
+    setTimeSourceNow('none'); setSheetOpen(true); setCurrent(null)
   }
   const reset = () => {
     saveNow()
@@ -281,16 +338,29 @@ export function App() {
     try { r = await getReport(id) } catch { r = undefined }
     if (!r || !r.pin) { showToast(hu.history.loadError); return }
     photos.forEach(releasePhoto)
-    setPhotos(r.photos.map((p) => photoFromBlob(p.name, p.type, p.blob)))
+    const restored = r.photos.map((p) => photoFromBlob(p.name, p.type, p.blob))
+    photosRef.current = restored
+    setPhotos(restored)
     setPhotoMessages([]); setShowErrors(false)
-    setForm({ ...emptyForm(), ...r.form }); setTimeSource(r.timeSource)
+    setForm({ ...emptyForm(), ...r.form }); setTimeSourceNow(r.timeSource)
     setPin(r.pin); setSearchHit(null); setManualAddress(r.address || null); setChosenId(r.recipientId)
     setCurrent({ id: r.id, createdAt: r.createdAt })
     setHandoff(r.handedAt ? { at: new Date(r.handedAt), bodyCopied: null } : null)
-    if (!r.form.time) { setForm((f) => ({ ...f, time: toLocalDateTime(new Date()) })); setTimeSource('now') }
+    if (!r.form.time) { setForm((f) => ({ ...f, time: toLocalDateTime(new Date()) })); setTimeSourceNow('now') }
     go(r.status === 'handed' && r.photos.length > 0 ? 'mail' : 'report')
     if (message) showToast(message)
   }
+  // After an update reload, reopen the report that was open (see beforeUpdate).
+  const reopened = useRef(false)
+  useEffect(() => {
+    if (reopened.current) return
+    reopened.current = true
+    let id: string | null = null
+    try { id = sessionStorage.getItem(REOPEN_KEY); sessionStorage.removeItem(REOPEN_KEY) } catch { /* storage blocked */ }
+    if (id) void openReport(id)
+    // Runs once on start.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [settingsStatus, setSettingsStatus] = useState<string | null>(null)
   const exportEverything = async () => {
     try {
@@ -314,6 +384,17 @@ export function App() {
   if (view !== 'map' && !isSide(view) && !resolved) view = 'map'
   if ((view === 'mail' || view === 'done') && (!mailInput || errors.length > 0)) view = resolved ? 'report' : 'map'
   if (view === 'done' && !handoff) view = 'mail'
+  // The guard above only changes what is shown. Bring the step in line, so a stale step left
+  // by Back cannot send the next pin straight to the form (the authority step and the saving
+  // of the report would be skipped). Not before the resolver has loaded: a report opened from
+  // the history sets its pin first.
+  const stale = view === 'map' && (step === 'report' || step === 'mail' || step === 'done') && (resolver !== null || resolverError)
+  useEffect(() => {
+    if (!stale) return
+    history.replaceState({ step: 'map' }, '')
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- keeps the step in line with the view
+    setStep('map')
+  }, [stale])
 
   // --- Phone bottom sheet height → map padding -------------------------------------------
   const sheetRef = useRef<HTMLElement>(null)
@@ -329,19 +410,23 @@ export function App() {
   const [historyCount, setHistoryCount] = useState<number | null>(null)
 
   // --- Step content ----------------------------------------------------------------------
+  const changeAddress = (a: string) => { forkIfHanded.current(); setManualAddress(a) }
   const authorityCard = (
     <AuthorityCard resolution={resolution} loadError={resolverError} address={address} addressStatus={addressStatus}
-      onAddressChange={setManualAddress} selectedId={recipient?.id ?? null} onSelect={setChosenId}
-      onMovePin={() => { setPin(null); setManualAddress(null) }} />
+      onAddressChange={changeAddress} selectedId={recipient?.id ?? null} onSelect={(id) => { forkIfHanded.current(); setChosenId(id) }}
+      onMovePin={() => { forkIfHanded.current(); setPin(null); setManualAddress(null) }} />
   )
   const start = (
-    <StartPanel layout={layout} photoCount={photos.length} onAddFiles={onAddFiles} onLocate={() => setLocateRequest((n) => n + 1)} />
+    <>
+      <StartPanel layout={layout} photoCount={photos.length} onAddFiles={onAddFiles} onLocate={() => setLocateRequest((n) => n + 1)} />
+      {photoMessages.map((m) => <p key={m} className="field-error" role="alert">{m}</p>)}
+    </>
   )
   const summary = resolved && recipient && (
     <section className="summary">
       <span className="summary-icon"><IconPin /></span>
       <div className="summary-text">
-        <AddressField address={address} status={addressStatus} districtRoman={resolved.districtRoman} onChange={setManualAddress}
+        <AddressField address={address} status={addressStatus} districtRoman={resolved.districtRoman} onChange={changeAddress}
           forceEdit={address.trim() === ''} invalid={showErrors && errors.includes('address')} />
         <div className="summary-recipient">
           <span className="muted small">{recipient.name}</span>
@@ -362,7 +447,7 @@ export function App() {
         <div data-field="address">{summary}</div>
         {timeSource === "photo" && <p className="notice notice-ok" role="status"><IconCheck size={16} />{hu.report.filledTime}</p>}
         <ReportForm form={form} timeFromPhoto={timeSource === 'photo'}
-          onChange={(p) => { if (p.time !== undefined) setTimeSource('user'); setForm((f) => ({ ...f, ...p })) }}
+          onChange={(p) => { forkIfHanded.current(); if (p.time !== undefined) setTimeSourceNow('user'); setForm((f) => ({ ...f, ...p })) }}
           photos={photos} onAddFiles={onAddFiles}
           onRemovePhoto={onRemovePhoto} onMovePhoto={onMovePhoto} photoMessages={photoMessages} errors={showErrors ? errors : []}
           maxTime={toLocalDateTime(new Date())} plateReader={plateReader} onPickPlate={onPickPlate} />
@@ -464,9 +549,10 @@ export function App() {
           <div className="panel-body" key={view}>{body}</div>
           {footer && <div className="panel-footer">{footer}</div>}
         </main>
-        <div className="map-area">{map}</div>
+        {/* As on the phone, the map only takes input in step 1 (a stray click would move the pin). */}
+        <div className="map-area" inert={view !== 'map'}>{map}</div>
         {toastEl}
-        <UpdatePrompt />
+        <UpdatePrompt onBeforeUpdate={beforeUpdate} />
       </div>
     )
   }
@@ -530,7 +616,7 @@ export function App() {
         </div>
       )}
       {toastEl}
-      <UpdatePrompt />
+      <UpdatePrompt onBeforeUpdate={beforeUpdate} />
     </div>
   )
 }

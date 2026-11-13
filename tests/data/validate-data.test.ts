@@ -23,6 +23,9 @@ function validFixture() {
     district: d, roman: ROMAN[d - 1], ownBody: true, primaryId: `d${d}`, policeId: `p${d}`,
     capitalRoads: 'fori', sourceUrl: SRC, verifiedOn: TODAY,
   }))
+  const noDistrictAreas: Record<string, unknown>[] = [
+    { id: 'island', name: 'Sziget', primaryId: 'fori', policeId: null, sourceUrl: SRC, verifiedOn: TODAY },
+  ]
   const violations = [
     { id: 'jarda', label: 'Járdán', sentence: 'A jármű a járdán várakozott.', legalRef: 'KRESZ 40. §', legalSourceUrl: SRC, verifiedOn: TODAY },
     { id: 'egyeb', label: 'Egyéb' },
@@ -36,7 +39,7 @@ function validFixture() {
     type: 'FeatureCollection', source: SRC,
     features: [{ type: 'Feature', properties: { name: 'Andrássy út', partial: false, cutApplied: false, cutApprox: false, kind: 'road' }, geometry: { type: 'LineString', coordinates: [[19.06, 47.50], [19.07, 47.51]] } }],
   }
-  return { authorities: { authorities, districtRules }, violations: { violations }, districtsGeo, roads }
+  return { authorities: { authorities, districtRules, noDistrictAreas }, violations: { violations }, districtsGeo, roads }
 }
 
 function run(f: ReturnType<typeof validFixture>): string[] {
@@ -108,5 +111,41 @@ describe('validate-data', () => {
     const f = validFixture()
     f.districtsGeo.features[0].geometry.coordinates = [[[47.5, 19.0], [47.5, 19.01], [47.51, 19.01], [47.5, 19.0]]]
     expect(run(f).join('\n')).toMatch(/outside the Budapest bounding box/)
+  })
+
+  it('rejects a no-district area with a bad police id', () => {
+    const f = validFixture()
+    f.authorities.noDistrictAreas[0].policeId = 'p99'
+    expect(run(f).join('\n')).toMatch(/policeId "p99" must be null or a police record/)
+  })
+
+  it('rejects a no-district area whose police id is not a police record', () => {
+    const f = validFixture()
+    f.authorities.noDistrictAreas[0].policeId = 'd13'
+    expect(run(f).join('\n')).toMatch(/must be null or a police record/)
+  })
+
+  it('accepts a no-district area with a real police record', () => {
+    const f = validFixture()
+    f.authorities.noDistrictAreas[0].policeId = 'p13'
+    expect(run(f)).toEqual([])
+  })
+
+  it('rejects a no-district area whose primary is not FÖRI', () => {
+    const f = validFixture()
+    f.authorities.noDistrictAreas[0].primaryId = 'd13'
+    expect(run(f).join('\n')).toMatch(/is not a FÖRI record/)
+  })
+
+  it('rejects a missing noDistrictAreas array', () => {
+    const f = validFixture()
+    delete (f.authorities as { noDistrictAreas?: unknown }).noDistrictAreas
+    expect(run(f).join('\n')).toMatch(/noDistrictAreas must be an array with exactly one entry/)
+  })
+
+  it('rejects a no-district area with a future verification date', () => {
+    const f = validFixture()
+    f.authorities.noDistrictAreas[0].verifiedOn = '2031-01-01'
+    expect(run(f).join('\n')).toMatch(/noDistrictAreas\[0\].*verifiedOn/)
   })
 })

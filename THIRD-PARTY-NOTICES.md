@@ -28,7 +28,8 @@ SIL Open Font License 1.1; the full text is in that package's `LICENSE` file.
 - **Map data:** © OpenStreetMap contributors, available under the Open Database License (ODbL)
   1.0, <https://www.openstreetmap.org/copyright>. The app shows "© OpenStreetMap közreműködők".
 - **Map tiles and styles:** served by [OpenFreeMap](https://openfreemap.org) (`liberty` and `dark`
-  styles), built from OpenStreetMap data.
+  styles), built from OpenStreetMap data in the [OpenMapTiles](https://openmaptiles.org) schema;
+  the map credit names "© OpenMapTiles" next to OpenStreetMap and OpenFreeMap.
 - **Bundled district boundaries and capital-road geometry** (`src/data/`): extracted from
   OpenStreetMap through Overpass (`scripts/build-districts.mjs`, `scripts/build-capital-roads.mjs`).
   © OpenStreetMap contributors, ODbL 1.0; as a derived database they stay under the ODbL.

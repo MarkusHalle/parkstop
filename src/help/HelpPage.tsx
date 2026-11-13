@@ -35,11 +35,33 @@ export function HelpPage({ onPrivacy }: { onPrivacy: () => void }) {
             <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+        <details className="help-section">
+          <summary>{t.licenceTitle}</summary>
+          <div className="help-body">
+            <p>{t.licenceText}</p>
+          </div>
+        </details>
+        <a className="help-link-row" href={t.sourceUrl} target="_blank" rel="noopener noreferrer">
+          <span>{t.sourceLink}</span>
+          <ExternalIcon />
+        </a>
+        <a className="help-link-row" href={t.noticesUrl} target="_blank" rel="noopener noreferrer">
+          <span>{t.noticesLink}</span>
+          <ExternalIcon />
+        </a>
       </div>
       <p className="help-footer">
         {t.version(APP_VERSION)}
         {dataDate && <><br />{t.dataChecked(dataDate.replaceAll('-', '. ') + '.')}</>}
       </p>
     </div>
+  )
+}
+
+function ExternalIcon() {
+  return (
+    <svg className="help-chevron" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }

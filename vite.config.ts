@@ -2,7 +2,8 @@ import { defineConfig, type Plugin } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { VitePWA } from 'vite-plugin-pwa'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, rmdirSync, unlinkSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { hu } from './src/i18n/hu.ts'
 
@@ -25,6 +26,31 @@ function maplibreWorker(): Plugin {
       this.emitFile({ type: 'asset', fileName: name, source: readFileSync(file) })
     },
   }
+}
+
+// The developer spike pages in public/spikes/ (English test pages, D37) stay in the repository
+// and in the dev server, but are not published: remove them from the build output (D47).
+function dropSpikes(): Plugin {
+  let outDir = 'dist'
+  return {
+    name: 'parkstop-drop-spikes',
+    apply: 'build',
+    configResolved(config) { outDir = resolve(config.root, config.build.outDir) },
+    closeBundle() { removeTree(resolve(outDir, 'spikes')) },
+  }
+}
+
+// fs.rmSync({ recursive: true }) silently leaves the folder on Windows under a path with
+// accented letters (seen with Node 25 here), so delete file by file.
+function removeTree(dir: string) {
+  let entries
+  try { entries = readdirSync(dir, { withFileTypes: true }) } catch { return }
+  for (const e of entries) {
+    const p = resolve(dir, e.name)
+    if (e.isDirectory()) removeTree(p)
+    else unlinkSync(p)
+  }
+  rmdirSync(dir)
 }
 
 // Installable app (SPEC 4.8). Precache = the app shell only. The plate models and the ONNX
@@ -73,7 +99,7 @@ export default defineConfig(({ mode }) => {
   const https = lan
   return {
     base: process.env.BASE_PATH ?? '/',
-    plugins: [react(), maplibreWorker(), pwa(), ...(https ? [basicSsl()] : [])],
+    plugins: [react(), maplibreWorker(), dropSpikes(), pwa(), ...(https ? [basicSsl()] : [])],
     server: lan ? { host: '0.0.0.0' } : {},
     preview: lan ? { host: '0.0.0.0' } : {},
     test: {

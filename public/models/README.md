@@ -24,7 +24,8 @@ and exported by ankandrew with [ankandrew/yolov9](https://github.com/ankandrew/y
 Ultralytics YOLOv5, GPL-3.0 at the time). Whether the GPL reaches trained weights is legally
 untested; ParkStop follows it anyway.
 
-The source of the detector is kept here, next to the model, as GPL-3.0 section 6 asks:
+The source of the detector is kept here, next to the model, as GPL-3.0 section 6 asks. ParkStop's
+own source, these files included, is public at <https://github.com/justaguyulove/parkstop> (D46):
 
 | File in `source/` | What it is | Source URL | Bytes | sha256 |
 |---|---|---|---|---|
