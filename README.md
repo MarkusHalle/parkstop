@@ -38,7 +38,7 @@ It installs to the home screen and starts offline.
 
 ## Development
 
-Requires Node.js 22.
+Requires Node.js 24 or later (npm 11; the lockfile is written by npm 11).
 
 ```bash
 npm ci
