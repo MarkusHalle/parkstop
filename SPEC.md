@@ -69,7 +69,7 @@ Deterministic resolver, pure function, fully unit-tested. Input: coordinates. Ou
 6. Confidence is `biztos` (clear district street), `valószínű` (capital road within 8 m, Margit-sziget, or within 30 m of a district border), or `bizonytalan` (capital road 8–15 m away, capital-road section whose ends could not be placed on the map, square/park, data older than 12 months). The lowest applicable level wins.
 7. The user can always switch to any alternative, or type a different address by hand.
 
-The result card shows: name of the authority, one-sentence reason, confidence, e-mail address, phone, link to the official source, "utoljára ellenőrizve" date. When the car may still be there, the card suggests phoning the body's (dispatcher) number as the faster route; a patrol can only act while the car is on the spot. Where a body asks for reports by phone (X. district), the phone is shown first.
+The result card shows: name of the authority, one-sentence reason (naming the kind of place, read from the street name or address: utca, út, tér, köz, sétány …, or "közterület" when none is known), confidence, e-mail address, phone, link to the official source, "utoljára ellenőrizve" date. When the car may still be there, the card suggests phoning the body's (dispatcher) number as the faster route; a patrol can only act while the car is on the spot. Where a body asks for reports by phone (X. district), the phone is shown first.
 
 **Default recipient and what the e-mail is (O1, resolved in M1 — DECISIONS D20).** No authority can
 fine on the strength of a citizen's photo alone: an on-the-spot fine (also in the driver's absence)

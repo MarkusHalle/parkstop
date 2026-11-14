@@ -111,18 +111,23 @@ export const hu = {
       bizonytalan: 'bizonytalan',
     },
     reason: {
-      districtStreet: 'Kerületi kezelésű utca – itt a kerület saját közterület-felügyelete intézkedik.',
+      /** `kind`: the place type read from the address (utca, tér, köz …), see placeKind. */
+      districtStreet: (kind: string) => `Kerületi kezelésű ${kind} – itt a kerület saját közterület-felügyelete intézkedik.`,
+      /** Place type when the address names none or is not known yet. */
+      placeFallback: 'közterület',
+      roadFallback: 'út',
+      squareFallback: 'tér vagy terület',
       noOwnBody: 'A kerületnek nincs saját közterület-felügyelete, ezért a FÖRI intézkedik.',
-      capitalRoad: (road: string) => `Fővárosi kezelésű út (${road}) – itt a FÖRI intézkedik.`,
+      capitalRoad: (kind: string, road: string) => `Fővárosi kezelésű ${kind} (${road}) – itt a FÖRI intézkedik.`,
       capitalRoadEdge: (road: string, m: number) =>
         `A jelölő ${m}\u00a0méterre van egy fővárosi kezelésű úttól (${road}). Ha az autó a mellékutcában áll, válaszd lent a kerületi felügyeletet.`,
       capitalRoadUnplaced: (road: string) =>
         `Fővárosi kezelésű útszakasz (${road}), de a szakasz vége a térképen nem pontos – ellenőrizd a címzettet.`,
       edgeSideStreet: 'Ha az autó a mellékutcában áll, válaszd lent a kerületi felügyeletet.',
-      capitalSquare: (road: string) =>
-        `Fővárosi kezelésű tér vagy terület (${road}) – itt jellemzően a FÖRI intézkedik, de a tér egyes részei a kerülethez tartozhatnak.`,
-      districtActsOn: (road: string) =>
-        `Fővárosi út (${road}), de a megállapodás szerint itt a kerület felügyelete ellenőrzi a parkolást.`,
+      capitalSquare: (kind: string, road: string) =>
+        `Fővárosi kezelésű ${kind} (${road}) – itt jellemzően a FÖRI intézkedik, de a terület egyes részei a kerülethez tartozhatnak.`,
+      districtActsOn: (kind: string, road: string) =>
+        `Fővárosi ${kind} (${road}), de a megállapodás szerint itt a kerület felügyelete ellenőrzi a parkolást.`,
       districtActsOnPartial: (road: string, section: string) =>
         `${road}: a kerület felügyelete csak az út egy részén intézkedik (${section}). Ha az autó ott áll, válaszd lent a kerületet.`,
       noDistrict: (area: string) =>

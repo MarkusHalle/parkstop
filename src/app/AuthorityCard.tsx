@@ -3,6 +3,7 @@
 import { hu } from '../i18n/hu'
 import authoritiesData from '../data/authorities.json'
 import type { Authority, Confidence, Reason, Resolution } from '../authority/types'
+import { placeKind } from '../authority/placeKind'
 import type { AddressState } from '../map/types'
 import { AddressField } from './AddressField'
 import { shortDate, telHref } from './format'
@@ -13,17 +14,19 @@ type Resolved = Extract<Resolution, { kind: 'resolved' }>
 /** 8–15 m band (SPEC 4.2 step 3): add the side-street sentence. */
 const withSideStreet = (text: string, edge: boolean) => (edge ? `${text} ${hu.authority.reason.edgeSideStreet}` : text)
 
-export function reasonText(r: Reason): string {
+/** `address`: the pin's street address, which names the place type on a district street. */
+export function reasonText(r: Reason, address?: string | null): string {
   const t = hu.authority.reason
   const road = (x: { name: string; section: string | null }) => (x.section ? `${x.name}, ${x.section}` : x.name)
+  const kind = (name: string) => placeKind(name) ?? t.roadFallback
   switch (r.code) {
-    case 'district-street': return t.districtStreet
+    case 'district-street': return t.districtStreet(placeKind(address) ?? t.placeFallback)
     case 'no-own-body': return t.noOwnBody
-    case 'capital-road': return t.capitalRoad(road(r.road))
+    case 'capital-road': return t.capitalRoad(kind(r.road.name), road(r.road))
     case 'capital-road-edge': return t.capitalRoadEdge(road(r.road), Math.round(r.road.distanceM))
     case 'capital-road-unplaced': return withSideStreet(t.capitalRoadUnplaced(road(r.road)), r.edge)
-    case 'capital-square': return withSideStreet(t.capitalSquare(road(r.road)), r.edge)
-    case 'district-acts-on': return t.districtActsOn(road(r.road))
+    case 'capital-square': return withSideStreet(t.capitalSquare(placeKind(r.road.name) ?? t.squareFallback, road(r.road)), r.edge)
+    case 'district-acts-on': return t.districtActsOn(kind(r.road.name), road(r.road))
     case 'district-acts-on-partial': return t.districtActsOnPartial(r.road.name, r.sectionText)
     case 'no-district': return t.noDistrict(r.areaName)
   }
@@ -100,7 +103,7 @@ export function AuthorityCard(p: Props) {
       </div>
       <h1 className="title">{r.primary.name}</h1>
       <AddressField address={p.address} status={p.addressStatus} districtRoman={r.districtRoman} onChange={p.onAddressChange} />
-      <p className="notice notice-info">{reasonText(r.reason)}</p>
+      <p className="notice notice-info">{reasonText(r.reason, p.address)}</p>
       {r.nearBorder?.roman && farSide && <p className="notice notice-info">{hu.authority.nearBorder(r.nearBorder.roman, farSide.name)}</p>}
       {r.stale && <p className="notice notice-warn"><IconWarn />{hu.authority.stale}</p>}
 
