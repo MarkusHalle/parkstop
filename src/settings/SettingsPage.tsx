@@ -44,7 +44,7 @@ export function SettingsPage({ onExportAll, onDeleteEverything, onPrivacy, statu
     key: keyof Profile; label: string; placeholder: string; type: string; auto: string; optional?: boolean
   }> = [
     { key: 'name', label: t.name, placeholder: t.namePlaceholder, type: 'text', auto: 'name' },
-    { key: 'address', label: t.address, placeholder: t.addressPlaceholder, type: 'text', auto: 'street-address' },
+    { key: 'address', label: t.address, placeholder: t.addressPlaceholder, type: 'text', auto: 'street-address', optional: true },
     { key: 'email', label: t.email, placeholder: t.emailPlaceholder, type: 'email', auto: 'email' },
     { key: 'phone', label: t.phone, placeholder: t.phonePlaceholder, type: 'tel', auto: 'tel', optional: true },
   ]

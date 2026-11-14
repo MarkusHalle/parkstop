@@ -277,7 +277,7 @@ export const hu = {
     longBody: 'A szöveg túl hosszú ahhoz, hogy a levelező közvetlenül átvegye, ezért a vágólapra másoltuk. A megnyíló levélben illeszd be a szöveg helyére.',
     longBodyCopyFailed: 'A szöveg túl hosszú a közvetlen átadáshoz. Másold ki a „Másolás” gombbal, és illeszd be a levélbe.',
     noEmail: 'Ennek a hatóságnak nincs ellenőrzött e-mail-címe. Telefonon vagy a honlapján érheted el; a szöveget a „Másolás” gombokkal viheted át.',
-    signatureHint: 'A levelezőben írd be a levél végére, az aláírásba a neved és az elérhetőséged – a hatóságok általában csak azonosítható bejelentőnek válaszolnak.',
+    signatureHint: 'A levelezőben írd a levél végére a neved és az e-mail-címed – a névtelen bejelentést a közterület-felügyelet a törvény szerint nem vizsgálja ki.',
     policeNote: 'Ez szabálysértési feljelentés a kerületi rendőrkapitányságnak.',
   },
 
@@ -325,7 +325,7 @@ export const hu = {
     // Two sentences: one per line on the PC, run together on the phone (SettingsPage).
     appearanceHint: ['Automatikus: a készülék beállítását követi.', 'A térkép is vált.'],
     profileTitle: 'Bejelentő adatai',
-    profileIntro: 'Az e-mail aláírásába kerülnek. Csak ez a készülék tárolja őket. A hatóságok többnyire csak névvel ellátott bejelentéssel foglalkoznak.',
+    profileIntro: 'Az e-mail aláírásába kerülnek. Csak ez a készülék tárolja őket. A névtelen bejelentést a közterület-felügyelet a törvény szerint nem vizsgálja ki (2023. évi XXV. tv. 4. § (3)), ezért legalább a neved és az e-mail-címed add meg.',
     name: 'Név',
     namePlaceholder: 'Kovács Anna',
     address: 'Lakcím',
