@@ -8,19 +8,24 @@
 // frame, and no React render per frame.
 import { useEffect, useLayoutEffect, useState, type RefObject } from 'react'
 
-/** Card element ↔ summary element that morph into each other (first match in each part). */
-const PAIRS: ReadonlyArray<readonly [string, string]> = [
-  ['.eyebrow', '.sheet-peek-top .eyebrow'],
-  ['.chip', '.sheet-peek-top .chip'],
-  ['.title', '.sheet-peek-name'],
-  ['.address-line > span', '.sheet-peek-sub'],
+/**
+ * Card element ↔ summary element that morph into each other (first match in each part). Plain
+ * text is placed by its glyphs, not its box: the start panel's title is left-aligned in a
+ * full-width box while the folded title is centred, so boxes would slide the wrong way.
+ */
+const PAIRS: ReadonlyArray<readonly [card: string, peek: string, byText: boolean]> = [
+  ['.eyebrow', '.sheet-peek-top .eyebrow', true],
+  ['.chip', '.sheet-peek-top .chip', false],
+  ['.title', '.sheet-peek-name', true],
+  ['.address-line > span', '.sheet-peek-sub', true],
 ]
 const STIFFNESS = 170
 const DAMPING = 26 // 2·√170: critically damped, settles without a bounce
 const FLICK = 300 // px/s; a faster release decides the direction on its own
 
 interface Box { x: number; y: number; w: number; size: number }
-interface Pair { card: HTMLElement; peek: HTMLElement; cardClone: HTMLElement; peekClone: HTMLElement; a: Box; b: Box }
+/** A copy pair that cross-fades, or (peekClone null) one word that travels on its own. */
+interface Pair { card: HTMLElement; peek: HTMLElement; cardClone: HTMLElement; peekClone: HTMLElement | null; a: Box; b: Box }
 interface Geometry {
   stage: HTMLElement; body: HTMLElement; peek: HTMLElement; overlay: HTMLElement
   openH: number; foldH: number; pairs: Pair[]
@@ -29,9 +34,39 @@ interface Geometry {
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x))
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
-function box(el: HTMLElement, origin: DOMRect): Box {
-  const r = el.getBoundingClientRect()
+function box(el: HTMLElement, origin: DOMRect, byText: boolean): Box {
+  let r = el.getBoundingClientRect()
+  if (byText) {
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    const t = range.getBoundingClientRect()
+    // One pixel of slack so the copy, at the text's own width, wraps exactly like the original.
+    if (t.width > 0) r = new DOMRect(t.left, t.top, Math.min(t.width + 1, r.width), t.height)
+  }
   return { x: r.left - origin.left, y: r.top - origin.top, w: r.width, size: parseFloat(getComputedStyle(el).fontSize) || 16 }
+}
+
+/**
+ * Each word of `el` with its place, or null when a word breaks across lines (a hyphenated
+ * compound) or the text is cut by an ellipsis: then the copies cross-fade instead.
+ */
+function words(el: HTMLElement, origin: DOMRect): Array<{ text: string; at: Box }> | null {
+  if (el.scrollWidth > el.clientWidth + 1) return null
+  const size = parseFloat(getComputedStyle(el).fontSize) || 16
+  const out: Array<{ text: string; at: Box }> = []
+  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+  const range = document.createRange()
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    for (const m of (n.textContent ?? '').matchAll(/\S+/g)) {
+      range.setStart(n, m.index)
+      range.setEnd(n, m.index + m[0].length)
+      const rects = range.getClientRects()
+      if (rects.length !== 1) return null
+      const r = rects[0]
+      out.push({ text: m[0], at: { x: r.left - origin.left, y: r.top - origin.top, w: r.width + 1, size } })
+    }
+  }
+  return out
 }
 
 function visible(el: HTMLElement | null): el is HTMLElement {
@@ -41,7 +76,7 @@ function visible(el: HTMLElement | null): el is HTMLElement {
 /** Styles a copy outside its ancestors would lose (scoped rules such as `.sheet-peek-top .chip`). */
 const KEEP = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'text-transform', 'color',
   'white-space', 'text-overflow', 'overflow', 'display', 'align-items', 'gap', 'height', 'padding', 'background-color',
-  'border-radius', 'box-sizing'] as const
+  'border-radius', 'box-sizing', 'text-align'] as const
 
 function placeClone(src: HTMLElement, at: Box): HTMLElement {
   const c = src.cloneNode(true) as HTMLElement
@@ -142,13 +177,31 @@ export class SheetMorph {
     overlay.className = 'sheet-morph'
     overlay.setAttribute('aria-hidden', 'true')
     const pairs: Pair[] = []
-    for (const [inCard, inPeek] of PAIRS) {
+    for (const [inCard, inPeek, byText] of PAIRS) {
       const card = body.querySelector<HTMLElement>(inCard)
       const pk = peek.querySelector<HTMLElement>(inPeek)
       if (!visible(card) || !visible(pk)) continue
-      const a = box(card, origin)
-      const b = box(pk, origin)
+      const a = box(card, origin, byText)
+      const b = box(pk, origin, byText)
       if (a.y > openH) continue // scrolled out of the open card: it just fades with the rest
+      // Same words on both sides (the start panel's title): each word slides to its new place,
+      // so a left-aligned line re-centres smoothly instead of cross-fading two alignments.
+      const wa = byText ? words(card, origin) : null
+      const wb = wa ? words(pk, origin) : null
+      if (wa && wb && wa.length === wb.length && wa.every((w, i) => w.text === wb[i].text)) {
+        const cs = getComputedStyle(card)
+        for (const [i, w] of wa.entries()) {
+          const span = document.createElement('span')
+          span.textContent = w.text
+          for (const k of ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color'] as const) span.style.setProperty(k, cs.getPropertyValue(k))
+          Object.assign(span.style, { position: 'absolute', left: `${w.at.x}px`, top: `${w.at.y}px`, whiteSpace: 'nowrap', lineHeight: 'normal', transformOrigin: '0 0', willChange: 'transform' })
+          overlay.append(span)
+          pairs.push({ card, peek: pk, cardClone: span, peekClone: null, a: w.at, b: wb[i].at })
+        }
+        card.style.visibility = 'hidden'
+        pk.style.visibility = 'hidden'
+        continue
+      }
       const cardClone = placeClone(card, a)
       const peekClone = placeClone(pk, b)
       overlay.append(cardClone, peekClone)
@@ -177,6 +230,7 @@ export class SheetMorph {
       const y = lerp(b.y, a.y, p)
       const s = lerp(b.size, a.size, p)
       cardClone.style.transform = `translate(${x - a.x}px, ${y - a.y}px) scale(${s / a.size})`
+      if (!peekClone) continue // a travelling word: no cross-fade
       cardClone.style.opacity = `${swap}`
       peekClone.style.transform = `translate(${x - b.x}px, ${y - b.y}px) scale(${s / b.size})`
       // The one-line summary copy leaves a little earlier, so it does not ghost beside a wrapped title.
