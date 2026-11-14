@@ -128,11 +128,12 @@ export function MapView({
         maxBounds: MAX_BOUNDS,
         attributionControl: false,
         // Rotate and tilt like Google Maps: two-finger twist rotates and a two-finger slide
-        // up or down tilts on the phone; right-drag or Ctrl+drag on the PC. The PC drag orbits
-        // the camera: dragging right walks it right around the centre, the same way anywhere on
-        // the map (MapLibre's default "wheel" turns one way above the centre and the other below).
+        // up or down tilts on the phone; right-drag or Ctrl+drag on the PC. The PC drag turns
+        // the camera's view the way the mouse moves (dragging right looks right), the same way
+        // anywhere on the map (MapLibre's default "wheel" turns one way above the centre and the
+        // other below). The owner tried the opposite orbit direction and preferred this one.
         dragRotate: { around: 'center', movement: 'linear' },
-        rotateSpeed: -0.8,
+        rotateSpeed: 0.8,
         pitchWithRotate: true,
         touchPitch: true,
         maxPitch: 60,
