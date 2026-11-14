@@ -26,6 +26,7 @@ import { SheetHandle } from './SheetHandle'
 import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
 import { useStepSwipe } from './useStepSwipe'
+import { useSheetMorph } from './useSheetMorph'
 import './app.css'
 
 type Step = 'map' | 'report' | 'mail' | 'done' | SideStep
@@ -437,7 +438,7 @@ export function App() {
     let lastH = el.getBoundingClientRect().height
     let grow: Animation | null = null
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const folding = () => el.getAnimations({ subtree: true }).some((a) => a !== grow && a.playState === 'running' && 'transitionProperty' in a)
+    const folding = () => el.hasAttribute('data-morph')
     const ro = new ResizeObserver(() => {
       const h = el.getBoundingClientRect().height
       document.querySelector<HTMLElement>('.ps-map')?.style.setProperty('--ps-inset', `${h}px`)
@@ -454,36 +455,9 @@ export function App() {
     return () => { ro.disconnect(); window.clearTimeout(settle); grow?.cancel() }
   }, [layout, view])
 
-  // When the sheet starts folding or opening, tell the map the height it is heading for right
-  // away, so the map eases to its new position together with the sheet instead of after it
-  // (owner). Target = today's height, minus each fold's current height, plus its end height
-  // (its content when opening, 0 when closing), capped by the sheet's max-height.
-  useLayoutEffect(() => {
-    const el = sheetRef.current
-    if (!el || layout !== 'phone') return
-    let h = el.getBoundingClientRect().height
-    for (const fold of el.querySelectorAll<HTMLElement>(':scope > .sheet-fold')) {
-      // Measure the children's own scrollHeight: while the fold is shut its inner box (and a
-      // scrolling body inside it) is squeezed, so its scrollHeight is not the content height.
-      const inner = fold.firstElementChild as HTMLElement | null
-      const content = inner ? [...inner.children].reduce((sum, c) => sum + (c as HTMLElement).scrollHeight, 0) : 0
-      h += (fold.classList.contains('is-open') ? content : 0) - fold.getBoundingClientRect().height
-    }
-    // max-height is a percentage of the containing block (62 %), not pixels.
-    const maxH = getComputedStyle(el).maxHeight
-    const box = (el.offsetParent as HTMLElement | null) ?? document.documentElement
-    const cap = maxH.endsWith('%') ? (parseFloat(maxH) / 100) * box.clientHeight : parseFloat(maxH)
-    const target = Number.isFinite(cap) ? Math.min(h, cap) : h
-    setSheetH(target)
-    // The fold's grid row grows towards the full content height, far taller than the capped
-    // sheet, so opening reached the cap in a few frames. Ease the sheet's own height to the
-    // target over the same 360 ms so opening is as smooth as folding.
-    const from = el.getBoundingClientRect().height
-    if (Math.abs(target - from) > 4 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      el.animate([{ height: `${from}px`, overflow: 'hidden' }, { height: `${target}px`, overflow: 'hidden' }],
-        { duration: 360, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' })
-    }
-  }, [sheetOpen, layout])
+  // The fold itself (owner's option A with a morph, roadmap 6.14): a spring-driven morph of the
+  // card into the folded summary; it hands the map the end height as soon as a fold starts.
+  const sheetMorph = useSheetMorph(sheetRef, sheetOpen, layout === 'phone', setSheetH)
 
   // --- Swipe between the steps (phone; owner, roadmap 6.7) --------------------------------
   // Left: the next step, when it may open (otherwise the screen resists and the missing fields
@@ -675,22 +649,18 @@ export function App() {
       <OfflineBanner />
       {/* A div with the main role while the map is the view, so a page's own <main> is the only one otherwise. */}
       <div className="map-area" role={view === 'map' ? 'main' : undefined} inert={view !== 'map'}>{map}</div>
-      <section className="sheet" ref={sheetRef} aria-label={hu.steps.where} inert={view !== 'map'} aria-hidden={view !== 'map' || undefined} onKeyDown={(e) => {
+      <section className={`sheet${sheetOpen ? '' : ' is-folded'}`} ref={sheetRef} aria-label={hu.steps.where} inert={view !== 'map'} aria-hidden={view !== 'map' || undefined} onKeyDown={(e) => {
           // Escape folds the sheet (not while typing in a field: there it belongs to the field).
           if (e.key !== 'Escape' || !sheetOpen || e.defaultPrevented) return
           if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select')) return
           setSheetOpen(false)
           requestAnimationFrame(() => document.querySelector<HTMLElement>('.sheet-peek')?.focus())
         }}>
-          <SheetHandle open={sheetOpen} onChange={setSheetOpen} />
-          {/* Both parts stay mounted and slide (grid rows 1fr ↔ 0fr) so folding is smooth. */}
-          <div className={`sheet-fold${sheetOpen ? ' is-open' : ''}`} inert={!sheetOpen}>
-            <div className="sheet-fold-inner">
-              <div className="sheet-body">{mapBody}</div>
-            </div>
-          </div>
-          <div className={`sheet-fold sheet-fold-peek${sheetOpen ? '' : ' is-open'}`} inert={sheetOpen}>
-            <div className="sheet-fold-inner">
+          <SheetHandle open={sheetOpen} onChange={setSheetOpen} morph={sheetMorph} />
+          {/* Both parts stay mounted; useSheetMorph morphs the card into the summary. */}
+          <div className="sheet-stage">
+            <div className="sheet-body" inert={!sheetOpen}>{mapBody}</div>
+            <div className="sheet-fold-peek" inert={sheetOpen}>
               {/* Folded summary (owner's option A): label and confidence, the recipient, the place. */}
               <button type="button" className={`sheet-peek${pin && resolved && recipient ? '' : ' sheet-peek--title'}`} onClick={() => setSheetOpen(true)}>
                 <span className="sheet-peek-text">

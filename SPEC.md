@@ -125,7 +125,7 @@ Verified on the owner's PC (Chrome with Proton Mail and Gmail in the browser, 20
 
 ### 4.6 Reporter details (F-PROFILE)
 
-Settings screen: name, postal address, e-mail, phone (all optional). Stored in `localStorage`, inserted into the e-mail signature. A notice explains that authorities usually act only on reports with an identifiable reporter.
+Settings screen: name, postal address, e-mail, phone (all optional; postal address and phone are labelled "(nem kötelező)"). Stored in `localStorage`, inserted into the e-mail signature. A notice explains that a report from an unidentifiable person is not investigated (2023. évi XXV. tv. 4. § (3), which covers template A), so the user should give at least a name and an e-mail address. The police report (template B) needs no reporter details by law (Szabs. tv. 78. § (3)), but the police may need to reach the witness.
 
 ### 4.7 History (F-HIST)
 
@@ -209,7 +209,7 @@ Járdán szabálytalanul · Gyalogos-átkelőhelyen vagy előtte · Kereszteződ
 „Megállni tilos” tábla hatálya alatt · „Várakozni tilos” tábla hatálya alatt ·
 Autóbusz-, villamos- vagy trolimegállóban · Buszsávban · Taxiállomáson ·
 Kerékpársávon, kerékpárúton · Mozgáskorlátozott-helyen jogosulatlanul · Kapubejárat előtt ·
-Második sorban · Villamospályán · Rakodóhelyen · Zöldterületen · Egyéb (saját leírás).
+Második sorban (parkoló autók mellett) · Villamospályán · Rakodóhelyen · Zöldterületen · Egyéb (saját leírás).
 
 All except "Zöldterületen" and "Egyéb" are KRESZ stopping/waiting rules (1/1975. (II. 5.) KPM–BM),
 which are petty offences under Szabs. tv. 224. §. "Zöldterületen" is a municipal ban
@@ -321,6 +321,7 @@ Rules: `authority/` and `mail/` contain no UI imports and no network calls (pure
 ## 9. Layout
 
 - **Phone:** full-screen map; a bottom sheet carries the current step (authority → form → e-mail). Large touch targets (min 44 px).
+- **Phone sheet fold:** the step-1 sheet folds to a one-line summary (authority, place) above the main button. Dragging the grip moves the fold with the finger; a release or a tap settles it with a soft spring, without a bounce. While it folds, the open card turns into the summary: the authority's name, the address line, the label and the confidence chip travel to their place in the summary and shrink, and the rest of the card fades and sinks (roadmap 6.14).
 - **Phone navigation:** the phone's Back button goes one step back. Swiping left moves to the next step, the screen following the finger with the next step's header peeking in; it moves on when released past a third of the width or with a quick flick. While the next step is not allowed (a required field missing, no authority yet) the screen only stretches a little, springs back and the missing fields are marked, without opening the keyboard. Swiping right goes one step back. Step 1 swipes on its sheet (dragging the map moves the map); touches that start within 20 px of the screen edge are left to Android's own back gesture (D52).
 - **PC (≥ 900 px):** left panel 400 px with the steps, map fills the rest. In steps 2 and 3 the map takes no input; beside Settings, Help, History and Privacy it can be panned, zoomed and tilted, but only step 1 places or moves the pin (a search or "Saját helyzetem" there returns to step 1, D53).
 - Light and dark theme: "Megjelenés" at the top of Settings — Világos, Sötét or Automatikus (follows the system; default). The map switches with it (OpenFreeMap `liberty` / `dark`, D43). WCAG AA contrast, full keyboard use, visible focus.
