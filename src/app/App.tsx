@@ -66,7 +66,12 @@ export function App() {
   // hand-off continues in a new draft and leaves that record untouched (D47). Set further down.
   const forkIfHanded = useRef<() => void>(() => {})
 
+  // A search or "Saját helyzetem" on the map beside a PC side page (Settings, Help…) sets the
+  // place, so it brings step 1 back into view.
+  const stepRef = useRef(step)
+  useLayoutEffect(() => { stepRef.current = step })
   const onPinChange = useCallback((ll: LatLon, source: PinSource) => {
+    if (isSide(stepRef.current)) { history.replaceState({ step: 'map' }, ''); setStep('map') }
     forkIfHanded.current()
     setPin(ll)
     setManualAddress(null)
@@ -577,7 +582,7 @@ export function App() {
   const map = (
     <MapView pin={pin} onPinChange={onPinChange} onAddressPicked={onAddressPicked} layout={layout}
       bottomInset={layout === 'phone' ? sheetH : 0} showHint={!pin && view === 'map'} lookupEnabled={settings.addressLookup}
-      locateRequest={locateRequest} onOpenHistory={() => openSide('history')} />
+      locateRequest={locateRequest} onOpenHistory={() => openSide('history')} pinLocked={view !== 'map'} />
   )
   // The live region stays mounted so screen readers announce each message when it appears.
   const toastEl = <div className="toast-region" role="status">{toast && <div className="toast">{toast}</div>}</div>
@@ -643,8 +648,10 @@ export function App() {
           <div className="panel-body" key={view}>{body}</div>
           {footer && <div className="panel-footer">{footer}</div>}
         </main>
-        {/* As on the phone, the map only takes input in step 1 (a stray click would move the pin). */}
-        <div className="map-area" inert={view !== 'map'}>{map}</div>
+        {/* Steps 2 and 3 lock the map (a stray click would move the pin). Beside a side page
+            (Settings, Help, History) it can be looked around, but the pin stays put (owner:
+            after a theme switch the map looked frozen). */}
+        <div className="map-area" inert={view !== 'map' && !isSide(view)}>{map}</div>
         {toastEl}
         <UpdatePrompt onBeforeUpdate={beforeUpdate} />
       </div>

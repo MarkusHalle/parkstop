@@ -22,6 +22,9 @@ export interface MapViewProps {
   locateRequest?: number
   /** The "Előzmények" button of the map-failed empty state. */
   onOpenHistory?: () => void
+  /** The map can be looked around but a click, Enter or a pin drag does not move the pin
+   *  (PC side pages such as Settings: the map beside them stays usable). */
+  pinLocked?: boolean
 }
 
 export interface AddressState {

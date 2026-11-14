@@ -72,11 +72,17 @@ export function MapView({
   lookupEnabled,
   locateRequest,
   onOpenHistory,
+  pinLocked = false,
 }: MapViewProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markerRef = useRef<maplibregl.Marker | null>(null)
   const cb = useRef({ onPinChange, onAddressPicked })
+  const locked = useRef(pinLocked)
+  useEffect(() => {
+    locked.current = pinLocked
+    markerRef.current?.setDraggable(!pinLocked)
+  }, [pinLocked])
   const insetRef = useRef(bottomInset)
   // The app remounts the map when phone/PC layout changes, so the first value is enough.
   const initialPhone = useRef(layout === "phone")
@@ -159,7 +165,7 @@ export function MapView({
     mapRef.current = map
 
     const pinEl = createPinElement()
-    const marker = new maplibregl.Marker({ element: pinEl, draggable: true, anchor: 'bottom' })
+    const marker = new maplibregl.Marker({ element: pinEl, draggable: !locked.current, anchor: 'bottom' })
     marker.on('dragend', () => {
       const p = marker.getLngLat()
       cb.current.onPinChange({ lat: p.lat, lon: p.lng }, 'map')
@@ -177,7 +183,7 @@ export function MapView({
     }
     pinEl.addEventListener('keydown', (e) => {
       const off = nudgeOffset(e.key, e.shiftKey)
-      if (!off) return
+      if (!off || locked.current) return
       e.preventDefault()
       e.stopPropagation() // MapLibre's own keyboard handler would pan the map
       const pt = map.project(marker.getLngLat())
@@ -190,7 +196,7 @@ export function MapView({
     // Enter or Space on the focused map drops the pin at the map centre.
     const canvasContainer = map.getCanvasContainer()
     canvasContainer.addEventListener('keydown', (e) => {
-      if (e.target !== canvasContainer || (e.key !== 'Enter' && e.key !== ' ')) return
+      if (e.target !== canvasContainer || (e.key !== 'Enter' && e.key !== ' ') || locked.current) return
       e.preventDefault()
       const c = map.getCenter()
       cb.current.onPinChange({ lat: c.lat, lon: c.lng }, 'map')
@@ -198,7 +204,7 @@ export function MapView({
 
     map.on('click', (e) => {
       const target = e.originalEvent.target
-      if (target instanceof Element && target.closest('.ps-pin')) return
+      if (locked.current || (target instanceof Element && target.closest('.ps-pin'))) return
       cb.current.onPinChange({ lat: e.lngLat.lat, lon: e.lngLat.lng }, 'map')
     })
 
@@ -212,6 +218,7 @@ export function MapView({
     // roads are re-added after each 'style.load', the first one included. The pin is a DOM
     // marker and is not part of the style.
     map.on('style.load', () => {
+      add3dBuildings(map)
       void addCapitalRoads(map, styleTheme.current, () => cancelled)
     })
     map.on('error', () => {
@@ -563,6 +570,39 @@ function CompassButton({ needleRef, onReset }: { needleRef: React.RefObject<HTML
   )
 }
 
+/**
+ * OpenFreeMap's dark style has no 3D buildings (liberty has `building-3d`), so tilting the
+ * map showed flat ground in dark mode (owner). Adds the same extrusion in a dark grey, above the
+ * roads like liberty's. Does nothing when the style already has one.
+ */
+function add3dBuildings(map: maplibregl.Map) {
+  const layers = map.getStyle().layers
+  if (layers.some((l) => l.type === 'fill-extrusion')) return
+  const source = layers.find((l) => 'source-layer' in l && l['source-layer'] === 'building' && 'source' in l)
+  if (!source || !('source' in source)) return
+  let lastRoad = -1
+  layers.forEach((l, i) => {
+    if (l.type === 'line' && 'source-layer' in l && l['source-layer'] === 'transportation') lastRoad = i
+  })
+  map.addLayer(
+    {
+      id: 'building-3d',
+      type: 'fill-extrusion',
+      source: source.source as string,
+      'source-layer': 'building',
+      minzoom: 14,
+      filter: ['!', ['has', 'hide_3d']],
+      paint: {
+        'fill-extrusion-base': ['get', 'render_min_height'],
+        'fill-extrusion-color': 'hsl(30, 4%, 19%)',
+        'fill-extrusion-height': ['get', 'render_height'],
+        'fill-extrusion-opacity': 0.85,
+      },
+    },
+    layers[lastRoad + 1]?.id,
+  )
+}
+
 async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCancelled: () => boolean) {
   try {
     const raw = (await import('../data/capital-roads.geojson?raw')).default
@@ -578,7 +618,9 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
     layers.forEach((l, i) => {
       if (l.type === 'line' && 'source-layer' in l && l['source-layer'] === 'transportation') lastRoad = i
     })
-    const before = layers.slice(lastRoad + 1).find((l) => l.type === 'symbol')?.id
+    // Below the 3D buildings as well, so a tilted map shows buildings in front of the band,
+    // like the base roads (the band was drawn across them).
+    const before = layers.slice(lastRoad + 1).find((l) => l.type === 'symbol' || l.type === 'fill-extrusion')?.id
     // Squares and areas (Blaha Lujza tér): a light fill under the roads and paths of the base
     // style plus a thin dashed edge, not a road band around every flower bed (owner).
     const firstRoad = layers.find((l) => l.type === 'line' && 'source-layer' in l && l['source-layer'] === 'transportation')?.id
