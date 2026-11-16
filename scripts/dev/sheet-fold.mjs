@@ -6,11 +6,15 @@ const mode = process.argv[2] ?? 'pin'
 const out = 'test-results-e2e/dev'
 mkdirSync(out, { recursive: true })
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
-const page = await browser.newPage({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true })
+const page = await browser.newPage({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, ignoreHTTPSErrors: true })
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
-await page.goto('http://localhost:5173/')
+// Wait for the fold's spring to finish (its overlay is removed then) rather than a fixed time:
+// with software WebGL frames are slow and the spring runs slower than the clock.
+const settled = () => page.waitForFunction(() => !document.querySelector('.sheet-morph'), null, { timeout: 8000 })
+  .then(() => page.waitForTimeout(100), () => {})
+await page.goto(process.env.DEV_URL ?? 'http://localhost:5173/')
 await page.waitForSelector('#ps-search-input', { timeout: 20000 })
 if (mode === 'pin') {
   await page.fill('#ps-search-input', 'Hunyadi tér')
@@ -34,13 +38,14 @@ for (const f of [0.25, 0.5, 0.75, 1]) {
   console.log(`drag ${f * 100} %: sheet ${await sheetH()} px`)
 }
 await page.mouse.up()
-await page.waitForTimeout(900)
+await settled()
 const folded = await page.evaluate(() => document.querySelector('.sheet')?.classList.contains('is-folded'))
 const leftover = await page.evaluate(() => !!document.querySelector('.sheet-morph'))
 console.log(`released: folded ${folded}, sheet ${await sheetH()} px, morph layer left behind ${leftover}`)
 await page.screenshot({ path: `${out}/fold-${mode}-folded.png`, clip })
 await page.locator('.sheet-handle').click()
-await page.waitForTimeout(900)
+await page.waitForTimeout(100) // let the tap start the fold before waiting for it to end
+await settled()
 console.log(`tapped open: sheet ${await sheetH()} px (started at ${full})`)
 console.log('errors:', errors.length ? errors : 'none')
 await browser.close()

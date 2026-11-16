@@ -1,8 +1,10 @@
 # Dev check scripts
 
 Headless Playwright checks used to verify motion and map changes without a phone. They expect
-the dev server on http://localhost:5173 (`npm run dev`, or `preview_start parkstop-dev`) and write
-screenshots to `test-results-e2e/dev/` (gitignored). Run from the repository root:
+the dev server on http://localhost:5173 (`npm run dev`, or `preview_start parkstop-dev`); set
+`DEV_URL` to use another one, e.g. `DEV_URL=https://localhost:5443/` for `npm run dev:lan`
+(its self-signed certificate is accepted). Screenshots go to `test-results-e2e/dev/`
+(gitignored). Run from the repository root:
 
 | Script | What it checks |
 |---|---|

@@ -48,6 +48,8 @@ deliberately left out of this file; they travel in the private bundle described 
 - **Milestones M0–M5:** done. The work since then is owner feedback, tracked as roadmap rows
   6.x. Nothing is half-built or uncommitted.
 - **Last changes (newest first):**
+  - 6.15 (server session, 2026-11-16) Sheet fold overshoot: a flick made the spring run past
+    open/folded and the morph threw words off screen; the spring now stops at its end.
   - 6.14 Phone sheet fold: the grip drag follows the finger, a critically damped spring settles
     it, and the open card morphs into the folded summary (`src/app/useSheetMorph.ts`, driven
     from `App.tsx`, grip in `SheetHandle.tsx`). Text pairs move by their glyphs; identical
@@ -66,7 +68,18 @@ deliberately left out of this file; they travel in the private bundle described 
 
 ## 4. Open threads — exactly where the owner stopped
 
-In the order the owner is most likely to pick them up:
+**Status 2026-11-16, after the move to the server** (the owner went through this list):
+
+| # | Thread | Status |
+|---|---|---|
+| 1 | Two animation mockups | Closed by the owner ("already done"); neither animation is in the code as of `8169cd0` |
+| 2 | Focus ring on the (i) button | Fixed (roadmap 6.16): MapLibre's blue `:focus` glow switched off |
+| 3 | Owner testing on real devices | Done by the owner |
+| 4 | Yellow capital-road lines vs base-map roads | Go-ahead given; the tile-id check runs first |
+| 5 | Data questions O7, O8 | Go-ahead given; researcher + sceptic run in their own session |
+| 6 | "Múzeum körút 10" observation | Dropped by the owner |
+
+The original notes, as written on the PC, in the order the owner was most likely to pick them up:
 
 1. **Two animation mockups, awaiting the owner's choice.** The owner asked where else a
    continuous, finger-following animation would help, then asked for mockups of the top two
@@ -149,7 +162,10 @@ In the order the owner is most likely to pick them up:
   from the phone over the home network) only works when the dev server runs on a machine in
   the owner's home network. From a server, test on the live site after a push, or ask the
   owner how they want to reach a dev build (tunnel, VPN). `vite --mode lan` binds 0.0.0.0 and
-  adds the basic-ssl plugin.
+  adds the basic-ssl plugin. **Update 2026-11-16:** the server is in the owner's home network
+  and on their tailnet, so `npm run dev:lan` there works for phone tests (the address is in the
+  private project memory). The `scripts/dev/*` checks take `DEV_URL` (e.g.
+  `DEV_URL=https://localhost:5443/`) and wait for the fold to settle instead of a fixed time.
 - **Headless WebGL:** MapLibre needs
   `--use-angle=swiftshader --enable-unsafe-swiftshader` in headless Chromium (already in the
   scripts and Playwright config).
@@ -173,6 +189,7 @@ git, so the app builds and runs without the two optional folders.
   rows (`F:\Egyéb\Claude\ParkStop`, a Windows scratchpad) do not exist on the server.
 - An `rtk` command-output condenser was installed there and rewrote some shell commands
   (`rtk ls`, `rtk read`); it is optional. If the server has no `rtk`, ignore its mentions in
-  the owner's instructions.
+  the owner's instructions. (2026-11-16: `rtk` 1.2.0 is installed on the server too, with its
+  Claude Code hook.)
 - Git converted LF to CRLF on checkout on Windows; files are committed with LF. On Linux no
   action is needed.

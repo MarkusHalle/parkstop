@@ -2,10 +2,10 @@
 import { chromium } from '@playwright/test'
 
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, ignoreHTTPSErrors: true })
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
-await page.goto('http://localhost:5173/')
+await page.goto(process.env.DEV_URL ?? 'http://localhost:5173/')
 await page.waitForSelector('.maplibregl-canvas', { timeout: 20000 })
 await page.waitForTimeout(2500)
 const box = await page.locator('.maplibregl-canvas').boundingBox()
