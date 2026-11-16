@@ -12,3 +12,4 @@ Thumbs.db
 scripts/.cache/
 test-results-e2e/
 playwright-report/
+handoff-private/

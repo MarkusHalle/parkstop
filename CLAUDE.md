@@ -12,6 +12,7 @@ authority → Hungarian e-mail draft with photos. Read [SPEC.md](SPEC.md) before
 | [docs/ORCHESTRATION.md](docs/ORCHESTRATION.md) | Agent roles, model and effort guide | The guide proves wrong in practice |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Why choices were made | A real design choice is made |
 | [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md) | Where authority and map data comes from, verification rules | Data is added or re-verified |
+| [docs/HANDOFF.md](docs/HANDOFF.md) | State and open threads when the main session moved to the server (2026-11-16) | The main session moves again, or an open thread there is closed |
 
 ## Hard constraints (from SPEC section 1)
 

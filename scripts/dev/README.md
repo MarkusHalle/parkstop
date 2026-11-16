@@ -1,0 +1,14 @@
+# Dev check scripts
+
+Headless Playwright checks used to verify motion and map changes without a phone. They expect
+the dev server on http://localhost:5173 (`npm run dev`, or `preview_start parkstop-dev`) and write
+screenshots to `test-results-e2e/dev/` (gitignored). Run from the repository root:
+
+| Script | What it checks |
+|---|---|
+| `node scripts/dev/sheet-fold.mjs [pin\|start]` | Phone sheet fold (roadmap 6.14): holds the grip at 25/50/75/100 % of a fold drag and screenshots each, releases, taps open again; prints sheet heights and page errors. `pin` searches "Hunyadi tér" first (authority card), `start` folds the start panel |
+| `node scripts/dev/place-notice.mjs "Hunyadi tér" "Váci utca 10"` | PC layout: searches each place, picks the first hit, prints the authority notice (roadmap 6.11) |
+| `node scripts/dev/ctrl-drag.mjs` | PC: Ctrl+drags right in the top and bottom half of the map and prints the compass needle angle (roadmap 6.10: both drags must turn the same way) |
+
+The search scripts call the public Nominatim instance (an allowed host, SPEC 10); keep runs
+occasional (1 request per second policy).
