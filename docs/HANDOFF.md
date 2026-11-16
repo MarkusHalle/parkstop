@@ -72,11 +72,11 @@ deliberately left out of this file; they travel in the private bundle described 
 
 | # | Thread | Status |
 |---|---|---|
-| 1 | Two animation mockups | Closed by the owner ("already done"); neither animation is in the code as of `8169cd0` |
+| 1 | Two animation mockups | Owner wants both (2026-11-16); mockups being redrawn, then built in their own session (roadmap 6.18, 6.19) |
 | 2 | Focus ring on the (i) button | Fixed (roadmap 6.16): MapLibre's blue `:focus` glow switched off |
 | 3 | Owner testing on real devices | Done by the owner |
-| 4 | Yellow capital-road lines vs base-map roads | Go-ahead given; the tile-id check runs first |
-| 5 | Data questions O7, O8 | Go-ahead given; researcher + sceptic run in their own session |
+| 4 | Yellow capital-road lines vs base-map roads | Check done (roadmap 6.17): tiles carry OSM way ids; hybrid build scheduled as its own session after the weekly limit reset; band colour mockup pending (6.20) |
+| 5 | Data questions O7, O8 | Go-ahead given; researcher + sceptic session scheduled after the weekly limit reset |
 | 6 | "Múzeum körút 10" observation | Dropped by the owner |
 
 The original notes, as written on the PC, in the order the owner was most likely to pick them up:
