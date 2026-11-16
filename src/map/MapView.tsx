@@ -30,10 +30,12 @@ const MAX_BOUNDS: [[number, number], [number, number]] = [
 // Capital roads: a band on top of the base style's roads, below the street names (owner,
 // option A). Solid colours: MapLibre applies line-opacity per feature, so a see-through band
 // darkened wherever two ways overlap (junctions, way ends) and looked painted over twice.
-// Keep in step with --c-capital-road in theme.css.
+// Colour: Budapest's "élénk kék" (#0EA6CE, Fővárosi Önkormányzat brand manual 1.0, 2023), the
+// owner's pick (roadmap 6.20); the base map's main roads are yellowish, so a yellow band blended
+// in. Keep in step with --c-capital-road in theme.css.
 const CAPITAL_PAINT: Record<ResolvedTheme, { color: string; width: number }> = {
-  light: { color: '#F2C14E', width: 1 },
-  dark: { color: '#C99A2E', width: 1 },
+  light: { color: '#0EA6CE', width: 1 },
+  dark: { color: '#0EA6CE', width: 1 },
 }
 /** Phone: map padding under the floating search box, so the pin is centred below it. */
 const PHONE_TOP_PAD = 72
