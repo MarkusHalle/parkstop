@@ -248,6 +248,9 @@ export class SheetMorph {
         const a = -STIFFNESS * (this.p - this.target) - DAMPING * this.v
         this.v += (a * dt) / 4
         this.p += (this.v * dt) / 4
+        // Critical damping still overshoots when a flick hands it speed; past 0 or 1 the morph
+        // would extrapolate and throw words off screen, so the fold stops at its end instead.
+        if (this.p !== clamp01(this.p)) { this.p = clamp01(this.p); this.v = 0 }
       }
       if (Math.abs(this.p - this.target) < 0.002 && Math.abs(this.v) < 0.02) {
         this.p = this.target
