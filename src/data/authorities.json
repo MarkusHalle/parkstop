@@ -807,9 +807,9 @@
       "policeId": "police-02",
       "capitalRoads": "unknown",
       "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 17/2014. (I. 29.) Főv. Kgy. h.; text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
-      "verifiedOn": "2026-11-12"
+      "agreement": "Agreement approved by 17/2014. (I. 29.) Főv. Kgy. h. (annex 3/c) read: II.1 a)–n) subtasks on capital areas except underpasses and Széll Kálmán tér, incl. m) wheel clamps, no explicit KRESZ sanctioning. But a FÖRI letter (III/892/3/2024, seen only on Járókelő) forwards a traffic complaint on Slachta Margit rakpart to the district body citing FPH015/50-7/2014; left unknown (O9). No amendment found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/85882?fileId=117520",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 3,
@@ -819,9 +819,9 @@
       "policeId": "police-03",
       "capitalRoads": "unknown",
       "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 18/2014. (I. 29.) Főv. Kgy. h.; text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
-      "verifiedOn": "2026-11-12"
+      "agreement": "Agreement approved by 18/2014. (I. 29.) Főv. Kgy. h. (annex 4/c) read: II.1 a)–m) subtasks on all capital areas, incl. k) wheel clamps and m) towing of vehicles parked in breach of KRESZ (police notified); no explicit fine clause. The district body clamps and tows on capital roads, so FÖRI-only is not safe; left unknown (O9). No amendment found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/85882?fileId=117523",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 4,
@@ -829,11 +829,11 @@
       "ownBody": true,
       "primaryId": "district-04",
       "policeId": "police-04",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 4/2015. (I. 28.) Főv. Kgy. h.; text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A15H0401.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 4/2015. (I. 28.) Főv. Kgy. h. (annex 2.c): II.1 a)–l) subtasks on capital areas except underpasses, incl. k) wheel clamps; II.2 three subtasks in underpasses; no explicit KRESZ sanctioning; FÖRI tows (III.1 a)). No amendment or termination found through 2026-11-17. See O9.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/87916?fileId=123882",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 5,
@@ -1101,9 +1101,9 @@
       "policeId": "police-08",
       "capitalRoads": "unknown",
       "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 872/2014. (VI. 30.); text not read; body reorganised 2026-04-01.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H1201.FOV",
-      "verifiedOn": "2026-11-12"
+      "agreement": "Agreement FPH015/107-7/2014, approved by 872/2014. (VI. 30.) Főv. Kgy. h. (annex 3/c) read: II.1 a)–j) subtasks except underpasses, incl. i) wheel clamps on irregularly parked vehicles; FÖRI tows dangerous, plate-less and broken-down vehicles (III.1); no explicit KRESZ sanctioning. But FÖRI orders III/1626/3/2023 (József körút) and III/1194/3/2025 (Orczy út), seen only on Járókelő, transfer parking reports on capital roads to the district body; left unknown (O9). Body is Józsefvárosi Rendészet from 2026-04-01 (decree 25/2025. (XII. 11.)); capital agreement not amended through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/87146?fileId=121716",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 9,
@@ -1498,11 +1498,12 @@
       "id": "margitsziget",
       "name": "Margitsziget",
       "primaryId": "fori",
-      "policeId": null,
+      "policeId": "police-13",
       "legalBasis": "Mötv. (2011. évi CLXXXIX. törvény) 22. § (4)",
       "sourceUrl": "https://njt.jog.gov.hu/jogszabaly/2011-189-00-00",
-      "verifiedOn": "2026-11-12",
-      "devNote": "Inside the Budapest outline but in no district polygon (also the Danube channels around it). Directly administered by the capital, so FÖRI is primary. Which police station covers the island is not verified, so no police alternative is set."
+      "verifiedOn": "2026-11-17",
+      "devNote": "Inside the Budapest outline but in no district polygon (also the Danube channels around it). Directly administered by the capital, so FÖRI is primary. Police: BRFK XIII. kerületi Rendőrkapitányság — 67/2007. (XII. 28.) IRM rendelet annex 1 point 5.13.2 \"A Fővárosi Önkormányzat által közvetlenül igazgatott Margitsziget\" (https://njt.jog.gov.hu/jogszabaly/2007-67-20-1U, state 2026-10-01) and the station's Ügyrend 5/2024. (XI. 26.) II. 4. (adatvedelem.police.hu). The water around the island is the Dunai Vízirendészeti Rendőrkapitányság's (4. § a)); the app still offers XIII there. Checked 2026-11-17 (researcher + sceptic, O8).",
+      "policeSourceUrl": "https://njt.jog.gov.hu/jogszabaly/2007-67-20-1U"
     }
   ],
   "devNoteRules": "capitalRoads = who handles parking (KRESZ stopping/waiting) enforcement on capital-managed roads in that district: fori | district | both (district on the listed districtActsOn sections, FÖRI elsewhere) | unknown. Resolver (SPEC 4.2): FÖRI is primary on every capital road unless the pin's road section is listed in districtActsOn. Entries with scope \"narrower\" cover only part of the decree row: the resolver keeps FÖRI primary there, lowers confidence and names the district body as the first alternative."
