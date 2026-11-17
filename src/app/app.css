@@ -207,6 +207,9 @@ h1[tabindex='-1']:focus { outline: none; }
 .page-header:has(.page-context) > .small { margin-top: 13px; }
 .page-heading > .page-title { flex: none; padding-left: 0; }
 .page-context { font-size: 13px; line-height: 17px; color: var(--c-text-muted); }
+/* With the context line in the header, the place card below would repeat the recipient: it keeps
+   the address, "Módosítás" and the confidence chip only (owner, option B, roadmap 6.22). */
+.page:has(> .page-header .page-context) .summary-recipient > .muted { display: none; }
 /* Back from step 2 (useStepMorph): a still copy of the page slides away over step 1. */
 .page-ghost {
   position: absolute; inset: 0; z-index: 10;
