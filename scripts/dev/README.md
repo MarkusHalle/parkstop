@@ -9,6 +9,7 @@ the dev server on http://localhost:5173 (`npm run dev`, or `preview_start parkst
 | Script | What it checks |
 |---|---|
 | `node scripts/dev/sheet-fold.mjs [pin\|start]` | Phone sheet fold (roadmap 6.14): holds the grip at 25/50/75/100 % of a fold drag and screenshots each, releases, taps open again; prints sheet heights and page errors. `pin` searches "Hunyadi tér" first (authority card), `start` folds the start panel |
+| `node scripts/dev/step-morph.mjs [place] [light\|dark] [reduce]` | Step 1 ↔ 2 summary morph (roadmap 6.19): holds a swipe at 0/30/70/100 % and screenshots each, prints the travelling words' distance from the real text at both ends (must be < 1 px), then a back swipe, the main button, the Back button and a swipe from the folded sheet; prints leftovers and page errors |
 | `node scripts/dev/place-notice.mjs "Hunyadi tér" "Váci utca 10"` | PC layout: searches each place, picks the first hit, prints the authority notice (roadmap 6.11) |
 | `node scripts/dev/ctrl-drag.mjs` | PC: Ctrl+drags right in the top and bottom half of the map and prints the compass needle angle (roadmap 6.10: both drags must turn the same way) |
 

@@ -161,6 +161,8 @@ export const hu = {
 
   report: {
     title: 'Bejelentés',
+    /** Step 2's context line under the title (phone): the recipient and the place. */
+    context: (recipient: string, place: string) => (place ? `${recipient} · ${place}` : recipient),
     photos: 'Fotók',
     photoCount: (n: number, max: number) => `${n} / ${max}`,
     addPhoto: 'Fotó hozzáadása a galériából',
