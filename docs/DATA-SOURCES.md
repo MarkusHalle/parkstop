@@ -24,6 +24,7 @@ how it is kept honest. Filled in during milestone M1.
 | Who patrols where | krk.kispest.hu/rolunk (Kispesti Rendészeti Központ) | States the general rule: FÖRI on capital-managed areas (mainly main roads, underpasses) and in districts without an own body; district bodies elsewhere; split set by agreements |
 | Capital-managed roads | Government Decree 432/2012 (XII. 29.), annexes 1–2 — njt.jog.gov.hu/jogszabaly/2012-432-20-22 | In force version from 2024-11-01. Annexes list roads by name, some only between two junctions |
 | Capital-managed network, map | budapestkozut.hu/kozut-figyelo | Budapest Közút's own map of the network it operates; useful to cross-check the built geometry |
+| Capital-road band on the map | OpenFreeMap z14 vector tiles (tiles.openfreemap.org, the map's own host), `transportation` layer | `src/data/capital-roads-display.json`, built by `npm run build:capital-display` from the tile release named in the file; display only (D55). Re-check after each tile release with `npm run check:capital-tiles` |
 | FÖRI | fori.hu | Central contact published on the site; the right channel for parking reports to be confirmed in M1 |
 | District agreements | einfoszab.budapest.hu (Fővárosi Közgyűlés documents) | Four-party agreements per district (examples seen: V., VI., XIV.) change who acts where |
 | Map tiles | openfreemap.org, openfreemap.org/tos | Free, no key, no limits; attribution to OpenStreetMap required |
