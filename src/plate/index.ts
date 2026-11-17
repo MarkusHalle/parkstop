@@ -2,6 +2,7 @@
 export { PlateField, PlateOptIn } from './PlateField'
 export type { PlateFieldProps } from './PlateField'
 export { ZoomPanel, ZoomView } from './ZoomView'
+export { ZoomLightbox } from './ZoomLightbox'
 export { usePlateReader } from './usePlateReader'
 export { clearPlateCache } from './client'
 export type { PlateReaderState, UiPlate, FocusBox } from './usePlateReader'

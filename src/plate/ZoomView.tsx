@@ -57,26 +57,46 @@ function zoomAt(v: View, factor: number, px: number, py: number, box: Size, img:
   return clampView({ key: v.key, s, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k }, box, img)
 }
 
+/**
+ * Drag-down-to-close (roadmap 6.18): a one-finger drag that starts downwards while the photo
+ * is not zoomed in goes here instead of panning. Offsets and speeds are in screen pixels.
+ */
+export interface DismissDrag {
+  start(): void
+  move(dx: number, dy: number): void
+  /** Released; speed in px/s, down positive. */
+  end(vx: number, vy: number): void
+  /** A second finger came down: the gesture becomes a pinch. */
+  cancel(): void
+}
+
+/** Movement before a one-finger drag is read as a pan or a drag-down (px). */
+const SLOP = 8
+
 export interface ZoomViewProps {
   src: string
   alt: string
   /** Part of the photo to show first (a detected plate), else the whole photo. */
   focus?: FocusBox | null
+  onDismiss?: DismissDrag
+  caption?: string
 }
 
-export function ZoomView({ src, alt, focus }: ZoomViewProps) {
+export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCaption }: ZoomViewProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [box, setBox] = useState<Size | null>(null)
   const [nat, setNat] = useState<{ src: string } & Size | null>(null)
   const [view, setView] = useState<View | null>(null)
   const pointers = useRef(new Map<number, { x: number; y: number }>())
+  /** A one-finger gesture that may become a drag-down: undecided until it moves SLOP px. */
+  const gesture = useRef<{ id: number; x0: number; y0: number; dismiss: boolean; samples: Array<{ t: number; x: number; y: number }> } | null>(null)
 
   const key = `${src}|${focus ? `${focus.x},${focus.y},${focus.w},${focus.h}` : ''}`
   const img = nat && nat.src === src ? nat : null
   const ready = box && img && box.w > 0 && box.h > 0
   const current = ready ? (view && view.key === key ? clampView(view, box, img) : initialView(key, box, img, focus)) : null
-  const latest = useRef({ current, box, img })
-  useEffect(() => { latest.current = { current, box, img } })
+  const latest = useRef({ current, box, img, onDismiss })
+  useEffect(() => { latest.current = { current, box, img, onDismiss } })
 
   useEffect(() => {
     const el = ref.current
@@ -111,12 +131,36 @@ export function ZoomView({ src, alt, focus }: ZoomViewProps) {
     if (e.pointerType === 'mouse' && e.button !== 0) return
     try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* pointer already gone */ }
     pointers.current.set(e.pointerId, local(e))
+    const { current: v, box: b, img: i, onDismiss: dismiss } = latest.current
+    const g = gesture.current
+    if (pointers.current.size === 1 && dismiss && v && b && i && v.s <= limits(b, i).min * 1.001) {
+      gesture.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dismiss: false, samples: [{ t: e.timeStamp, x: e.clientX, y: e.clientY }] }
+    } else if (g) {
+      if (g.dismiss) dismiss?.cancel()
+      gesture.current = null
+    }
   }
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const ps = pointers.current
     const prev = ps.get(e.pointerId)
     if (!prev) return
     const now = local(e)
+    const g = gesture.current
+    if (g && g.id === e.pointerId && ps.size === 1) {
+      const dx = e.clientX - g.x0
+      const dy = e.clientY - g.y0
+      if (!g.dismiss && Math.hypot(dx, dy) >= SLOP) {
+        if (dy > 0 && dy > Math.abs(dx) * 1.2) { g.dismiss = true; latest.current.onDismiss?.start() } else gesture.current = null
+      }
+      if (g.dismiss) {
+        g.samples.push({ t: e.timeStamp, x: e.clientX, y: e.clientY })
+        if (g.samples.length > 12) g.samples.shift()
+        latest.current.onDismiss?.move(dx, dy)
+        ps.set(e.pointerId, now)
+        return
+      }
+      if (gesture.current) { ps.set(e.pointerId, now); return } // still undecided: the photo stays put
+    }
     if (ps.size === 1) {
       apply((v, b, i) => clampView({ ...v, tx: v.tx + now.x - prev.x, ty: v.ty + now.y - prev.y }, b, i))
     } else if (ps.size === 2) {
@@ -132,7 +176,21 @@ export function ZoomView({ src, alt, focus }: ZoomViewProps) {
     }
     ps.set(e.pointerId, now)
   }
-  const onPointerEnd = (e: PointerEvent<HTMLDivElement>) => { pointers.current.delete(e.pointerId) }
+  const onPointerEnd = (e: PointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(e.pointerId)
+    const g = gesture.current
+    if (!g || g.id !== e.pointerId) return
+    gesture.current = null
+    if (!g.dismiss) return
+    if (e.type === 'pointercancel') { latest.current.onDismiss?.cancel(); return }
+    // The finger's speed over its last ~100 ms.
+    const last = { t: e.timeStamp, x: e.clientX, y: e.clientY }
+    const first = g.samples.find((s) => last.t - s.t <= 100) ?? last
+    const dt = (last.t - first.t) / 1000
+    const vx = dt > 0.008 ? (last.x - first.x) / dt : 0
+    const vy = dt > 0.008 ? (last.y - first.y) / dt : 0
+    latest.current.onDismiss?.end(vx, vy)
+  }
   const onDoubleClick = (e: MouseEvent<HTMLDivElement>) => {
     const r = ref.current!.getBoundingClientRect()
     apply((v, b, i) => zoomAt(v, 2, e.clientX - r.left, e.clientY - r.top, b, i))
@@ -167,7 +225,7 @@ export function ZoomView({ src, alt, focus }: ZoomViewProps) {
             : { visibility: 'hidden' }} />
       </div>
       <div className="zoom-tools">
-        <span className="muted small">{hu.plate.zoomCaption}</span>
+        <span className="muted small">{caption}</span>
         <div className="zoom-buttons">
           <button type="button" className="icon-btn" aria-label={hu.plate.zoomOut} onClick={() => zoomCentre(1 / STEP)}
             disabled={!current || !lim || current.s <= lim.min + 1e-9}>
@@ -192,14 +250,27 @@ export interface ZoomPhoto {
 }
 
 /** The zoomable view with a photo switcher when the report has several photos. */
-export function ZoomPanel({ photos, startId, onClose }: { photos: ZoomPhoto[]; startId?: string; onClose?: () => void }) {
+export interface ZoomPanelProps {
+  photos: ZoomPhoto[]
+  startId?: string
+  onClose?: () => void
+  /** The photo shown changed (the full-screen view closes into that photo's thumbnail). */
+  onPhoto?: (id: string) => void
+  onDismiss?: DismissDrag
+  /** 'full': the full-screen photo opened from a thumbnail (roadmap 6.18). */
+  variant?: 'inline' | 'full'
+}
+
+export function ZoomPanel({ photos, startId, onClose, onPhoto, onDismiss, variant = 'inline' }: ZoomPanelProps) {
   const [chosen, setChosen] = useState<string | null>(null)
   const id = [chosen, startId].find((x) => x && photos.some((p) => p.id === x)) ?? photos[0]?.id
   const index = Math.max(0, photos.findIndex((p) => p.id === id))
   const photo = photos[index]
+  const shownId = photo?.id
+  useEffect(() => { if (shownId) onPhoto?.(shownId) }, [shownId, onPhoto])
   if (!photo) return null
   return (
-    <div className="zoom-panel" onKeyDown={(e) => { if (e.key === 'Escape' && onClose) { e.stopPropagation(); onClose() } }}>
+    <div className={`zoom-panel zoom-panel-${variant}`} onKeyDown={(e) => { if (e.key === 'Escape' && onClose) { e.stopPropagation(); onClose() } }}>
       {(photos.length > 1 || onClose) && (
         <div className="zoom-head">
           {photos.length > 1 && (
@@ -219,7 +290,8 @@ export function ZoomPanel({ photos, startId, onClose }: { photos: ZoomPhoto[]; s
           )}
         </div>
       )}
-      <ZoomView src={photo.url} alt={hu.report.photoAlt(index + 1)} focus={photo.focus} />
+      <ZoomView src={photo.url} alt={hu.report.photoAlt(index + 1)} focus={photo.focus} onDismiss={onDismiss}
+        caption={variant === 'full' ? hu.plate.zoomCaptionFull : undefined} />
     </div>
   )
 }

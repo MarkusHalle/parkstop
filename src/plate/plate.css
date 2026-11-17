@@ -96,6 +96,34 @@
 .zoom-buttons .icon-btn svg { width: 22px; height: 22px; }
 .zoom-minus { display: block; width: 14px; height: 2.4px; border-radius: 2px; background: currentColor; }
 
+/* ---- Full-screen photo from a step-2 thumbnail (roadmap 6.18) ----------------------------
+   zoomMorph.ts drives the backdrop, the chrome and the flyer inline while anything moves. */
+.thumb-open {
+  display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none;
+  border-radius: var(--radius-m); cursor: zoom-in;
+}
+.zoom-lb { position: fixed; inset: 0; z-index: 45; color: #f2f0ea; }
+.zoom-lb-backdrop { position: absolute; inset: 0; background: #0b0f17; }
+.zoom-lb-body {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+}
+.zoom-panel.zoom-panel-full { flex: 1; min-height: 0; animation: none; }
+.zoom-panel-full .zoom { flex: 1; min-height: 0; }
+.zoom-panel-full .zoom-viewport { flex: 1; height: auto; border-radius: 0; background: transparent; margin: 0 -8px; }
+.zoom-panel-full .zoom-head { min-height: var(--tap); }
+.zoom-panel-full .icon-btn, .zoom-panel-full .btn-link { color: #f2f0ea; }
+.zoom-panel-full .icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.zoom-panel-full .muted { color: rgba(242, 240, 234, 0.72); }
+.zoom-panel-full .zoom-photo-btn { background: transparent; border-color: rgba(255, 255, 255, 0.4); color: #f2f0ea; }
+.zoom-panel-full .zoom-photo-btn[aria-pressed='true'] { background: #f2f0ea; border-color: #f2f0ea; color: #0b0f17; }
+.zoom-lb-flyer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; will-change: clip-path, opacity; }
+.zoom-lb-flyer[hidden] { display: none; }
+.zoom-lb-flyer img {
+  position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; will-change: transform;
+}
+.zoom-lb :focus-visible { outline-color: #f2f0ea; }
+
 @media (prefers-reduced-motion: reduce) {
   .plate-skeleton { animation: none; }
 }

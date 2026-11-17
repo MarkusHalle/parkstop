@@ -167,6 +167,7 @@ export const hu = {
     takePhoto: 'Fotó készítése',
     photoAlt: (n: number) => `${n}. fotó`,
     removePhoto: (n: number) => `${n}. fotó törlése`,
+    openPhoto: (n: number) => `${n}. fotó nagyítása`,
     movePhotoLeft: (n: number) => `${n}. fotó előrébb`,
     movePhotoRight: (n: number) => `${n}. fotó hátrébb`,
     photosHint: 'A fotók a készülékeden maradnak, sehova nem töltjük fel őket.',
@@ -240,6 +241,8 @@ export const hu = {
     zoomOut: 'Kicsinyítés',
     zoomReset: 'Teljes fotó',
     zoomPhotos: 'Melyik fotó',
+    zoomDialog: 'Nagyított fotó',
+    zoomCaptionFull: 'Két ujjal nagyíthatod, lefelé húzva bezárhatod',
   },
 
   mail: {

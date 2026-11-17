@@ -1,11 +1,11 @@
 // Roadmap 2.5: report form and validation (SPEC 4.3). The plate field with the on-device
 // reader's suggestion and the zoomable photo lives in src/plate (roadmap 3.5, 3.6).
-import { useId, useRef } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { useLayout } from '../app/useLayout'
 import { hu } from '../i18n/hu'
 import violationsData from '../data/violations.json'
 import { IconCamera, IconChevron, IconClose, IconImage, IconPlus } from '../app/icons'
-import { PlateField, PlateOptIn, type PlateOption, type PlateReaderState, type UiPlate } from '../plate'
+import { PlateField, PlateOptIn, ZoomLightbox, type PlateOption, type PlateReaderState, type UiPlate } from '../plate'
 import type { PlateSource, PlateVia } from './plate'
 import { MAX_PHOTOS, type PhotoItem } from './photos'
 import type { ReportError } from './validate'
@@ -59,6 +59,11 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
   const layout = useLayout()
   const ids = { plate: useId(), violation: useId(), custom: useId(), time: useId(), vehicle: useId(), note: useId(), photos: useId() }
   const has = (e: ReportError) => errors.includes(e)
+  // The full-screen photo (roadmap 6.18) grows out of the tapped thumbnail and shrinks back into it.
+  const [zoomed, setZoomed] = useState<string | null>(null)
+  const thumbs = useRef(new Map<string, HTMLImageElement>())
+  const thumbFor = useCallback((id: string) => thumbs.current.get(id) ?? null, [])
+  const closeZoom = useCallback(() => setZoomed(null), [])
   const err = (e: ReportError, text: string) => has(e) && <p className="field-error" id={`${ids.plate}-${e}`}>{text}</p>
 
   return (
@@ -82,7 +87,10 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
           {photos.map((p, i) => (
             <div className="thumb-cell" key={p.id}>
               <div className="thumb">
-                <img src={p.url} alt={hu.report.photoAlt(i + 1)} />
+                <button type="button" className="thumb-open" aria-label={hu.report.openPhoto(i + 1)} onClick={() => setZoomed(p.id)}>
+                  <img src={p.url} alt={hu.report.photoAlt(i + 1)}
+                    ref={(el) => { if (el) thumbs.current.set(p.id, el); else thumbs.current.delete(p.id) }} />
+                </button>
                 {photos.length > 1 && <span className="thumb-num" aria-hidden="true">{i + 1}</span>}
                 <button type="button" className="thumb-remove" aria-label={hu.report.removePhoto(i + 1)} onClick={() => onRemovePhoto(p.id)}>
                   <IconClose size={16} />
@@ -120,6 +128,9 @@ export function ReportForm({ form, onChange, photos, onAddFiles, onRemovePhoto, 
           {/* Phone: the camera opens directly (the multi-photo picker has no camera option). */}
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden
             onChange={(e) => { onAddFiles(Array.from(e.target.files ?? [])); e.target.value = '' }} />
+        {zoomed && photos.some((p) => p.id === zoomed) && (
+          <ZoomLightbox photos={photos.map((p) => ({ id: p.id, url: p.url }))} startId={zoomed} thumbFor={thumbFor} onClosed={closeZoom} />
+        )}
         {photoMessages.map((m) => <p key={m} className="field-error" role="alert">{m}</p>)}
         {err('photos', hu.report.errors.photos)}
         <p className="muted small">{hu.report.photosHint}</p>
