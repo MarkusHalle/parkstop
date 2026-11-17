@@ -157,12 +157,12 @@ agreement's task list or the body's own statement; `none` = agreement text not r
 | XV. | unknown | none | Agreement approved by 873/2014. (VI. 30.); text not read. |
 | XVI. | unknown | none | Agreement approved by 22/2014. (I. 29.); text not read. |
 | XVII. | unknown | none | Agreement approved by 23/2014. (I. 29.); text not read. |
-| XVIII. | unknown | none | Agreement approved by 24/2014. (I. 29.); district page says some capital tasks were taken over, not which. |
+| XVIII. | fori | inferred | Approved by 24/2014. (I. 29.) (annex 10/c, fileId 117536): II.1 a)–k) subtasks, no KRESZ sanctioning, no wheel clamp; decree 37/2012. (VII. 12.) 3. § (3) same. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
 | XIX. | fori | inferred | Agreement approved by 874/2014. (VI. 30.); text not read. Kispesti Rendészeti Központ states its competence covers district-owned areas and FÖRI acts on capital-managed areas (krk.kispest.hu/rolunk). |
-| XX. | unknown | none | Agreement approved by 25/2014. (I. 29.); text not read. |
-| XXI. | unknown | none | Agreement approved by 146/2014. (II. 26.); text not read. |
-| XXII. | unknown | none | Agreement approved by 26/2014. (I. 29.); local take-over decree 3/2014. (II. 11.) not read. |
-| XXIII. | unknown | none | Agreement approved by 427/2014. (IV. 30.); text not read. |
+| XX. | fori | inferred | Approved by 25/2014. (I. 29.) (annex 11, fileId 117537): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; decree 40/2013. (XII. 12.) same. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
+| XXI. | unknown | none | Approved by 146/2014. (II. 26.) (annex 6/c, fileId 118112) read: subtasks incl. wheel clamps, no KRESZ sanctioning. Contradicted in practice: csepel.hu 2025-08-28 reports the district body towing for irregular parking on capital roads (Szent István út, Színesfém utca, Védgát utca). Open (O9). Checked 2026-11-17. |
+| XXII. | unknown | none | Approved by 26/2014. (I. 29.) (annex 12/c, fileId 117540) and decree 3/2014. (II. 11.) read: subtasks incl. wheel clamps, no explicit KRESZ sanctioning. Contradicted: FÖRI letter III/387/2/2024 (Járókelő-hosted, not an official source) says irregular waiting on Nagytétényi út (2/1214) is the district body's task. Open (O9). Checked 2026-11-17. |
+| XXIII. | fori | inferred | Approved by 427/2014. (IV. 30.) (annex 2, fileId 120469): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; decree 12/2014. (IV. 25.) 2. § (2) same. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
 Sources: the Fővárosi Közgyűlés approval decisions on net.jogtar.hu (Főv. Kgy. határozatok
 2014–2015), agreement texts and proposals on einfoszab.budapest.hu (I, V, VI, VII, XIII read).
 Margit-sziget belongs to no district: Mötv. 22. § (4), https://njt.jog.gov.hu/jogszabaly/2011-189-00-00.

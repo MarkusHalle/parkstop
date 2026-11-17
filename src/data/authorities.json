@@ -1426,11 +1426,11 @@
       "ownBody": true,
       "primaryId": "district-18",
       "policeId": "police-18",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 24/2014. (I. 29.); district page says some capital tasks were taken over, not which.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 24/2014. (I. 29.) Főv. Kgy. h. (annex 10/c): II.1 a)–k) subtasks on capital areas (lawful use, cleanliness, parking-zone permits, unregistered vehicles, smoking), no KRESZ sanctioning and no wheel clamp; FÖRI tows (III.1). District decree 37/2012. (VII. 12.) 3. § (3) lists the same tasks. No amendment or termination found through 2026-11-17. See O9 on how FÖRI applies the standard agreement in practice.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/85882?fileId=117536",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 19,
@@ -1450,11 +1450,11 @@
       "ownBody": true,
       "primaryId": "district-20",
       "policeId": "police-20-23",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 25/2014. (I. 29.); text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 25/2014. (I. 29.) Főv. Kgy. h. (annex 11): II.1 a)–l) subtasks on capital areas incl. k) wheel clamps, no KRESZ sanctioning; FÖRI tows (III.1). District decree 40/2013. (XII. 12.) 4. § has no KRESZ item. No amendment or termination found through 2026-11-17. See O9.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/85882?fileId=117537",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 21,
@@ -1464,9 +1464,9 @@
       "policeId": "police-21",
       "capitalRoads": "unknown",
       "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 146/2014. (II. 26.); text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
-      "verifiedOn": "2026-11-12"
+      "agreement": "Agreement approved by 146/2014. (II. 26.) Főv. Kgy. h. (annex 6/c) read: II.1 a)–m) subtasks incl. j) wheel clamps, no KRESZ sanctioning or towing on capital areas. But csepel.hu (2025-08-28) reports the district body towing cars for irregular parking on capital roads (Szent István út, Színesfém utca, Védgát utca), so practice differs from the text; left unknown (O9). No amendment found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/86125?fileId=118112",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 22,
@@ -1476,9 +1476,9 @@
       "policeId": "police-22",
       "capitalRoads": "unknown",
       "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 26/2014. (I. 29.); local take-over decree 3/2014. (II. 11.) not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0301.FOV",
-      "verifiedOn": "2026-11-12"
+      "agreement": "Agreement approved by 26/2014. (I. 29.) Főv. Kgy. h. (annex 12/c) and district decree 3/2014. (II. 11.) read: II.1 a)–l) subtasks incl. k) wheel clamps, no explicit KRESZ sanctioning. But a FÖRI Hatósági Osztály letter (III/387/2/2024, 2024-03-05, seen only on Járókelő) says checking irregular waiting on Nagytétényi út (capital road 2/1214) is the district body's task under the agreement; left unknown (O9). No amendment found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/85882?fileId=117540",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 23,
@@ -1486,11 +1486,11 @@
       "ownBody": true,
       "primaryId": "district-23",
       "policeId": "police-20-23",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 427/2014. (IV. 30.); text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H1001.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 427/2014. (IV. 30.) Főv. Kgy. h. (annex 2): II.1 a)–l) subtasks on capital areas incl. k) wheel clamps, no KRESZ sanctioning; FÖRI tows (III.1). District decree 12/2014. (IV. 25.) 2. § (2) lists the same tasks. No amendment or termination found through 2026-11-17. See O9.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/86635?fileId=120469",
+      "verifiedOn": "2026-11-17"
     }
   ],
   "noDistrictAreas": [
