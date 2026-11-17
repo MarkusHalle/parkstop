@@ -39,7 +39,11 @@ function validFixture() {
     type: 'FeatureCollection', source: SRC,
     features: [{ type: 'Feature', properties: { name: 'Andrássy út', partial: false, cutApplied: false, cutApprox: false, kind: 'road' }, geometry: { type: 'LineString', coordinates: [[19.06, 47.50], [19.07, 47.51]] } }],
   }
-  return { authorities: { authorities, districtRules, noDistrictAreas }, violations: { violations }, districtsGeo, roads }
+  const display = {
+    tiles: '20261101_080013_pt', zoom: 14, tileIds: [12, 22],
+    ends: { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { class: 'primary' }, geometry: { type: 'MultiLineString', coordinates: [[[19.06, 47.50], [19.07, 47.51]]] } }] },
+  }
+  return { authorities: { authorities, districtRules, noDistrictAreas }, violations: { violations }, districtsGeo, roads, display }
 }
 
 function run(f: ReturnType<typeof validFixture>): string[] {
@@ -48,12 +52,22 @@ function run(f: ReturnType<typeof validFixture>): string[] {
   writeFileSync(join(dir, 'violations.json'), JSON.stringify(f.violations))
   writeFileSync(join(dir, 'districts.geojson'), JSON.stringify(f.districtsGeo))
   writeFileSync(join(dir, 'capital-roads.geojson'), JSON.stringify(f.roads))
+  writeFileSync(join(dir, 'capital-roads-display.json'), JSON.stringify(f.display))
   return validateData(dir, TODAY)
 }
 
 describe('validate-data', () => {
   it('accepts a complete, well-formed data set', () => {
     expect(run(validFixture())).toEqual([])
+  })
+
+  it('rejects unsorted tile ids and a non-carriageway end piece in the band display (D55)', () => {
+    const f = validFixture()
+    f.display.tileIds = [22, 12]
+    f.display.ends.features[0].properties.class = 'rail'
+    const out = run(f).join('\n')
+    expect(out).toMatch(/tileIds must be positive integers, sorted/)
+    expect(out).toMatch(/class rail is not a carriageway class/)
   })
 
   it('rejects a record without a source URL', () => {

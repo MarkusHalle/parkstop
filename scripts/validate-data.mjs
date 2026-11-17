@@ -202,6 +202,29 @@ function checkCapitalRoads(geo, errors) {
   }
 }
 
+// Map display of the band (D55; built by scripts/build-capital-display.mjs). Offline shape check;
+// `npm run check:capital-tiles` checks the ids against the current tiles.
+function checkCapitalDisplay(d, errors) {
+  const e = (m) => errors.push(`capital-roads-display.json: ${m}`)
+  if (!d || typeof d.tiles !== 'string' || d.zoom !== 14) return e('tiles version or zoom 14 missing')
+  if (!Array.isArray(d.tileIds) || d.tileIds.length === 0) return e('tileIds missing or empty')
+  if (d.tileIds.some((id, i) => !Number.isSafeInteger(id) || id <= 0 || (i > 0 && id <= d.tileIds[i - 1]))) e('tileIds must be positive integers, sorted, no duplicates')
+  if (!d.ends || d.ends.type !== 'FeatureCollection' || !Array.isArray(d.ends.features)) return e('ends must be a FeatureCollection')
+  const CLASSES = new Set(['trunk', 'primary', 'secondary', 'tertiary', 'minor', 'service', 'track', 'busway', 'raceway'])
+  for (const [i, f] of d.ends.features.entries()) {
+    const p = f.properties ?? {}
+    if (!CLASSES.has(p.class)) e(`ends feature ${i}: class ${p.class} is not a carriageway class`)
+    if ('ramp' in p && p.ramp !== 1) e(`ends feature ${i}: ramp must be 1 when present`)
+    if ('brunnel' in p && !['bridge', 'tunnel', 'ford'].includes(p.brunnel)) e(`ends feature ${i}: bad brunnel`)
+    const g = f.geometry
+    if (!g || g.type !== 'MultiLineString') { e(`ends feature ${i}: geometry must be MultiLineString`); continue }
+    for (const line of g.coordinates) {
+      if (!Array.isArray(line) || line.length < 2) e(`ends feature ${i}: line with fewer than 2 positions`)
+      else if (line.some(([lon, lat]) => !inBudapestBox(lon, lat))) e(`ends feature ${i}: coordinate outside Budapest`)
+    }
+  }
+}
+
 /** Runs every check. Returns the list of problems (empty = valid). */
 export function validateData(dataDir, today = new Date().toISOString().slice(0, 10)) {
   const errors = []
@@ -216,6 +239,7 @@ export function validateData(dataDir, today = new Date().toISOString().slice(0, 
   load('violations.json', (d) => checkViolations(d, today, errors))
   load('districts.geojson', (d) => checkDistricts(d, errors))
   load('capital-roads.geojson', (d) => checkCapitalRoads(d, errors))
+  load('capital-roads-display.json', (d) => checkCapitalDisplay(d, errors))
   checkCrossRefs(parsed['authorities.json'], parsed['capital-roads.geojson'], errors)
   return errors
 }
@@ -244,5 +268,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (const m of errors) console.error(`  - ${m}`)
     process.exit(1)
   }
-  console.log('validate:data OK — authorities, violations, districts and capital roads are valid.')
+  console.log('validate:data OK — authorities, violations, districts, capital roads and their map display are valid.')
 }

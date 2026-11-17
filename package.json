@@ -17,7 +17,9 @@
     "check:deps": "node scripts/check-deps.mjs",
     "validate:data": "node scripts/validate-data.mjs",
     "build:districts": "node scripts/build-districts.mjs",
-    "build:capital-roads": "node scripts/build-capital-roads.mjs"
+    "build:capital-roads": "node scripts/build-capital-roads.mjs",
+    "build:capital-display": "node scripts/build-capital-display.mjs",
+    "check:capital-tiles": "node scripts/build-capital-display.mjs --check"
   },
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.3.1",
