@@ -471,6 +471,22 @@ describe('resolver: sceptic regressions (real data)', () => {
     expect(at(47.498669, 19.07011)).toMatchObject({ primary: { id: 'district-07' }, reason: { code: 'district-acts-on' } })
   })
 
+  it('IX (O7, 2026-11-17): listed streets go to the district body, unlisted capital roads to FÖRI', () => {
+    // Lónyay utca 2/443 and Gubacsi út 2/424: listed in the IX agreement, scope full.
+    expect(at(47.485005, 19.062322)).toMatchObject({ primary: { id: 'district-09' }, reason: { code: 'district-acts-on' } })
+    expect(at(47.46223, 19.084799)).toMatchObject({ primary: { id: 'district-09' }, reason: { code: 'district-acts-on' } })
+    // Soroksári út 2/460, Üllői út 2/465 and Haller utca 2/429 (annex 1 point 2, no KRESZ): FÖRI.
+    for (const [lat, lon] of [[47.465107, 19.078327], [47.482165, 19.080404], [47.475192, 19.070986]] as const) {
+      expect(at(lat, lon).primary.id, `${lat},${lon}`).toBe('fori')
+    }
+    // Határ út 2/431 and the Üllői út service road 2/466: section ends not placed, so scope
+    // narrower: FÖRI stays primary everywhere on them (sceptic counter-example 47.45506, 19.11388).
+    for (const [lat, lon] of [[47.442994, 19.095753], [47.469911, 19.111093]] as const) {
+      expect(at(lat, lon), `${lat},${lon}`).toMatchObject({ primary: { id: 'fori' }, reason: { code: 'district-acts-on-partial' }, confidence: 'bizonytalan' })
+    }
+    expect(at(47.45506, 19.11388).primary.id).toBe('fori')
+  })
+
   it('a listed square stays bizonytalan', () => {
     expect(at(47.503634, 19.079608)).toMatchObject({ primary: { id: 'district-07' }, confidence: 'bizonytalan' })
   })

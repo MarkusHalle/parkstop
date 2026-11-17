@@ -1111,11 +1111,218 @@
       "ownBody": true,
       "primaryId": "district-09",
       "policeId": "police-09",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 230/2015. (II. 25.); text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A15H0501.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "both",
+      "capitalRoadsBasis": "verified",
+      "districtActsOn": [
+        {
+          "annex": 2,
+          "row": "411",
+          "text": "Aszódi utca (Ecseri út – Füleki utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "412",
+          "text": "Bakáts utca (Közraktár utca – Lónyay utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "414",
+          "text": "Csarnok tér (Pipa utca – Közraktár utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "415",
+          "text": "Dési Huber utca (Toronyház utca – Üllői út-szervizút)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "416",
+          "text": "Drégely utca (Vaskapu utca – Mester utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "417",
+          "text": "Ecseri út (Aszódi utca – Üllői út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "418",
+          "text": "Epreserdő utca (Ecseri út – Ifjúmunkás utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "423",
+          "text": "Füleki utca (Aszódi utca – Gyáli út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "424",
+          "text": "Gubacsi út (Hentes utca – Szabadkai út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "425",
+          "text": "Gubacsi út (Könyves Kálmán körút – Hentes utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "426",
+          "text": "Gyáli út (Ecseri út – Péceli utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "427",
+          "text": "Gyáli út (Könyves Kálmán körút – Nagyvárad tér)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "428",
+          "text": "Hajóállomás utca (Kvassay Jenő út – HÉV felüljáró)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "431",
+          "text": "Határ út (Gubacsi út – Török Flóris utca)",
+          "scope": "narrower",
+          "devNote": "The section ends were not placed (cutApplied false): the built geometry is the whole of Határ út in IX and lies on 2/430 (Soroksári út – Ferde utca), which the agreement leaves with FÖRI. Narrower keeps FÖRI primary with the district body as first alternative (sceptic, 2026-11-17)."
+        },
+        {
+          "annex": 2,
+          "row": "432",
+          "text": "Ifjúmunkás utca (Dési Huber utca – Epreserdő utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "433",
+          "text": "Illatos út (Soroksári út – Határ út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "435",
+          "text": "Kinizsi utca (Üllői út – Közraktár utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "436",
+          "text": "Koppány utca (Mester utca – Soroksári út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "439",
+          "text": "Kvassay Dunaág híd",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "440",
+          "text": "Kvassay Jenő út (Kvassay Dunaág híd – Soroksári út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "442",
+          "text": "Lobogó utca (Napfény utca – Toronyház utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "443",
+          "text": "Lónyay utca (Kálvin tér – Bakáts utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "446",
+          "text": "Máriássy utca (Soroksári út – Rákóczi híd felhajtó)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "450",
+          "text": "Napfény utca (Dési Huber utca – Illatos út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "454",
+          "text": "Pipa utca (Vámház körút – Csarnok tér)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "455",
+          "text": "Pöttyös utca (Üllői út – Dési Huber utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "461",
+          "text": "Szabadkai út (Gubacsi út – Török Flóris utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "462",
+          "text": "Távíró köz (Távíró utca – Határ út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "463",
+          "text": "Távíró utca (Távíró köz – Üllői út)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "464",
+          "text": "Toronyház utca (Lobogó utca – Dési Huber utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "466",
+          "text": "Üllői út szervizútja (Ecseri út – Dési Huber utca)",
+          "scope": "narrower",
+          "devNote": "Service road only, and its section ends were not placed: the built geometry runs beyond Ecseri út – Dési Huber utca. The Üllői út carriageway (2/465) is not listed and stays with FÖRI."
+        },
+        {
+          "annex": 2,
+          "row": "467",
+          "text": "Vágóhíd utca (Soroksári út – Mester utca)",
+          "scope": "full"
+        },
+        {
+          "annex": 2,
+          "row": "469",
+          "text": "Vaskapu utca (Haller utca – Drégely utca)",
+          "scope": "full"
+        }
+      ],
+      "agreement": "Agreement approved by 230/2015. (II. 25.) Főv. Kgy. h. (annex 2.c of the proposal): on the capital areas in its annex 1 point 1 the Ferencvárosi Közterület-felügyelet does II.1 a)–n), incl. l) on-the-spot fines for KRESZ 40–41. § and k) towing (except vehicles obstructing public transport); on Haller utca and Mester utca (annex 1 point 2) only II.2 subtasks without KRESZ stopping/waiting measures; FÖRI on all other capital roads. Ferencváros decree 3/2014. (I. 28.) annex 1 (state from 2021-04-01) carries the same list. No amendment or termination found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/88160?fileId=124440",
+      "verifiedOn": "2026-11-17",
+      "districtActsOnSource": {
+        "url": "https://einfoszab.budapest.hu/File/DownloadDvD/88160?fileId=124441",
+        "verifiedOn": "2026-11-17",
+        "devNote": "Annex 1 point 1 of the agreement approved by 230/2015. (II. 25.) Főv. Kgy. h. (https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A15H0501.FOV); also annex 1 of Ferencváros decree 3/2014. (I. 28.) in force (https://net.jogtar.hu/rendelet?council=ix-kerulet&dbnum=555&docid=A1400003.09R). KRESZ clause = agreement II.1 l). 36 items in the agreement, 33 here: 'Ráday utca (Kálvin tér – Boráros tér)' has no row in the decree in force from 2024-11-01 (row 2/456 is empty); 2/441 (Kvassay Jenő út kapcsolódó útja) and 2/451 (Összekötő út) are listed but have no OSM geometry (unmatched), so a pin there resolves as a district street, i.e. the same body. Annex 1 point 2 (Haller utca 2/429, Mester utca 2/447) is not districtActsOn. Researcher (Opus) and sceptic (Fable) 2026-11-17: all 35 decree mappings CONFIRMED by script against name and both section ends. Text read is the approved annex; a signed copy was not seen."
+      }
     },
     {
       "district": 10,
@@ -1123,11 +1330,11 @@
       "ownBody": true,
       "primaryId": "district-10",
       "policeId": "police-10",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 143/2014. (II. 26.); text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 143/2014. (II. 26.) Főv. Kgy. h. (annex 3/c): the district does II.1 a)–l) on capital areas except pedestrian underpasses, Fehér út, the airport road and Népliget — subtasks (lawful use, cleanliness, parking-zone permits, j) wheel clamps) without KRESZ sanctioning; FÖRI tows (III.1 a)). No amendment or termination found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/86125?fileId=118105",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 11,
@@ -1135,11 +1342,11 @@
       "ownBody": true,
       "primaryId": "district-11",
       "policeId": "police-11",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 144/2014. (II. 26.). District decree 29/2015. (IV. 29.) 1. § (1) b): body also acts on capital areas handed over by the agreement; which roads and subtasks not stated.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 144/2014. (II. 26.) Főv. Kgy. h. (annex 4/c): Újbuda Közterület-felügyelet does II.1 a)–l) on all capital areas in XI — subtasks (lawful use, cleanliness, parking-zone permits, k) wheel clamps) without KRESZ sanctioning; FÖRI tows (III.1 a)). District decree 29/2015. (IV. 29.) 1. § (1) b) refers to it. No amendment or termination found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/86125?fileId=118110",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 12,
@@ -1147,11 +1354,11 @@
       "ownBody": true,
       "primaryId": "district-12",
       "policeId": "police-12",
-      "capitalRoads": "unknown",
-      "capitalRoadsBasis": "none",
-      "agreement": "Agreement approved by 145/2014. (II. 26.); text not read.",
-      "sourceUrl": "https://net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=A14H0701.FOV",
-      "verifiedOn": "2026-11-12"
+      "capitalRoads": "fori",
+      "capitalRoadsBasis": "inferred",
+      "agreement": "Agreement approved by 145/2014. (II. 26.) Főv. Kgy. h. (annex 5/c): the district does II.1 a)–l) on all capital areas in XII — subtasks (lawful use, cleanliness, parking-zone permits, k) wheel clamps) without KRESZ sanctioning; FÖRI tows (III.1 a)). No amendment or termination found through 2026-11-17.",
+      "sourceUrl": "https://einfoszab.budapest.hu/File/DownloadDvD/86125?fileId=118111",
+      "verifiedOn": "2026-11-17"
     },
     {
       "district": 13,

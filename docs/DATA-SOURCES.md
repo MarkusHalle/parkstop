@@ -148,10 +148,10 @@ agreement's task list or the body's own statement; `none` = agreement text not r
 | VI. | both | verified | FPH015/36-5/2014, approved 142/2014. (II. 26.); amended by 676/2021. (III. 31.): the district body acts (incl. KRESZ checks, towing) only on an enumerated list of capital areas; FÖRI on all others. |
 | VII. | both | verified | FPH015/44-6/2015, approved 249/2015. (III. 23.); amended by 677/2021. (III. 31.): the district body acts (incl. KRESZ checks) only on an enumerated list of capital areas; FÖRI on all others. 2025-05-21 district request for more FÖRI patrols: no outcome found. |
 | VIII. | unknown | none | Agreement approved by 872/2014. (VI. 30.); text not read; body reorganised 2026-04-01. |
-| IX. | unknown | none | Agreement approved by 230/2015. (II. 25.); text not read. |
-| X. | unknown | none | Agreement approved by 143/2014. (II. 26.); text not read. |
-| XI. | unknown | none | Agreement approved by 144/2014. (II. 26.). District decree 29/2015. (IV. 29.) 1. § (1) b): body also acts on capital areas handed over by the agreement; which roads and subtasks not stated. |
-| XII. | unknown | none | Agreement approved by 145/2014. (II. 26.); text not read. |
+| IX. | both | verified | Approved by 230/2015. (II. 25.) (annex 2.c, einfoszab fileId 124440/124441); same list in Ferencváros decree 3/2014. (I. 28.) annex 1. II.1 l) KRESZ 40–41. § fines by the district body on 36 listed capital streets; 33 in `districtActsOn` (Ráday utca no longer a decree row; 2/441, 2/451 have no geometry); 2/431 Határ út and 2/466 Üllői út service road `narrower` (section ends not placed). Haller utca, Mester utca: subtasks only. FÖRI on all other capital roads. Checked 2026-11-17 (researcher + sceptic). |
+| X. | fori | inferred | Approved by 143/2014. (II. 26.) (annex 3/c, fileId 118105): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; excludes underpasses, Fehér út, airport road, Népliget. Checked 2026-11-17 (researcher + sceptic). |
+| XI. | fori | inferred | Approved by 144/2014. (II. 26.) (annex 4/c, fileId 118110): II.1 a)–l) subtasks incl. wheel clamps on all capital areas, no KRESZ sanctioning; district decree 29/2015. (IV. 29.) 1. § (1) b) refers to it. Checked 2026-11-17 (researcher + sceptic). |
+| XII. | fori | inferred | Approved by 145/2014. (II. 26.) (annex 5/c, fileId 118111): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning. Checked 2026-11-17 (researcher + sceptic). |
 | XIII. | fori | inferred | FPH015/52-6/2014 (2014-10-10), approved 20/2014. (I. 29.). District performs II.1 a)–j) (incl. wheel clamps) on capital areas except underpasses, without KRESZ sanctioning; FÖRI tows. Amendment no. 1 approved 2026-10-30: from 2027-01-01 Carl Lutz rakpart and Szent István körút return fully to FÖRI. |
 | XIV. | unknown | none | Agreement approved by 21/2014. (I. 29.); text not read. |
 | XV. | unknown | none | Agreement approved by 873/2014. (VI. 30.); text not read. |
