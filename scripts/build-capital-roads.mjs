@@ -1807,6 +1807,24 @@ for (const item of placedItems) {
   })
 }
 
+// Ways each row covers whole (audit, roadmap 6.17): the map recolours base-map features by
+// id where a feature lies wholly on the capital roads (scripts/build-capital-display.mjs, D55).
+/** Densified pieces of a whole way, as buildGraph cuts it. */
+const piecesOf = (w) => {
+  let n = 0
+  for (let i = 1; i < w.pts.length; i++) n += Math.max(1, Math.ceil(Math.hypot(w.pts[i][0] - w.pts[i - 1][0], w.pts[i][1] - w.pts[i - 1][1]) / STEP))
+  return n
+}
+const coveredWhole = (segs) => {
+  const idx = new Map()
+  for (const s of segs) if (s.way !== undefined) addTo(idx, s.way, s.idx)
+  return [...idx].filter(([id, list]) => new Set(list).size === piecesOf(wayById.get(id))).map(([id]) => id).sort((a, b) => a - b)
+}
+const shown = new Set(features.map((f) => `${f.properties.annex}/${f.properties.row}`))
+const wholeWaysByRow = {}
+for (const r of results) if (shown.has(`${r.item.annex}/${r.item.row}`)) wholeWaysByRow[`${r.item.annex}/${r.item.row}`] = coveredWhole(r.selected)
+for (const [label, p] of Object.entries(placeWays)) if (p.kind !== 'square') wholeWaysByRow[label] = wayIdsByRow[label]
+
 // Row order: annex, number, letter ("71a" after 71), sub-row ("144.2").
 const rowKey = (annex, row) => {
   const m = /^(\d+)([a-z]?)(?:\.(\d+))?$/.exec(row)
@@ -1896,6 +1914,8 @@ await writeFile(
       remarks,
       highways: highwaysByRow,
       osmWays: wayIdsByRow,
+      // Ways each row covers whole (drawn from base-map features when the map shows them).
+      wholeWays: wholeWaysByRow,
     },
     null,
     1,
