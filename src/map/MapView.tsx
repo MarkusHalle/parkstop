@@ -15,6 +15,7 @@ import type { MapViewProps } from './types'
 import { geoFailureFromCode } from './geolocation'
 import { nudgeOffset, withAttribution } from './pin'
 import { areaPolygons } from './capitalAreas'
+import { BASE_BAND_MINZOOM, CAPITAL_ENDS_SOURCE, planBaseBand, type CapitalDisplay } from './capitalBase'
 import { animateCreditsFold } from './creditsMotion'
 
 // Same host for both (SPEC 10). Light: liberty; dark: dark (owner's choice over fiord).
@@ -155,6 +156,8 @@ export function MapView({
         cancelled = true
       }
     }
+    // Dev checks (scripts/dev/) move the map directly; never in a production build.
+    if (import.meta.env.DEV) (globalThis as { __psMap?: maplibregl.Map }).__psMap = map
     // The compass shows only while the map is rotated or tilted; its needle follows the bearing.
     const syncCompass = () => {
       const bearing = map.getBearing()
@@ -611,7 +614,10 @@ function add3dBuildings(map: maplibregl.Map) {
 
 async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCancelled: () => boolean) {
   try {
-    const raw = (await import('../data/capital-roads.geojson?raw')).default
+    const [raw, display] = await Promise.all([
+      import('../data/capital-roads.geojson?raw').then((m) => m.default),
+      import('../data/capital-roads-display.json').then((m) => m.default as unknown as CapitalDisplay),
+    ])
     if (isCancelled()) return
     const data = JSON.parse(raw) as GeoJSON.FeatureCollection
     if (map.getSource('capital-roads')) return
@@ -646,6 +652,11 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
       },
       before,
     )
+    // From zoom 14 the band is the base map's own roads turned blue (D55): copies of the base
+    // style's road fill layers, each right above its original (capitalBase.ts).
+    map.addSource(CAPITAL_ENDS_SOURCE, { type: 'geojson', data: display.ends })
+    for (const { layer, before: next } of planBaseBand(layers, display.tileIds, paint.color)) map.addLayer(layer, next)
+    // Below zoom 14 (z12/z13 tiles merge roads differently) our own band line, as before.
     map.addSource('capital-roads', { type: 'geojson', data })
     map.addLayer(
       {
@@ -654,6 +665,7 @@ async function addCapitalRoads(map: maplibregl.Map, theme: ResolvedTheme, isCanc
         source: 'capital-roads',
         filter: ['!=', ['get', 'area'], true],
         minzoom: 12,
+        maxzoom: BASE_BAND_MINZOOM,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
           'line-color': paint.color,
