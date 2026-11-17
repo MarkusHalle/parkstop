@@ -76,7 +76,7 @@ deliberately left out of this file; they travel in the private bundle described 
 | 2 | Focus ring on the (i) button | Fixed (roadmap 6.16): MapLibre's blue `:focus` glow switched off |
 | 3 | Owner testing on real devices | Done by the owner |
 | 4 | Yellow capital-road lines vs base-map roads | Check done (roadmap 6.17): tiles carry OSM way ids; hybrid build scheduled as its own session after the weekly limit reset; band colour mockup pending (6.20) |
-| 5 | Data questions O7, O8 | Go-ahead given; researcher + sceptic session scheduled after the weekly limit reset |
+| 5 | Data questions O7, O8 | Done 2026-11-17 (roadmap 6.21, D57); new owner question O9 (who acts on capital roads under the standard agreement) |
 | 6 | "Múzeum körút 10" observation | Dropped by the owner |
 
 The original notes, as written on the PC, in the order the owner was most likely to pick them up:
@@ -113,9 +113,9 @@ The original notes, as written on the PC, in the order the owner was most likely
    line (pixel-perfect; 1–2 h). If not, matching by name is unsafe (roads are capital-managed
    only on sections), so fall back to showing the band only when zoomed in, a little wider and
    softer (20–30 min). The check itself is 20–30 min.
-5. **Data questions (DECISIONS):** O7 (14 district agreements not read for capital-road
-   enforcement) and O8 (which police station covers Margit-sziget). Both wait for a data
-   refresh with the researcher + sceptic agents.
+5. **Data questions (DECISIONS):** O7 and O8 closed 2026-11-17 (D57). Open for the owner: O9,
+   whether FÖRI or the district body acts on parked cars on capital roads where the 2014
+   agreement has no explicit KRESZ clause.
 6. **Observation, no action asked:** searching "Múzeum körút 10" puts the pin on the building,
    farther than the 15 m edge band from the capital-road line, so it resolves as a district
    street ("Kerületi kezelésű körút"). Behaviour predates 6.11. Moving the pin onto the road

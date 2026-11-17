@@ -97,10 +97,10 @@ for (const w of ways) {
 
 // E — in Budapest but in no district (2)
 add('no-district', 'Margitsziget, a sziget közepe', [19.048, 47.527],
-  { district: null, insideBudapest: true, capitalRoad: null, primaryId: 'fori', policeId: null, confidence: 'valószínű' },
-  'Inside Budapest, in no district (Mötv. 22. § (4)) → FÖRI (D21). No police alternative yet (O8).')
+  { district: null, insideBudapest: true, capitalRoad: null, primaryId: 'fori', policeId: 'police-13', confidence: 'valószínű' },
+  'Inside Budapest, in no district (Mötv. 22. § (4)) → FÖRI (D21). Police alternative BRFK XIII (O8, 67/2007. IRM rendelet annex 1 5.13.2).')
 add('no-district', 'Duna, a Margitsziget és az óbudai part között', [19.045, 47.53],
-  { district: null, insideBudapest: true, capitalRoad: null, primaryId: 'fori', policeId: null, confidence: 'valószínű' },
+  { district: null, insideBudapest: true, capitalRoad: null, primaryId: 'fori', policeId: 'police-13', confidence: 'valószínű' },
   'River channel beside Margit-sziget: inside Budapest, in no district → FÖRI.')
 
 // F — outside Budapest (3)
