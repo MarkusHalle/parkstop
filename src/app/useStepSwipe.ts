@@ -3,8 +3,10 @@
 // and letting go past a third of the width (or with a quick flick) moves on. When the next step
 // is not allowed yet, the screen only stretches a little and springs back, and `onBlocked`
 // shows what is missing. DOM only: transforms are set directly, never through React state, so
-// a drag does not re-render the app.
+// a drag does not re-render the app. A release settles with the same critically damped spring
+// as the sheet fold (roadmap 6.19), and `track` lets the step morph follow every frame.
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
+import { spring } from './spring'
 
 export interface SwipeConfig {
   enabled: boolean
@@ -12,6 +14,8 @@ export interface SwipeConfig {
   forward: null | { allowed: boolean; go: () => void; onBlocked: () => void }
   /** Back: null when there is no previous step from here. */
   back: null | { go: () => void }
+  /** Follows the screen: `move` gets its offset every frame, `end` when the screens are put back. */
+  track?: { move: (x: number, w: number) => void; end: () => void; interrupt: () => void }
 }
 
 interface Parts {
@@ -30,14 +34,13 @@ const EDGE = 20
 const SLOP = 10
 /** How far the screen stretches when a swipe is not allowed. */
 const RUBBER_MAX = 56
-const EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 
 // Fields keep their own touch handling; the sheet handle drags the sheet up and down.
 const NO_SWIPE = 'input, textarea, select, [contenteditable="true"], .sheet-handle, [data-no-swipe]'
 
-/** Puts the screens back: the swipe's animations, transforms and visibility overrides. */
-function resetSwipe({ target, peekForward, peekBack, reveal }: Parts, anims: Animation[]) {
-  anims.forEach((a) => a.cancel())
+/** Puts the screens back: the swipe's springs, transforms and visibility overrides. */
+function resetSwipe({ target, peekForward, peekBack, reveal }: Parts, stops: Array<() => void>) {
+  stops.forEach((stop) => stop())
   for (const el of [target.current, peekForward.current, peekBack.current]) {
     if (!el) continue
     el.style.transform = ''
@@ -52,8 +55,8 @@ export function useStepSwipe(config: SwipeConfig, parts: Parts, viewKey: string)
   useLayoutEffect(() => { cfg.current = config })
   // Set when a swipe has handed over to a step change; the change settles it (below).
   const arriving = useRef<number | null>(null)
-  // The swipe's own animations (the sheet also runs height animations of its own).
-  const ours = useRef<Animation[]>([])
+  // Stops the swipe's spring in flight.
+  const ours = useRef<Array<() => void>>([])
 
   const partsRef = useRef(parts)
   useLayoutEffect(() => { partsRef.current = parts })
@@ -64,6 +67,7 @@ export function useStepSwipe(config: SwipeConfig, parts: Parts, viewKey: string)
     resetSwipe(active.current ?? partsRef.current, ours.current)
     ours.current = []
     active.current = null
+    cfg.current.track?.end()
   }
 
   // A step changed after a swipe: the new screen is already in place, so skip its usual slide-in
@@ -112,11 +116,13 @@ export function useStepSwipe(config: SwipeConfig, parts: Parts, viewKey: string)
         bk.style.transform = show ? `translateX(${x - w}px)` : ''
       }
       if (parts.reveal.current && !parts.peekBack.current) parts.reveal.current.style.visibility = x > 0 && back ? 'visible' : ''
+      cfg.current.track?.move(x, w)
     }
 
     const onDown = (e: PointerEvent) => {
       if (e.pointerType === 'mouse' || start) return
       if (ours.current.length > 0) clear() // a new touch during a spring-back
+      cfg.current.track?.interrupt() // or during a change the main button started
       if (e.clientX < EDGE || e.clientX > window.innerWidth - EDGE) return
       if (e.target instanceof Element && e.target.closest(NO_SWIPE)) return
       start = { id: e.pointerId, x: e.clientX, y: e.clientY }
@@ -147,22 +153,17 @@ export function useStepSwipe(config: SwipeConfig, parts: Parts, viewKey: string)
       place(off)
     }
 
+    /** Springs the screens from where the finger left them to `x`, keeping the finger's speed. */
     const animateTo = (x: number, then?: () => void) => {
       const w = width()
-      const from = off
-      const dur = reduced.matches ? 0 : Math.max(140, Math.min(280, (Math.abs(x - from) / w) * 360))
-      const frames = (a: number, b: number) => [{ transform: `translateX(${a}px)` }, { transform: `translateX(${b}px)` }]
-      const opts: KeyframeAnimationOptions = { duration: dur, easing: EASE, fill: 'forwards' }
-      const anims = [el.animate(frames(from, x), opts)]
-      const fwd = parts.peekForward.current
-      if (fwd && fwd.style.visibility === 'visible') anims.push(fwd.animate(frames(w + from, w + x), opts))
-      const bk = parts.peekBack.current
-      if (bk && bk.style.visibility === 'visible') anims.push(bk.animate(frames(from - w, x - w), opts))
-      ours.current.push(...anims)
-      void anims[0].finished.then(() => {
+      const finish = () => {
+        ours.current = []
         if (then) then()
         else clear()
-      }, () => { /* cancelled by a newer gesture */ })
+      }
+      if (reduced.matches) { place(x); finish(); return }
+      // Stopped by clear() or a new touch; a stopped spring never calls finish.
+      ours.current.push(spring(off / w, x / w, (last.v * 1000) / w, (p) => place(p * w), finish))
     }
 
     const commit = (go: () => void, x: number) => {

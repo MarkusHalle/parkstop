@@ -199,6 +199,23 @@ h1[tabindex='-1']:focus { outline: none; }
   background: var(--c-surface);
 }
 .page-title { flex: 1; font-family: var(--font-head); font-size: 21px; font-weight: 700; padding-left: 4px; }
+/* Step 2 (roadmap 6.19): a small grey line with the recipient and the place under the title;
+   it may wrap, so the header grows with it. */
+.page-header:has(.page-context) { height: auto; min-height: 56px; padding-top: 6px; padding-bottom: 8px; align-items: flex-start; }
+/* The back button and the step count stay level with the title's line (as in a 56 px header). */
+.page-heading { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 7px 0 0 4px; }
+.page-header:has(.page-context) > .small { margin-top: 13px; }
+.page-heading > .page-title { flex: none; padding-left: 0; }
+.page-context { font-size: 13px; line-height: 17px; color: var(--c-text-muted); }
+/* Back from step 2 (useStepMorph): a still copy of the page slides away over step 1. */
+.page-ghost {
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--c-bg); pointer-events: none; will-change: transform;
+}
+/* The travelling words of the step morph, above the pages and the peeking header. */
+.step-morph { position: absolute; inset: 0; z-index: 12; pointer-events: none; overflow: hidden; contain: layout style; }
+.step-morph > span { position: absolute; left: 0; top: 0; white-space: nowrap; line-height: normal; transform-origin: 0 0; will-change: transform, opacity; }
 .page .page-header:has(> .page-title:first-child) { padding-left: 16px; }
 .progress {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px;

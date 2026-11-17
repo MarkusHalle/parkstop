@@ -26,6 +26,7 @@ import { SheetHandle } from './SheetHandle'
 import { useLayout } from './useLayout'
 import { useReducedPhotos } from './useReducedPhotos'
 import { useStepSwipe } from './useStepSwipe'
+import { useStepMorph } from './useStepMorph'
 import { useSheetMorph } from './useSheetMorph'
 import './app.css'
 
@@ -42,9 +43,15 @@ export function App() {
   const [step, setStep] = useState<Step>('map')
 
   // Browser back button moves between steps instead of leaving the app.
+  // Called before Back closes step 2 into step 1 (the summary morph, roadmap 6.19); set below.
+  const beforeBackToMap = useRef<() => void>(() => {})
   useEffect(() => {
     history.replaceState({ step: 'map' }, '')
-    const onPop = (e: PopStateEvent) => setStep((e.state as { step?: Step } | null)?.step ?? 'map')
+    const onPop = (e: PopStateEvent) => {
+      const next = (e.state as { step?: Step } | null)?.step ?? 'map'
+      if (next === 'map') beforeBackToMap.current()
+      setStep(next)
+    }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
@@ -464,12 +471,16 @@ export function App() {
   // are marked). Right: the step before. Step 1 swipes on its sheet, steps 2 and 3 on the page.
   const peekFwdRef = useRef<HTMLDivElement>(null)
   const peekBackRef = useRef<HTMLDivElement>(null)
+  // The summary morph between step 1 and step 2 (roadmap 6.19). Before useStepSwipe: see there.
+  const stepMorph = useStepMorph(layout === 'phone', view, !!resolved && !!recipient, { sheet: sheetRef, page: pageRef, peekForward: peekFwdRef })
+  useLayoutEffect(() => { beforeBackToMap.current = view === 'report' ? stepMorph.leave : () => {} })
   useStepSwipe({
     enabled: layout === 'phone' && (view === 'map' || view === 'report' || view === 'mail'),
     forward: view === 'map' ? { allowed: !!resolved && !!recipient, go: startReport, onBlocked: () => {} }
       : view === 'report' ? { allowed: errors.length === 0, go: toMail, onBlocked: () => pointToErrors(false) }
       : null,
     back: view === 'report' || view === 'mail' ? { go: back } : null,
+    track: stepMorph.track,
   }, { target: view === 'map' ? sheetRef : pageRef, peekForward: peekFwdRef, peekBack: peekBackRef, reveal: sheetRef }, view)
 
   const [historyCount, setHistoryCount] = useState<number | null>(null)
@@ -487,6 +498,10 @@ export function App() {
       {photoMessages.map((m) => <p key={m} className="field-error" role="alert">{m}</p>)}
     </>
   )
+  // The place as step 1's folded summary shows it; step 2's context line repeats it (phone).
+  const place = resolved && address.trim() !== ''
+    ? `${address.trim()}${resolved.districtRoman ? `, ${hu.mailTemplate.district(resolved.districtRoman)}` : ''}` : ''
+  const context = recipient ? hu.report.context(recipient.name, place) : null
   const summary = resolved && recipient && (
     <section className="summary">
       <span className="summary-icon"><IconPin /></span>
@@ -572,7 +587,7 @@ export function App() {
     lastView.current = view
     const id = requestAnimationFrame(() => {
       // In this order: on the phone the sheet stays mounted (inert) under the pages.
-      const h = ['.page-header h1', '.side-header h1', 'main h1', '.panel h1', '.sheet:not([inert]) h1']
+      const h = ['.page > .page-header h1', '.side-header h1', 'main h1', '.panel h1', '.sheet:not([inert]) h1']
         .map((s) => document.querySelector<HTMLElement>(s)).find((e) => e !== null)
       if (!h) return
       h.tabIndex = -1
@@ -671,11 +686,7 @@ export function App() {
                         {recipient.id === resolved.primary.id && <ConfidenceChip value={resolved.confidence} />}
                       </span>
                       <span className="sheet-peek-name">{recipient.name}</span>
-                      {address.trim() !== '' && (
-                        <span className="sheet-peek-sub">
-                          {address.trim()}{resolved.districtRoman ? `, ${hu.mailTemplate.district(resolved.districtRoman)}` : ''}
-                        </span>
-                      )}
+                      {place !== '' && <span className="sheet-peek-sub">{place}</span>}
                     </>
                   ) : (
                     <span className="sheet-peek-name">
@@ -694,7 +705,11 @@ export function App() {
         <div className="page page-in-fwd" ref={pageRef}>
           <header className="page-header">
             {view !== 'done' && <button type="button" className="icon-btn" aria-label={hu.nav.back} onClick={back}><IconBack /></button>}
-            {view === 'done' ? <span className="page-title">{title}</span> : <h1 className="page-title">{title}</h1>}
+            {view === 'done' ? <span className="page-title">{title}</span>
+              : view === 'report' && context ? (
+                // Step 2: a small grey line with the recipient and the place under the title (roadmap 6.19).
+                <div className="page-heading"><h1 className="page-title">{title}</h1><p className="page-context">{context}</p></div>
+              ) : <h1 className="page-title">{title}</h1>}
             {stepped && <span className="muted small">{hu.steps.progress(STEP_NO[view], 3)}</span>}
             {sideMeta && <span className="muted small">{sideMeta}</span>}
           </header>
@@ -713,8 +728,8 @@ export function App() {
       )}
       {/* What a swipe pulls in: the next (or previous) step's header, its content follows on release. */}
       {(view === 'map' || view === 'report') && <PeekHeader ref={peekFwdRef} title={view === 'map' ? hu.report.title : hu.mail.title}
-        n={STEP_NO[view] + 1} filled={stepNow} />}
-      {view === 'mail' && <PeekHeader ref={peekBackRef} title={hu.report.title} n={2} filled={stepNow} />}
+        n={STEP_NO[view] + 1} filled={stepNow} context={view === 'map' ? context : null} />}
+      {view === 'mail' && <PeekHeader ref={peekBackRef} title={hu.report.title} n={2} filled={stepNow} context={context} />}
       {toastEl}
       <UpdatePrompt onBeforeUpdate={beforeUpdate} />
     </div>
@@ -722,12 +737,14 @@ export function App() {
 }
 
 /** A step's header and step bar, shown beside the screen while it is swiped (useStepSwipe). */
-function PeekHeader({ ref, title, n, filled }: { ref: Ref<HTMLDivElement>; title: string; n: number; filled: number }) {
+function PeekHeader({ ref, title, n, filled, context }: { ref: Ref<HTMLDivElement>; title: string; n: number; filled: number; context?: string | null }) {
   return (
     <div className="page-peek" ref={ref} aria-hidden="true" inert>
       <header className="page-header">
         <span className="icon-btn"><IconBack /></span>
-        <span className="page-title">{title}</span>
+        {context
+          ? <div className="page-heading"><span className="page-title">{title}</span><p className="page-context">{context}</p></div>
+          : <span className="page-title">{title}</span>}
         <span className="muted small">{hu.steps.progress(n, 3)}</span>
       </header>
       <div className="progress">{[1, 2, 3].map((i) => <span key={i} className={i <= filled ? 'on' : ''} />)}</div>
