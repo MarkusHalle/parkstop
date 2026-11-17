@@ -68,6 +68,18 @@ The model or effort in the table can be overridden per call when the roadmap say
 4. **Agents that run tests in parallel** use their own port (`--port 5174`, `5175`, …) and their own Playwright output folder.
 5. **The main session verifies.** An agent's report is a claim; the main session runs the checks and reads the diff before telling the user it is done.
 6. **Small daily fixes stay solo.** No agents for UI tweaks, questions or one-file fixes.
+7. **Fable sceptics run one at a time.** On 2026-11-17 four Fable sceptics in parallel (O7/O8
+   batches), next to three other side sessions, used up the 5-hour window in about 20 minutes;
+   every session stopped and waited ~4.5 h for the reset. Run sceptics sequentially, one per
+   verified batch, and commit after each batch so a limit stop loses nothing.
+8. **Side sessions share one 5-hour window.** Sessions started with `create_session` all draw on
+   the owner's limit. Start at most two at a time (one if either runs researcher or sceptic
+   agents), queue the rest, and start the next when one reports. A stopped session does not
+   resume by itself: send it "continue" after the reset.
+9. **Dev servers in worktrees** cannot serve the fonts from the symlinked `node_modules` (Vite
+   answers 403), so headless screenshots there fall back to another font. Judge layout from
+   them, not typography; check the font on the main checkout's server. The e2e run clears
+   `test-results-e2e/`, so keep screenshots elsewhere (e.g. `~/parkstop-<task>-shots/`).
 
 ## Multi-agent workflow (ultracode)
 
