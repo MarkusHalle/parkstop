@@ -40,6 +40,14 @@ describe('planBaseBand', () => {
     expect(plan[2].layer.paint && 'line-dasharray' in plan[2].layer.paint).toBe(false)
   })
 
+  it('leaves out layout when the original has none (MapLibre rejects layout: undefined)', () => {
+    const tunnel = plan.filter((p) => p.layer.id.endsWith('tunnel_minor'))
+    expect(tunnel).toHaveLength(2)
+    for (const p of tunnel) expect('layout' in p.layer).toBe(false)
+    const primary = plan.find((p) => p.layer.id === 'capital-base-road_trunk_primary')
+    expect(primary?.layer.layout).toEqual({ 'line-join': 'round' })
+  })
+
   it('draws only the own end pieces when no feature id is known', () => {
     expect(planBaseBand(layers, [], '#0EA6CE').map((p) => p.layer.id)).toEqual(['capital-end-road_trunk_primary', 'capital-end-tunnel_minor'])
   })

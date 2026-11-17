@@ -55,7 +55,13 @@ export function planBaseBand(layers: LayerSpecification[], tileIds: number[], co
     delete paint['line-dasharray']
     delete paint['line-pattern']
     delete paint['line-gradient']
-    const common = { type: 'line' as const, minzoom, ...(l.maxzoom !== undefined ? { maxzoom: l.maxzoom } : {}), layout: l.layout, paint }
+    // Optional keys are copied only when present: MapLibre rejects `layout: undefined` ("object
+    // expected"), drops the layer and fires an error before the map's first load.
+    const common = {
+      type: 'line' as const, minzoom, paint,
+      ...(l.maxzoom !== undefined ? { maxzoom: l.maxzoom } : {}),
+      ...(l.layout !== undefined ? { layout: l.layout } : {}),
+    }
     const byId: FilterSpecification = ['match', ['id'], tileIds, true, false]
     if (hasIds) {
       out.push({

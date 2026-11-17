@@ -230,8 +230,10 @@ export function MapView({
       add3dBuildings(map)
       void addCapitalRoads(map, styleTheme.current, () => cancelled)
     })
-    map.on('error', () => {
-      // Tile errors after the first load are not fatal; only a failed style is.
+    map.on('error', (e) => {
+      // Only a failed style is fatal. Tile and source errors (offline, MapLibre tags them with
+      // `sourceId`) are not, even when they arrive before 'load'.
+      if ((e as { sourceId?: string }).sourceId) return
       if (!loaded && !cancelled) setLoadError('network')
     })
 
