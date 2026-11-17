@@ -153,10 +153,10 @@ agreement's task list or the body's own statement; `none` = agreement text not r
 | XI. | fori | inferred | Approved by 144/2014. (II. 26.) (annex 4/c, fileId 118110): II.1 a)–l) subtasks incl. wheel clamps on all capital areas, no KRESZ sanctioning; district decree 29/2015. (IV. 29.) 1. § (1) b) refers to it. Checked 2026-11-17 (researcher + sceptic). |
 | XII. | fori | inferred | Approved by 145/2014. (II. 26.) (annex 5/c, fileId 118111): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning. Checked 2026-11-17 (researcher + sceptic). |
 | XIII. | fori | inferred | FPH015/52-6/2014 (2014-10-10), approved 20/2014. (I. 29.). District performs II.1 a)–j) (incl. wheel clamps) on capital areas except underpasses, without KRESZ sanctioning; FÖRI tows. Amendment no. 1 approved 2026-10-30: from 2027-01-01 Carl Lutz rakpart and Szent István körút return fully to FÖRI. |
-| XIV. | unknown | none | Agreement approved by 21/2014. (I. 29.); text not read. |
-| XV. | unknown | none | Agreement approved by 873/2014. (VI. 30.); text not read. |
-| XVI. | unknown | none | Agreement approved by 22/2014. (I. 29.); text not read. |
-| XVII. | unknown | none | Agreement approved by 23/2014. (I. 29.); text not read. |
+| XIV. | unknown | none | FPH015/114-4/2014 (signed scan, einfoszab fileId 216496), approved by 21/2014. (I. 29.), read: II.1 a)–l) subtasks incl. wheel clamps, no explicit KRESZ sanctioning; Városliget block all FÖRI. Contradicted: FÖRI reply 2026-05-07 (quoted on Járókelő) passes a Horvát Boldizsár utca parking report to Zuglói Önkormányzati Rendészet citing the agreement. Open (O9). Checked 2026-11-17 (researcher + sceptic). |
+| XV. | fori | inferred | Approved by 873/2014. (VI. 30.) (annex 4/c, fileId 121719): I.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; FÖRI tows in the whole district. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
+| XVI. | fori | inferred | Approved by 22/2014. (I. 29.) (annex 8, fileId 117530): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
+| XVII. | fori | inferred | Approved by 23/2014. (I. 29.) (annex 9/c, fileId 117534): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; decree 30/2022. (IX. 22.) 4. § no KRESZ item. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
 | XVIII. | fori | inferred | Approved by 24/2014. (I. 29.) (annex 10/c, fileId 117536): II.1 a)–k) subtasks, no KRESZ sanctioning, no wheel clamp; decree 37/2012. (VII. 12.) 3. § (3) same. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
 | XIX. | fori | inferred | Agreement approved by 874/2014. (VI. 30.); text not read. Kispesti Rendészeti Központ states its competence covers district-owned areas and FÖRI acts on capital-managed areas (krk.kispest.hu/rolunk). |
 | XX. | fori | inferred | Approved by 25/2014. (I. 29.) (annex 11, fileId 117537): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; decree 40/2013. (XII. 12.) same. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
@@ -164,7 +164,16 @@ agreement's task list or the body's own statement; `none` = agreement text not r
 | XXII. | unknown | none | Approved by 26/2014. (I. 29.) (annex 12/c, fileId 117540) and decree 3/2014. (II. 11.) read: subtasks incl. wheel clamps, no explicit KRESZ sanctioning. Contradicted: FÖRI letter III/387/2/2024 (Járókelő-hosted, not an official source) says irregular waiting on Nagytétényi út (2/1214) is the district body's task. Open (O9). Checked 2026-11-17. |
 | XXIII. | fori | inferred | Approved by 427/2014. (IV. 30.) (annex 2, fileId 120469): II.1 a)–l) subtasks incl. wheel clamps, no KRESZ sanctioning; decree 12/2014. (IV. 25.) 2. § (2) same. Checked 2026-11-17 (researcher + sceptic). O9 caveat. |
 Sources: the Fővárosi Közgyűlés approval decisions on net.jogtar.hu (Főv. Kgy. határozatok
-2014–2015), agreement texts and proposals on einfoszab.budapest.hu (I, V, VI, VII, XIII read).
+2014–2015; cite them as `net.jogtar.hu/rendelet?council=fovaros&dbnum=104&docid=…`, the
+`jogszabaly?docid=` form returns 404), agreement texts and proposals on einfoszab.budapest.hu
+(I, V, VI, VII, XIII read 2026-11-12; all other districts read 2026-11-17, O7 refresh, D57).
+For all districts except I, V, VI, VII, IX and XIII only the unsigned drafts the Közgyűlés approved
+unchanged were read (XIV: signed scan). `fori` / `inferred` means the agreement hands over subtasks
+only, with no explicit KRESZ sanctioning; whether FÖRI really acts there is open (O9): FÖRI's own
+letters (2023–2026, seen on Járókelő, not official sources) forward capital-road parking reports in
+II, VIII, XIII, XIV and XXII to the district bodies, and the chief notary's note to the Közgyűlés of
+2026-02-25 (einfoszab fileId 214668) says on-site checks on capital roads in XIII are the district
+body's.
 Margit-sziget belongs to no district: Mötv. 22. § (4), https://njt.jog.gov.hu/jogszabaly/2011-189-00-00.
 Its police station is the BRFK XIII. kerületi Rendőrkapitányság: 67/2007. (XII. 28.) IRM rendelet annex 1,
 5.13.2 "A Fővárosi Önkormányzat által közvetlenül igazgatott Margitsziget", https://njt.jog.gov.hu/jogszabaly/2007-67-20-1U
