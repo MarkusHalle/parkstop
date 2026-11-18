@@ -14,8 +14,6 @@ export interface MapViewProps {
   layout: 'phone' | 'pc'
   /** Height in px covered by the phone bottom sheet; overlays and fly-to keep clear of it. */
   bottomInset: number
-  /** Show the "tap/click the map" hint bubble (no pin yet). */
-  showHint: boolean
   /** Address search through Nominatim allowed (Settings switch later; default true). */
   lookupEnabled: boolean
   /** Increment to ask the map to request geolocation (the start sheet's "Saját helyzetem"). */

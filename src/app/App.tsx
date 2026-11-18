@@ -570,7 +570,7 @@ export function App() {
 
   const map = (
     <MapView pin={pin} onPinChange={onPinChange} onAddressPicked={onAddressPicked} layout={layout}
-      bottomInset={layout === 'phone' ? sheetH : 0} showHint={!pin && view === 'map'} lookupEnabled={settings.addressLookup}
+      bottomInset={layout === 'phone' ? sheetH : 0} lookupEnabled={settings.addressLookup}
       locateRequest={locateRequest} onOpenHistory={() => openSide('history')} pinLocked={view !== 'map'} />
   )
   // The live region stays mounted so screen readers announce each message when it appears.

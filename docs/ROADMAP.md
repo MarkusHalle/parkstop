@@ -120,6 +120,7 @@ Exit: a full report can be made end to end on PC and phone with one photo.
 | 6.24 | Photo zoom (6.18): Android's Back button closes the full-screen photo (shrinks it into the thumbnail) instead of going one step back with the photo still open (history entry while it is open, popstate closes it) | 9 | Opus · low | solo | 15–20 min | | ☐ |
 | 6.25 | Photo zoom (6.18) also from the mail step's small thumbnails, shrinking back into them | 9 | Opus · low | solo | 15 min | | ☐ |
 | 6.26 | Weekly capital-band tile check in CI: a scheduled GitHub Actions job runs `npm run check:capital-tiles` (6.17, D55) after OpenFreeMap's weekly tile release and fails with the stale ids, so the band is rebuilt (`npm run build:capital-display`) before gaps pile up. Build-time only; tiles.openfreemap.org is already an allowed host | 10 | Opus · low | solo | 20–30 min | | ☐ |
+| 6.27 | Map: the floating "Koppints / Kattints a térképre a hely megjelöléséhez" hint box is removed (owner). The start panel's own text still says it; the "locating" bubble keeps the same style | 9 | Opus · low | solo | 5 min | server session ~5 min; checked at 375 px and PC | ☑ |
 
 ## Backlog
 

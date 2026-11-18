@@ -71,7 +71,6 @@ export function MapView({
   onAddressPicked,
   layout,
   bottomInset,
-  showHint,
   lookupEnabled,
   locateRequest,
   onOpenHistory,
@@ -514,12 +513,6 @@ export function MapView({
         <div className="ps-legend">
           <span className="ps-legend__bar" aria-hidden="true" />
           {hu.map.legendCapital}
-        </div>
-      )}
-
-      {showHint && !loadError && !locating && (
-        <div className="ps-hint" role="status">
-          {phone ? hu.map.tapHint : hu.map.clickHint}
         </div>
       )}
 

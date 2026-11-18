@@ -64,8 +64,6 @@ export const hu = {
     geoErrorBody: 'Engedélyezd a helymeghatározást a böngészőben, vagy jelöld a helyet a térképen.',
     geoUnavailableBody: 'A helyzetedet most nem sikerült meghatározni. Kapcsold be a helymeghatározást, próbáld újra, vagy jelöld a helyet a térképen.',
     geoUnsupported: 'Ez a böngésző nem támogatja a helymeghatározást. Jelöld a helyet a térképen.',
-    tapHint: 'Koppints a térképre a hely megjelöléséhez',
-    clickHint: 'Kattints a térképre a hely megjelöléséhez',
     zoomIn: 'Nagyítás',
     zoomOut: 'Kicsinyítés',
     resetNorth: 'Észak felfelé, térkép kiegyenesítése',
