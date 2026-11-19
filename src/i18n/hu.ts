@@ -449,8 +449,8 @@ export const hu = {
     licenceText: 'A ParkStop szabad szoftver: a GNU General Public License 3. vagy (választásod szerint) bármely későbbi változata szerint használhatod, módosíthatod és terjesztheted. A rendszámfelismerő modell szintén GPL-3.0 alatt áll; a forráskódja a tárolóban van. A felhasznált külső részek és licencük a THIRD-PARTY-NOTICES fájlban találhatók.',
     sourceLink: 'Forráskód a GitHubon',
     noticesLink: 'Külső részek és licencük',
-    sourceUrl: 'https://github.com/justaguyulove/parkstop',
-    noticesUrl: 'https://github.com/justaguyulove/parkstop/blob/main/THIRD-PARTY-NOTICES.md',
+    sourceUrl: 'https://github.com/MarkusHalle/parkstop',
+    noticesUrl: 'https://github.com/MarkusHalle/parkstop/blob/main/THIRD-PARTY-NOTICES.md',
   },
 
   // Roadmap 4.2: "Adatkezelés" (SPEC 1 C6, SPEC 10). Hosts must match SPEC 10.
