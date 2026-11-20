@@ -7,7 +7,7 @@
 > semmit nem küld és semmit nem tölt fel. Nincs szerver, nincs regisztráció, nincs mesterséges intelligencia a
 > felhőben.
 >
-> **Megnyitás:** <https://justaguyulove.github.io/parkstop/>
+> **Megnyitás:** <https://markushalle.github.io/parkstop/>
 
 ParkStop is a static progressive web app (PWA) for reporting illegally parked cars in Budapest:
 drop a pin on the map, see which authority is responsible, add photos, and get a ready-to-send

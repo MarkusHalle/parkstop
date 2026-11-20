@@ -9,7 +9,7 @@ deliberately left out of this file; they travel in the private bundle described 
 
 ## 1. Start-up checklist (do these first, in order)
 
-1. **Repository:** clone `https://github.com/justaguyulove/parkstop.git` (branch `main`). The last
+1. **Repository:** clone `https://github.com/MarkusHalle/parkstop.git` (branch `main`). The last
    commit before this handoff is `1e02c02` ("Sheet fold: move text by its glyphs …"); the handoff
    commit itself follows it. `git log --oneline -1` must show the handoff commit or later.
 2. **Toolchain:** Node 24 (what CI uses; the PC ran Node 25.2, npm 11.6.2), then `npm ci`.
@@ -43,7 +43,7 @@ deliberately left out of this file; they travel in the private bundle described 
 
 ## 3. Where things stand
 
-- **Live:** https://justaguyulove.github.io/parkstop/ at commit `1e02c02`; CI and the Pages
+- **Live:** https://markushalle.github.io/parkstop/ at commit `1e02c02`; CI and the Pages
   deploy were green for every push of this session.
 - **Milestones M0–M5:** done. The work since then is owner feedback, tracked as roadmap rows
   6.x. Nothing is half-built or uncommitted.
@@ -151,7 +151,7 @@ The original notes, as written on the PC, in the order the owner was most likely
 - **CI / deploy status without `gh`** (the PC had no `gh`; any machine can use the public API):
 
   ```bash
-  curl -s "https://api.github.com/repos/justaguyulove/parkstop/actions/runs?head_sha=$(git rev-parse HEAD)" \
+  curl -s "https://api.github.com/repos/MarkusHalle/parkstop/actions/runs?head_sha=$(git rev-parse HEAD)" \
     | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log((j.workflow_runs||[]).map(r=>r.name+':'+r.status+':'+r.conclusion).join(';'))})"
   ```
 

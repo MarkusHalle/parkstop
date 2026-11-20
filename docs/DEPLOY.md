@@ -1,24 +1,24 @@
 # Publishing ParkStop on GitHub Pages
 
 Hosting choice: public repository + GitHub Pages (D46). The site will be at
-**https://justaguyulove.github.io/parkstop/** if the repository is called `parkstop`
+**https://markushalle.github.io/parkstop/** if the repository is called `parkstop`
 (another name changes the last part of the address; the build adapts by itself).
 
 ## One-time setup (the owner does these)
 
-1. **Create the repository.** Open <https://github.com/new>, signed in as `justaguyulove`.
+1. **Create the repository.** Open <https://github.com/new>, signed in as `MarkusHalle`.
    - Repository name: `parkstop`
    - Visibility: **Public**
    - Leave "Add a README", ".gitignore" and "licence" **unticked** (the project already has them).
    - Click **Create repository**. Leave the page that follows open; it shows the address
-     `https://github.com/justaguyulove/parkstop.git`.
+     `https://github.com/MarkusHalle/parkstop.git`.
 2. **Switch Pages to GitHub Actions.** In the new repository: **Settings → Pages →
    Build and deployment → Source: GitHub Actions**. Nothing else on that page needs changing.
 3. **Tell Claude to add the remote and push.** (Claude asks for an explicit yes before each.)
    The commit itself is made in the main ParkStop session first. Commands, for reference:
 
    ```bash
-   git remote add origin https://github.com/justaguyulove/parkstop.git
+   git remote add origin https://github.com/MarkusHalle/parkstop.git
    git push -u origin main
    ```
 
