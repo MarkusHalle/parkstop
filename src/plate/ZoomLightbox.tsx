@@ -21,16 +21,21 @@ export function ZoomLightbox({ photos, startId, thumbFor, onClosed }: ZoomLightb
   const rootRef = useRef<HTMLDivElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
   const flyerRef = useRef<HTMLDivElement>(null)
-  const flyerImgRef = useRef<HTMLImageElement>(null)
+  const flyerCanvasRef = useRef<HTMLCanvasElement>(null)
   const [morph] = useState(() => new ZoomMorph())
   const shown = useRef(startId)
   const latest = useRef({ thumbFor, onClosed })
+  const photosRef = useRef(photos)
+  useEffect(() => { photosRef.current = photos })
   useEffect(() => { latest.current = { thumbFor, onClosed } })
 
   const close = useCallback(() => morph.close(), [morph])
   const onPhoto = useCallback((id: string) => {
     shown.current = id
     morph.setThumb(latest.current.thumbFor(id))
+    // Decode the shown photo into the flyer now, so a drag or close later swaps without a blank frame.
+    const photo = photosRef.current.find((p) => p.id === id)
+    if (photo) morph.preload(photo.url)
   }, [morph])
   const dismiss = useMemo<DismissDrag>(() => ({
     start: () => morph.dragStart(),
@@ -49,13 +54,14 @@ export function ZoomLightbox({ photos, startId, thumbFor, onClosed }: ZoomLightb
       viewport,
       get image() { return viewport.querySelector('img') },
       flyer: flyerRef.current!,
-      flyerImage: flyerImgRef.current!,
+      flyerCanvas: flyerCanvasRef.current!,
     }, () => latest.current.onClosed(shown.current))
     const thumb = latest.current.thumbFor(startId)
-    morph.setThumb(thumb)
+    // Hidden only once the flyer can paint over it (zoomMorph.open), so no frame shows neither.
+    morph.setThumb(thumb, false)
     const t = thumb instanceof HTMLImageElement ? thumb : thumb?.querySelector('img')
     const start = photos.find((p) => p.id === startId)
-    if (flyerImgRef.current && start) flyerImgRef.current.src = start.url
+    if (start) morph.preload(start.url)
     morph.open(t && t.naturalHeight > 0 ? t.naturalWidth / t.naturalHeight : 0)
     return () => morph.detach()
     // Runs once per lightbox: later photo changes go through onPhoto.
@@ -88,8 +94,8 @@ export function ZoomLightbox({ photos, startId, thumbFor, onClosed }: ZoomLightb
       <div className="zoom-lb-body">
         <ZoomPanel variant="full" photos={photos} startId={startId} onClose={close} onPhoto={onPhoto} onDismiss={dismiss} />
       </div>
-      <div className="zoom-lb-flyer" ref={flyerRef} aria-hidden="true" hidden>
-        <img ref={flyerImgRef} alt="" draggable={false} />
+      <div className="zoom-lb-flyer" ref={flyerRef} aria-hidden="true" data-off="">
+        <canvas ref={flyerCanvasRef} />
       </div>
     </div>,
     document.body,

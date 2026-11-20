@@ -72,6 +72,8 @@ export interface DismissDrag {
 
 /** Movement before a one-finger drag is read as a pan or a drag-down (px). */
 const SLOP = 8
+/** How far a one-finger move must go down before it becomes drag-to-close (px). */
+const DISMISS_START = 20
 
 export interface ZoomViewProps {
   src: string
@@ -80,9 +82,11 @@ export interface ZoomViewProps {
   focus?: FocusBox | null
   onDismiss?: DismissDrag
   caption?: string
+  /** false: a plain larger preview, no pinch, wheel, double-tap or +/− zoom (full-screen photo, roadmap 6.29). */
+  zoomable?: boolean
 }
 
-export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCaption }: ZoomViewProps) {
+export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCaption, zoomable = true }: ZoomViewProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [box, setBox] = useState<Size | null>(null)
   const [nat, setNat] = useState<{ src: string } & Size | null>(null)
@@ -95,8 +99,8 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
   const img = nat && nat.src === src ? nat : null
   const ready = box && img && box.w > 0 && box.h > 0
   const current = ready ? (view && view.key === key ? clampView(view, box, img) : initialView(key, box, img, focus)) : null
-  const latest = useRef({ current, box, img, onDismiss })
-  useEffect(() => { latest.current = { current, box, img, onDismiss } })
+  const latest = useRef({ current, box, img, onDismiss, zoomable })
+  useEffect(() => { latest.current = { current, box, img, onDismiss, zoomable } })
 
   useEffect(() => {
     const el = ref.current
@@ -108,6 +112,7 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
       const { current: v, box: b, img: i } = latest.current
       if (!v || !b || !i) return
       e.preventDefault()
+      if (!latest.current.zoomable) return
       const r = el.getBoundingClientRect()
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1
       setView(zoomAt(v, Math.exp(-e.deltaY * unit * 0.0015), e.clientX - r.left, e.clientY - r.top, b, i))
@@ -150,7 +155,9 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
       const dx = e.clientX - g.x0
       const dy = e.clientY - g.y0
       if (!g.dismiss && Math.hypot(dx, dy) >= SLOP) {
-        if (dy > 0 && dy > Math.abs(dx) * 1.2) { g.dismiss = true; latest.current.onDismiss?.start() } else gesture.current = null
+        // A clear move down only: a pinch's first finger often slides a few px before the second
+        // lands, and treating that as drag-to-close swapped the view out and back (flash).
+        if (dy > 0 && dy > Math.abs(dx) * 1.2) { if (dy >= DISMISS_START) { g.dismiss = true; latest.current.onDismiss?.start() } } else gesture.current = null
       }
       if (g.dismiss) {
         g.samples.push({ t: e.timeStamp, x: e.clientX, y: e.clientY })
@@ -163,7 +170,7 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
     }
     if (ps.size === 1) {
       apply((v, b, i) => clampView({ ...v, tx: v.tx + now.x - prev.x, ty: v.ty + now.y - prev.y }, b, i))
-    } else if (ps.size === 2) {
+    } else if (ps.size === 2 && zoomable) {
       const other = [...ps.entries()].find(([id]) => id !== e.pointerId)![1]
       const d0 = Math.hypot(prev.x - other.x, prev.y - other.y)
       const d1 = Math.hypot(now.x - other.x, now.y - other.y)
@@ -192,6 +199,7 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
     latest.current.onDismiss?.end(vx, vy)
   }
   const onDoubleClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (!zoomable) return
     const r = ref.current!.getBoundingClientRect()
     apply((v, b, i) => zoomAt(v, 2, e.clientX - r.left, e.clientY - r.top, b, i))
   }
@@ -201,9 +209,9 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
     if (moves[e.key]) {
       const [dx, dy] = moves[e.key]
       apply((v, b, i) => clampView({ ...v, tx: v.tx + dx, ty: v.ty + dy }, b, i))
-    } else if (e.key === '+' || e.key === '=') zoomCentre(STEP)
-    else if (e.key === '-') zoomCentre(1 / STEP)
-    else if (e.key === '0') reset()
+    } else if (zoomable && (e.key === '+' || e.key === '=')) zoomCentre(STEP)
+    else if (zoomable && e.key === '-') zoomCentre(1 / STEP)
+    else if (zoomable && e.key === '0') reset()
     else return
     e.preventDefault()
   }
@@ -226,7 +234,7 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
       </div>
       <div className="zoom-tools">
         <span className="muted small">{caption}</span>
-        <div className="zoom-buttons">
+        {zoomable && <div className="zoom-buttons">
           <button type="button" className="icon-btn" aria-label={hu.plate.zoomOut} onClick={() => zoomCentre(1 / STEP)}
             disabled={!current || !lim || current.s <= lim.min + 1e-9}>
             <span aria-hidden="true" className="zoom-minus" />
@@ -236,7 +244,7 @@ export function ZoomView({ src, alt, focus, onDismiss, caption = hu.plate.zoomCa
             <IconPlus />
           </button>
           <button type="button" className="btn-link" onClick={reset} disabled={!current}>{hu.plate.zoomReset}</button>
-        </div>
+        </div>}
       </div>
     </div>
   )
@@ -291,7 +299,7 @@ export function ZoomPanel({ photos, startId, onClose, onPhoto, onDismiss, varian
         </div>
       )}
       <ZoomView src={photo.url} alt={hu.report.photoAlt(index + 1)} focus={photo.focus} onDismiss={onDismiss}
-        caption={variant === 'full' ? hu.plate.zoomCaptionFull : undefined} />
+        caption={variant === 'full' ? hu.plate.zoomCaptionFull : undefined} zoomable={variant !== 'full'} />
     </div>
   )
 }

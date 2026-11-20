@@ -89,8 +89,10 @@ export interface ZoomMorphParts {
   viewport: HTMLElement
   /** The real image in it. */
   image: HTMLImageElement | null
+  /** Stays rendered (`data-off` makes it transparent): showing it never rebuilds its GPU layer. */
   flyer: HTMLElement
-  flyerImage: HTMLImageElement
+  /** A screen-sized copy of the photo: a 12-MP camera photo took frames to reach the GPU on a phone. */
+  flyerCanvas: HTMLCanvasElement
 }
 
 /** The thumbnail if it is on screen, else null (gone, hidden or scrolled away). */
@@ -134,6 +136,11 @@ export class ZoomMorph {
   private raf = 0
   private last = 0
   private closing = false
+  /** Bumped by every swap, so a late decode never undoes a newer one. */
+  private swapToken = 0
+  /** The photo drawn into the flyer canvas, and when it is ready. */
+  private flyerUrl = ''
+  private flyerReady: Promise<void> = Promise.resolve()
   private onClosed: () => void = () => {}
 
   attach(parts: ZoomMorphParts | null, onClosed: () => void) {
@@ -142,11 +149,28 @@ export class ZoomMorph {
   }
 
   /** The thumbnail of the photo shown now: kept hidden while the photo is open, the target of a close. */
-  setThumb(el: HTMLElement | null) {
+  setThumb(el: HTMLElement | null, hide = true) {
     if (el === this.thumbEl) return
     if (this.thumbEl) this.thumbEl.style.opacity = ''
     this.thumbEl = el
-    if (el) el.style.opacity = '0'
+    if (el && hide) el.style.opacity = '0'
+  }
+
+  /** Draw a photo (the one shown now) into the flyer at screen size, ahead of any swap. */
+  preload(url: string) {
+    const canvas = this.parts?.flyerCanvas
+    if (!canvas || url === this.flyerUrl) return
+    this.flyerUrl = url
+    const img = new Image()
+    img.src = url
+    this.flyerReady = img.decode().then(() => {
+      if (this.flyerUrl !== url) return
+      const max = Math.round(Math.max(window.innerWidth, window.innerHeight) * Math.min(window.devicePixelRatio || 1, 2))
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight))
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * k))
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * k))
+      canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height)
+    }, () => {})
   }
 
   /** Grow out of the thumbnail. `aspect`: the photo's width / height. */
@@ -156,11 +180,17 @@ export class ZoomMorph {
     const thumb = thumbOnScreen(this.thumbEl)
     const vp = rectOf(parts.viewport)
     const photo = containRect(vp, aspect)
-    this.begin({ photo, clip: intersect(photo, vp) ?? photo, thumb: thumb?.rect ?? null, thumbRadius: thumb?.radius ?? 0 })
     this.p = 0
     this.target = 1
+    // Until the flyer's photo is decoded the thumbnail stays where it is and the real view stays
+    // hidden: hiding the thumbnail first left a few blank frames (owner: "it starts flashing").
+    parts.viewport.style.opacity = '0'
+    if (this.thumbEl) this.thumbEl.style.opacity = ''
+    this.begin({ photo, clip: intersect(photo, vp) ?? photo, thumb: thumb?.rect ?? null, thumbRadius: thumb?.radius ?? 0 }, () => {
+      if (this.thumbEl) this.thumbEl.style.opacity = '0'
+      this.run()
+    })
     this.apply()
-    this.run()
   }
 
   /** Shrink back into the thumbnail (Escape, the close button, a released drag). */
@@ -246,16 +276,28 @@ export class ZoomMorph {
     return true
   }
 
-  private begin(geo: Geometry) {
+  /**
+   * Put the flyer in place of the real view. The swap waits until the flyer's photo is decoded:
+   * until then the real view (or, when opening, the thumbnail) stays on screen, so no frame is
+   * blank. `then` runs once the flyer shows.
+   */
+  private begin(geo: Geometry, then?: () => void) {
     const parts = this.parts!
     this.geo = geo
-    const fly = parts.flyerImage
     const src = parts.image?.currentSrc || parts.image?.src
-    if (src && fly.src !== src) fly.src = src
+    if (src) this.preload(src)
+    const fly = parts.flyerCanvas
     fly.style.width = `${geo.photo.w}px`
     fly.style.height = `${geo.photo.h}px`
-    parts.flyer.hidden = false
-    parts.viewport.style.opacity = '0'
+    const token = ++this.swapToken
+    const reveal = () => {
+      if (token !== this.swapToken || !this.parts || !this.geo) return
+      this.apply() // position the flyer before it shows
+      delete parts.flyer.dataset.off
+      parts.viewport.style.opacity = '0'
+      then?.()
+    }
+    void this.flyerReady.then(reveal, reveal)
   }
 
   /** Re-aim at the thumbnail when closing: the page may have moved while the photo was open. */
@@ -303,7 +345,7 @@ export class ZoomMorph {
     parts.flyer.style.clipPath =
       `inset(${clip.y}px ${W - clip.x - clip.w}px ${H - clip.y - clip.h}px ${clip.x}px round ${radius}px)`
     parts.flyer.style.opacity = `${opacity}`
-    parts.flyerImage.style.transform = `translate(${photo.x}px, ${photo.y}px) scale(${photo.w / g.photo.w})`
+    parts.flyerCanvas.style.transform = `translate(${photo.x}px, ${photo.y}px) scale(${photo.w / g.photo.w})`
     parts.backdrop.style.opacity = `${p * (1 - 0.9 * fade)}`
     const chrome = clamp01((p - 0.7) / 0.3) * (1 - clamp01(fade * 4))
     for (const el of parts.chrome) el.style.opacity = `${chrome}`
@@ -352,10 +394,18 @@ export class ZoomMorph {
     this.geo = null
     const parts = this.parts
     if (!parts) return
-    parts.flyer.hidden = true
+    // The real view comes back under the flyer, and the flyer goes only after the view's photo is
+    // decoded and two frames have painted: swapping in one frame showed a blank photo (flash).
     parts.viewport.style.opacity = ''
     parts.backdrop.style.opacity = ''
     for (const el of parts.chrome) el.style.opacity = ''
+    const token = ++this.swapToken
+    const hide = () => requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (token === this.swapToken && !this.geo) parts.flyer.dataset.off = ''
+    }))
+    const img = parts.image
+    if (img && typeof img.decode === 'function') img.decode().then(hide, hide)
+    else hide()
   }
 
   /** Closed: show the thumbnail again and let the owner unmount the lightbox. */

@@ -242,7 +242,7 @@ export const hu = {
     zoomReset: 'Teljes fotó',
     zoomPhotos: 'Melyik fotó',
     zoomDialog: 'Nagyított fotó',
-    zoomCaptionFull: 'Két ujjal nagyíthatod, lefelé húzva bezárhatod',
+    zoomCaptionFull: 'Lefelé húzva bezárhatod',
   },
 
   mail: {

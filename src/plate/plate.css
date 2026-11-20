@@ -118,8 +118,8 @@
 .zoom-panel-full .zoom-photo-btn { background: transparent; border-color: rgba(255, 255, 255, 0.4); color: #f2f0ea; }
 .zoom-panel-full .zoom-photo-btn[aria-pressed='true'] { background: #f2f0ea; border-color: #f2f0ea; color: #0b0f17; }
 .zoom-lb-flyer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; will-change: clip-path, opacity; }
-.zoom-lb-flyer[hidden] { display: none; }
-.zoom-lb-flyer img {
+.zoom-lb-flyer[data-off] { opacity: 0 !important; }
+.zoom-lb-flyer canvas {
   position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; will-change: transform;
 }
 .zoom-lb :focus-visible { outline-color: #f2f0ea; }

@@ -1,7 +1,7 @@
 // Full-screen photo from a step-2 thumbnail (roadmap 6.18). See README.md.
 // Map tiles and the address search are answered from tests/e2e/fixtures, so nothing leaves
 // the machine. Phone (375 px, touch) and PC (1280 px, mouse): open, short drag (springs back),
-// long drag (closes into the thumbnail), flick, Escape, pinch then close, thumbnail scrolled
+// long drag (closes into the thumbnail), flick, Escape, pinch and wheel do nothing (6.29), close button, thumbnail scrolled
 // away (fades), reduced motion. Prints each result; screenshots mid-animation.
 import { mkdirSync, readFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
@@ -54,14 +54,14 @@ for (const kind of ['phone', 'pc']) {
     const fly = document.querySelector('.zoom-lb-flyer')
     return {
       open: !!root,
-      moving: !!fly && !fly.hidden,
+      moving: !!fly && !fly.hasAttribute('data-off'),
       backdrop: document.querySelector('.zoom-lb-backdrop')?.style.opacity ?? null,
       thumbOpacity: document.querySelector('.thumb-open img')?.style.opacity ?? null,
     }
   })
   const settled = () => page.waitForFunction(() => {
     const fly = document.querySelector('.zoom-lb-flyer')
-    return !fly || fly.hidden
+    return !fly || fly.hasAttribute('data-off')
   }, null, { timeout: 8000 }).then(() => page.waitForTimeout(80))
   const closed = () => page.waitForFunction(() => !document.querySelector('.zoom-lb'), null, { timeout: 8000 }).then(() => true, () => false)
   const shot = (name) => page.screenshot({ path: `${out}/zoom-${kind}-${name}.png` })
@@ -137,7 +137,8 @@ for (const kind of ['phone', 'pc']) {
   await shot('escape-mid')
   check(await closed(), 'Escape shrinks and closes')
 
-  // Pinch (phone) or wheel (PC) zoom, then a drag pans instead of closing; the button closes.
+  // A plain larger preview (6.29): pinch (phone), wheel and double-click (PC) do not zoom, there
+  // are no zoom buttons, and the close button shrinks it back into the thumbnail.
   await openZoom()
   const scaleOf = () => page.evaluate(() => {
     const t = document.querySelector('.zoom-viewport img')?.style.transform ?? ''
@@ -156,19 +157,18 @@ for (const kind of ['phone', 'pc']) {
   } else {
     await page.mouse.move(c.x, c.y)
     await page.mouse.wheel(0, -400)
+    await page.mouse.dblclick(c.x, c.y)
   }
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(250)
   const s1 = await scaleOf()
-  check(s1 > s0 * 1.3, `${phone ? 'pinch' : 'wheel'} zooms in (${s0.toFixed(3)} → ${s1.toFixed(3)})`)
-  await drag(200, { hold: 160 })
-  await page.waitForTimeout(300)
+  check(Math.abs(s1 - s0) < 1e-6, `${phone ? 'pinch' : 'wheel and double-click'} do not zoom (${s0.toFixed(3)} → ${s1.toFixed(3)})`)
+  check(await page.locator('.zoom-lb .zoom-buttons').count() === 0, 'no zoom buttons in the full-screen preview')
   s = await lb()
-  check(s.open && !s.moving, 'a drag while zoomed in pans, does not close')
-  await shot('zoomed')
+  check(s.open && !s.moving, 'still open and at rest after the pinch')
   await page.getByRole('button', { name: 'Nagyítás bezárása' }).click()
   await page.waitForTimeout(60)
-  await shot('close-zoomed-mid')
-  check(await closed(), 'close button shrinks a zoomed photo into the thumbnail')
+  await shot('close-mid')
+  check(await closed(), 'close button shrinks the photo into the thumbnail')
 
   // The thumbnail scrolled out of sight while open: the photo fades instead.
   await openZoom()
